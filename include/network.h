@@ -1,10 +1,14 @@
 #ifndef GUARD_NETWORK_H
 #define GUARD_NETWORK_H
 
-#include <climits>
 #include <cstddef>
+#include <limits>
 #include <string>
 #include <vector>
+
+// some constants
+constexpr unsigned MINUTES_IN_HOUR = 60;
+
 
 // forward declaration
 class Link;
@@ -178,7 +182,15 @@ public:
 
     double get_fftt() const
     {
-        return len > 0 ? static_cast<double>(len) / ffs * 60 : INT_MAX;
+        return ffs > 0 ? static_cast<double>(len) / ffs * MINUTES_IN_HOUR : INT_MAX;
+    }
+
+    double get_generalized_cost(unsigned i, double vot) const
+    {
+        if (vot <= 0)
+            vot = std::numeric_limits<double>::epsilon();
+
+        return period_tt[i] + choice_cost + static_cast<double>(toll) / vot * MINUTES_IN_HOUR;
     }
 
     double get_route_choice_cost() const
@@ -206,6 +218,13 @@ public:
         period_vol[i] = 0;
     }
 
+    // to be defined outside
+    double get_period_voc(unsigned i) const;
+    double get_period_fftt(unsigned i) const;
+    double get_period_avg_tt(unsigned i) const;
+
+    void update_period_travel_time(unsigned i, int iter_no);
+
 private:
     std::string id;
     std::size_t no;
@@ -229,6 +248,7 @@ private:
     double vol;
 
     // use vector instead?
+    // these two can be members of VDFPeriod, why separate them out?
     double* period_tt;
     double* period_vol;
 
