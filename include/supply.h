@@ -371,10 +371,8 @@ public:
     {
     }
 
-    // the following functions can have unified names via traditional C++ practices. 
-    // take get_dist for example,
-    // double distance() const
-    // double& distance()
+    // the following functions can have unified names via traditional C++ practices.
+    // take get_dist for example, double distance() const and double& distance()
     double get_dist() const
     {
         return dist;
@@ -600,7 +598,116 @@ private:
 };
 
 class Zone {
+public:
+    using Vertex = std::pair<double, double>;
+    using Boundary = std::tuple<Vertex, Vertex, Vertex, Vertex>;
 
+    Zone() = default;
+
+    explicit Zone(size_t no_) : no {no_}
+    {
+    }
+
+    Zone(size_t no_, unsigned bin_id_) : no {no_}, bin_id {bin_id_}
+    {
+    }
+
+    Zone(const Zone&) = delete;
+    Zone& operator=(const Zone&) = delete;
+
+    Zone(Zone&&) = default;
+    Zone& operator=(Zone&&) = default;
+
+    ~Zone() = default;
+
+    const std::vector<size_t>& get_activity_nodes() const
+    {
+        return act_nodes;
+    }
+
+    std::vector<size_t>::size_type get_activity_nodes_num() const
+    {
+        return act_nodes.size();
+    }
+
+    unsigned get_bin_index() const
+    {
+        return bin_id;
+    }
+
+    const Boundary& get_boundaries() const
+    {
+        return bd;
+    }
+
+    const Node& get_centroid() const
+    {
+        return *centroid;
+    }
+
+    const Vertex& get_coordinate() const
+    {
+        return std::make_pair(x, y);
+    }
+
+    // incomplete
+    std::string get_geometry() const
+    {
+        try
+        {
+            auto U = std::get<0>(bd);
+            auto D = std::get<1>(bd);
+            auto L = std::get<2>(bd);
+            auto R = std::get<3>(bd);
+        }
+        catch(const std::exception& e)
+        {
+            return "INESTRING ()";
+        }
+    }
+
+    double get_production() const
+    {
+        return prod;
+    }
+
+    void add_activity_node(size_t node_no)
+    {
+        act_nodes.push_back(node_no);
+    }
+
+    void set_bin_index(unsigned bi)
+    {
+        bin_id = bi;
+    }
+
+    // incomplete
+    void set_geometry(double x_, double y_)
+    {
+        x = x_;
+        y = y_;
+    }
+
+    void set_production(double p)
+    {
+        prod = p;
+    }
+
+private:
+    std::string id;
+    size_t no = 0;
+
+    std::vector<size_t> act_nodes;
+    Node* centroid;
+
+    // the following members are related to zone synthesis
+    unsigned bin_id = 0;
+
+    Boundary bd;
+    double x = 0;
+    double y = 0;
+
+    double prod = 0;
 };
 
 // an abstract class
@@ -619,7 +726,7 @@ public:
 
     virtual size_t* cost_labels() = 0;
     virtual const size_t* cost_labels() const = 0;
-    
+
     // no need for node predecessors which can be easily inferred
     virtual size_t* link_preds() = 0;
     virtual const size_t* link_preds() const = 0;
