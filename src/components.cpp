@@ -11,6 +11,7 @@ inline const std::vector<size_t>& Agent::get_node_path() const
     return col->get_nodes();
 }
 
+// incomplete
 void Link::update_period_travel_time(unsigned iter_no)
 {
     for (auto& v: vdfps)

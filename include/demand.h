@@ -207,6 +207,7 @@ private:
     bool is_link_ffs;
 };
 
+// move ratio_reduction to each individual VDFPeriod?
 class SpecialEvent {
 public:
     SpecialEvent() = delete;
@@ -238,6 +239,7 @@ public:
     {
         return ratios.at(link_no);
     }
+
 private:
     unsigned beg_iter_no;
     unsigned end_iter_no;
@@ -246,13 +248,95 @@ private:
     std::map<size_t, double> ratios;
 };
 
-// can be combined with DemandPeriod?
-class Demand {
-
-};
-
 class DemandPeriod {
+public:
+    DemandPeriod() : id {0}, at_name {"auto"}, filename {"demand.csv"},
+                     period {"AM"}, time_period {"0700_0800"}, se {nullptr}
+    {
+    }
 
+    DemandPeriod(unsigned id_, std::string&& at_name_, std::string&& filename_,
+                 std::string&& period_, std::string&& time_period_, const SpecialEvent* se_)
+        : id {id_}, at_name {at_name_}, filename {filename_},
+          period {period_}, time_period {time_period_}, se {se_}
+    {
+    }
+
+    DemandPeriod(const DemandPeriod&) = delete;
+    DemandPeriod& operator=(const DemandPeriod&) = delete;
+
+    DemandPeriod(DemandPeriod&&) = delete;
+    DemandPeriod& operator=(DemandPeriod&&) = delete;
+
+    ~DemandPeriod()
+    {
+        delete se;
+    }
+
+    const std::string& get_agent_type_name() const
+    {
+        return at_name;
+    }
+
+    double get_cap_reduction_ratio(size_t link_no, unsigned iter_no)
+    {
+        if (!se)
+            return 1;
+
+        if (!contain_iter_no(iter_no))
+            return 1;
+
+        try
+        {
+            return se->get_cap_reduction_ratio(link_no);
+        }
+        catch (std::runtime_error& re)
+        {
+            return 1;
+        }
+    }
+
+    const std::string& get_demand_file_name() const
+    {
+        return filename;
+    }
+
+    unsigned get_id() const
+    {
+        return id;
+    }
+
+    const std::string& get_period() const
+    {
+        return period;
+    }
+
+    const std::string& get_time_period() const
+    {
+        return time_period;
+    }
+
+private:
+    bool contain_iter_no(unsigned iter_no)
+    {
+        if (!se)
+            return false;
+
+        if (iter_no < se->get_beg_iter_no() - 1 || iter_no > se->get_end_iter_no() - 1)
+            return false;
+
+        return true;
+    }
+
+private:
+    unsigned id;
+
+    std::string at_name;
+    std::string filename;
+    std::string period;
+    std::string time_period;
+
+    const SpecialEvent* se;
 };
 
 #endif
