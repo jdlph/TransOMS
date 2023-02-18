@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <map>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -468,9 +469,26 @@ public:
 
     ~ColumnVec() = default;
 
+    // useless?
     bool is_route_fixed() const
     {
         return route_fixed;
+    }
+
+    bool has_column(const Column& c) const
+    {
+        if (cols.find(c) == cols.end())
+            return false;
+
+        // a further link-by-link comparison
+        auto er = cols.equal_range(c);
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->get_links() == c.get_links())
+                return true;
+        }
+
+        return false;
     }
 
     int get_column_num() const
@@ -508,8 +526,34 @@ private:
     double vol;
     bool route_fixed;
 
-    // use Column* instead, which will requires heap memory?
+    // use Column* instead (which will require heap memory)?
     std::unordered_multiset<Column, ColumnHash> cols;
+};
+
+class ColumnPool {
+public:
+    using Key = std::tuple<unsigned, unsigned, std::string, std::string>;
+
+    ColumnPool() = default;
+
+    ColumnPool(const ColumnPool&) = delete;
+    ColumnPool& operator=(const ColumnPool) = delete;
+
+    ColumnPool(ColumnPool&&) = default;
+    ColumnPool& operator=(ColumnPool&&) = delete;
+
+    ColumnVec& get_column_vec(const Key& k)
+    {
+        return cp.at(k);
+    }
+
+    const ColumnVec& get_column_vec(const Key& k) const
+    {
+        return cp.at(k);
+    }
+
+private:
+    std::map<Key, ColumnVec> cp;
 };
 
 class Network {
