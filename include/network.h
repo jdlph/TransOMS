@@ -1,6 +1,7 @@
 #ifndef GUARD_NETWORK_H
 #define GUARD_NETWORK_H
 
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <string>
@@ -9,109 +10,62 @@
 // some constants
 constexpr unsigned MINUTES_IN_HOUR = 60;
 
-
-// forward declaration
-class Link;
-
-class Node {
+class VDFPeriod {
 public:
-    Node() = default;
+    VDFPeriod() = delete;
 
-    Node(std::size_t no_, std::string&& id_,  double x_, double y_, std::string&& z_id, bool act_node_)
-        : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id}, act_node {act_node_}
+    VDFPeriod(unsigned no_, double alpha_ = 0.15, double beta_ = 4,
+              double mu_ = 1000, double cap_ = 1999, double fftt_ = INT_MAX)
+        : no {no_}, alpha {alpha_}, beta {beta_}, mu {mu_},
+          cap {cap_}, fftt {fftt_}, avg_tt {INT_MAX}, voc {0}
     {
     }
 
-    Node(const Node&) = delete;
-    Node& operator=(const Node&) = delete;
+    VDFPeriod(const VDFPeriod&) = delete;
+    VDFPeriod& operator=(const VDFPeriod&) = delete;
 
-    Node(Node&&) = delete;
-    Node& operator=(Node&&) = delete;
+    VDFPeriod(VDFPeriod&&) = default;
+    VDFPeriod& operator=(VDFPeriod&&) = default;
 
-    ~Node() = default;
-
-    const std::string& get_id() const
+    double get_avg_travel_time() const
     {
-        return id;
+        return avg_tt;
     }
 
-    std::size_t get_no() const
+    double get_fftt() const
     {
-        return no;
+        return fftt;
     }
 
-    const std::string& get_zone_id() const
+    double get_voc() const
     {
-        return zone_id;
+        return voc;
     }
 
-    auto get_coordinate() const
+    double run_bpr(double reduction_ratio = 1)
     {
-        return std::make_pair(x, y);
-    }
+        voc = cap > 0 ? static_cast<double>(vol) / cap * reduction_ratio : INT_MAX;
+        avg_tt = fftt * (1 + alpha * std::pow(voc, beta));
 
-    std::vector<Link*>::size_type incoming_link_num() const
-    {
-        return incoming_links.size();
-    }
-
-    std::vector<Link*>::size_type outgoing_link_num() const
-    {
-        return outgoing_links.size();
-    }
-
-    std::vector<Link*>& get_incoming_links()
-    {
-        return incoming_links;
-    }
-
-    const std::vector<Link*>& get_incoming_links() const
-    {
-        return incoming_links;
-    }
-
-    std::vector<Link*>& get_outgoing_links()
-    {
-        return outgoing_links;
-    }
-
-    const std::vector<Link*>& get_outgoing_links() const
-    {
-        return outgoing_links;
-    }
-
-    void add_incoming_link(Link* p)
-    {
-        incoming_links.push_back(p);
-    }
-
-    void add_outgoing_link(Link* p)
-    {
-        outgoing_links.push_back(p);
-    }
-
-    void setup_coordinate(double x_, double y_)
-    {
-        x = x_;
-        y = y_;
+        return avg_tt;
     }
 
 private:
-    std::string id;
-    std::size_t no;
+    unsigned no;
 
-    double x;
-    double y;
+    double alpha;
+    double beta;
+    double mu;
+    double phf;
 
-    std::string zone_id;
-    bool act_node;
+    double cap;
+    double fftt;
 
-    std::vector<Link*> incoming_links;
-    std::vector<Link*> outgoing_links;
+    double avg_tt;
+    double tt;
+    double voc;
+    double vol;
 };
-
-// forward declaration
-class VDFPeriod;
 
 class Link {
 public:
@@ -137,7 +91,7 @@ public:
     Link& operator=(const Link&) = delete;
 
     Link(Link&&) = delete;
-    Link&& operator=(Link&&) = delete;
+    Link& operator=(Link&&) = delete;
 
     ~Link()
     {
@@ -248,7 +202,8 @@ private:
     double vol;
 
     // use vector instead?
-    // these two can be members of VDFPeriod, why separate them out?
+    // these two can be members of VDFPeriod, why separate them out and result
+    // into potential memory fragmentation?
     double* period_tt;
     double* period_vol;
 
@@ -256,6 +211,108 @@ private:
 
     std::vector<VDFPeriod*> vdfps;
 };
+
+class Node {
+public:
+    Node() = default;
+
+    Node(std::size_t no_, std::string&& id_,  double x_, double y_,
+         std::string&& z_id, bool act_node_ = false)
+        : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id}, act_node {act_node_}
+    {
+    }
+
+    Node(const Node&) = delete;
+    Node& operator=(const Node&) = delete;
+
+    Node(Node&&) = delete;
+    Node& operator=(Node&&) = delete;
+
+    ~Node() = default;
+
+    const std::string& get_id() const
+    {
+        return id;
+    }
+
+    std::size_t get_no() const
+    {
+        return no;
+    }
+
+    const std::string& get_zone_id() const
+    {
+        return zone_id;
+    }
+
+    auto get_coordinate() const
+    {
+        return std::make_pair(x, y);
+    }
+
+    std::vector<Link*>::size_type incoming_link_num() const
+    {
+        return incoming_links.size();
+    }
+
+    std::vector<Link*>::size_type outgoing_link_num() const
+    {
+        return outgoing_links.size();
+    }
+
+    std::vector<Link*>& get_incoming_links()
+    {
+        return incoming_links;
+    }
+
+    const std::vector<Link*>& get_incoming_links() const
+    {
+        return incoming_links;
+    }
+
+    std::vector<Link*>& get_outgoing_links()
+    {
+        return outgoing_links;
+    }
+
+    const std::vector<Link*>& get_outgoing_links() const
+    {
+        return outgoing_links;
+    }
+
+    void add_incoming_link(Link* p)
+    {
+        incoming_links.push_back(p);
+    }
+
+    void add_outgoing_link(Link* p)
+    {
+        outgoing_links.push_back(p);
+    }
+
+    void setup_coordinate(double x_, double y_)
+    {
+        x = x_;
+        y = y_;
+    }
+
+private:
+    std::string id;
+    std::size_t no;
+
+    double x;
+    double y;
+
+    std::string zone_id;
+    bool act_node;
+
+    std::vector<Link*> incoming_links;
+    std::vector<Link*> outgoing_links;
+};
+
+
+
+
 
 class Network {
 
