@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 
-// forward declaration
+// forward declarations
 class Column;
+class SpecialEvent;
 
 class Agent {
 public:
@@ -207,47 +208,6 @@ private:
     bool is_link_ffs;
 };
 
-// move ratio_reduction to each individual VDFPeriod?
-class SpecialEvent {
-public:
-    SpecialEvent() = delete;
-
-    SpecialEvent(unsigned beg_iter_no_, unsigned end_iter_no_, std::string&& name_)
-        : beg_iter_no {beg_iter_no_}, end_iter_no {end_iter_no_}, name {name_}
-    {
-    }
-
-    SpecialEvent(const SpecialEvent&) = delete;
-    SpecialEvent& operator=(const SpecialEvent&) = delete;
-
-    SpecialEvent(SpecialEvent&&) = default;
-    SpecialEvent& operator=(SpecialEvent&&) = default;
-
-    ~SpecialEvent() = default;
-
-    unsigned get_beg_iter_no() const
-    {
-        return beg_iter_no;
-    }
-
-    unsigned get_end_iter_no() const
-    {
-        return end_iter_no;
-    }
-
-    double get_cap_reduction_ratio(size_t link_no) const
-    {
-        return ratios.at(link_no);
-    }
-
-private:
-    unsigned beg_iter_no;
-    unsigned end_iter_no;
-
-    std::string name;
-    std::map<size_t, double> ratios;
-};
-
 class DemandPeriod {
 public:
     DemandPeriod() : id {0}, at_name {"auto"}, filename {"demand.csv"},
@@ -278,24 +238,6 @@ public:
         return at_name;
     }
 
-    double get_cap_reduction_ratio(size_t link_no, unsigned iter_no)
-    {
-        if (!se)
-            return 1;
-
-        if (!contain_iter_no(iter_no))
-            return 1;
-
-        try
-        {
-            return se->get_cap_reduction_ratio(link_no);
-        }
-        catch (std::runtime_error& re)
-        {
-            return 1;
-        }
-    }
-
     const std::string& get_demand_file_name() const
     {
         return filename;
@@ -316,17 +258,8 @@ public:
         return time_period;
     }
 
-private:
-    bool contain_iter_no(unsigned iter_no)
-    {
-        if (!se)
-            return false;
-
-        if (iter_no < se->get_beg_iter_no() - 1 || iter_no > se->get_end_iter_no() - 1)
-            return false;
-
-        return true;
-    }
+    bool contain_iter_no(unsigned iter_no) const;
+    double get_cap_reduction_ratio(size_t link_no, unsigned iter_no) const;
 
 private:
     unsigned id;
