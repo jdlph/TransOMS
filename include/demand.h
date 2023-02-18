@@ -19,6 +19,7 @@ public:
         : id {id_}, at_id {at_id_}, dp_id {dp_id_}, oz_id {oz_id_}, dz_id {dz_id_},
           col {c}, pce {1}
     {
+        initialize_intervals();
     }
 
     Agent(const Agent&) = delete;
@@ -68,12 +69,12 @@ public:
         return curr_link_no == 0;
     }
 
-    size_t get_arr_interval() const
+    unsigned get_arr_interval() const
     {
         return arr_intvls[curr_link_no];
     }
 
-    size_t get_dep_interval() const
+    unsigned get_dep_interval() const
     {
         return dep_intvls[curr_link_no];
     }
@@ -109,6 +110,26 @@ public:
         dep_intvls[curr_link_no] = i;
     }
 
+    // can be combined with set_arr_interval()?
+    void set_orig_arr_interval(unsigned i)
+    {
+        arr_intvls.back() = i;
+    }
+
+private:
+    void initialize_intervals()
+    {
+        // throw an error or terminate?
+        if (!col)
+            return;
+
+        std::vector<size_t>::size_type n = col->get_node_num();
+
+        arr_intvls.resize(n);
+        dep_intvls.resize(n);
+        curr_link_no = n - 1;
+    }
+
 private:
     size_t id;
     unsigned at_id;
@@ -126,8 +147,8 @@ private:
     size_t curr_link_no;
     double dep_time;
 
-    std::vector<size_t> arr_intvls;
-    std::vector<size_t> dep_intvls;
+    std::vector<unsigned> arr_intvls;
+    std::vector<unsigned> dep_intvls;
 };
 
 class AgentType {
@@ -269,6 +290,7 @@ private:
     std::string period;
     std::string time_period;
 
+    // change back to SpecialEvent later
     const SpecialEvent* se;
 };
 

@@ -1,5 +1,5 @@
-#ifndef GUARD_NETWORK_H
-#define GUARD_NETWORK_H
+#ifndef GUARD_SUPPLY_H
+#define GUARD_SUPPLY_H
 
 #include <cmath>
 #include <cstddef>
@@ -248,6 +248,7 @@ private:
     double choice_cost = 0;
     double toll = 0;
 
+    std::string allowed_modes;
     std::string geo;
     // ditch pointers to take advantage of stack memory and avoid potential memory fragmentation
     // given instances of VDFPeriod are small objects
@@ -370,7 +371,8 @@ public:
     {
     }
 
-    // the following functions can have unified names. take get_dist for example,
+    // the following functions can have unified names via traditional C++ practices. 
+    // take get_dist for example,
     // double distance() const
     // double& distance()
     double get_dist() const
@@ -597,8 +599,44 @@ private:
     std::map<Key, ColumnVec> cp;
 };
 
-class Network {
+class Zone {
 
+};
+
+// an abstract class
+class Network {
+public:
+    using size_type = std::vector<const Node*>::size_type;
+
+    virtual std::vector<const Node*>& get_nodes() = 0;
+    virtual const std::vector<const Node*>& get_nodes() const = 0;
+
+    virtual std::vector<const Link*>& get_links() = 0;
+    virtual const std::vector<const Link*>& get_links() const = 0;
+
+    virtual std::vector<const Zone*>& get_zones() = 0;
+    virtual const std::vector<const Zone*>& get_zones() const = 0;
+
+    virtual size_t* cost_labels() = 0;
+    virtual const size_t* cost_labels() const = 0;
+    
+    // no need for node predecessors which can be easily inferred
+    virtual size_t* link_preds() = 0;
+    virtual const size_t* link_preds() const = 0;
+
+    // deque
+    virtual size_t* next_nodes() = 0;
+    virtual const size_t* next_nodes() const = 0;
+
+    virtual size_t get_last_thru_node_no() const = 0;
+
+    virtual const std::vector<size_t>& get_orig_centroids() const = 0;
+    virtual const std::vector<size_t>& get_all_centroids() const = 0;
+
+    virtual size_type get_link_num() const = 0;
+    virtual size_type get_node_num() const = 0;
+
+    virtual ~Network() {}
 };
 
 class PhyNetwork : public Network {
