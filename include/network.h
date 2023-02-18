@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <limits>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 // some constants
@@ -320,7 +321,7 @@ public:
     Column(const Column&) = delete;
     Column& operator=(const Column&) = delete;
 
-    Column(Column&&) = delete;
+    Column(Column&&) = default;
     Column& operator=(Column&&) = delete;
 
     ~Column()
@@ -444,6 +445,71 @@ private:
     std::string geo;
     std::vector<size_t> links;
     std::vector<size_t> nodes;
+};
+
+struct ColumnHash {
+    size_t operator()(const Column& c) const
+    {
+        return std::hash<int>()(c.get_link_num()) ^ std::hash<double>()(c.get_dist());
+    }
+};
+
+class ColumnVec {
+public:
+    ColumnVec() : vol {0}, route_fixed {false}
+    {
+    }
+
+    ColumnVec(const ColumnVec&) = delete;
+    ColumnVec& operator=(const ColumnVec) = delete;
+
+    ColumnVec(ColumnVec&&) = delete;
+    ColumnVec& operator=(ColumnVec&&) = delete;
+
+    ~ColumnVec() = default;
+
+    bool is_route_fixed() const
+    {
+        return route_fixed;
+    }
+
+    int get_column_num() const
+    {
+        return cols.size();
+    }
+
+    std::unordered_multiset<Column, ColumnHash>& get_columns()
+    {
+        return cols;
+    }
+
+    // it might be useless according to Path4GMNS
+    const std::unordered_multiset<Column, ColumnHash>& get_columns() const
+    {
+        return cols;
+    }
+
+    void add_new_column(Column&& c)
+    {
+        cols.insert(c);
+    }
+
+    void increase_volume(double v)
+    {
+        vol += v;
+    }
+
+    void set_volume(double v)
+    {
+        vol = v;
+    }
+
+private:
+    double vol;
+    bool route_fixed;
+
+    // use Column* instead, which will requires heap memory?
+    std::unordered_multiset<Column, ColumnHash> cols;
 };
 
 class Network {
