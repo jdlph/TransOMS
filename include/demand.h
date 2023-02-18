@@ -1,12 +1,13 @@
 #ifndef GUARD_DEMAND_H
 #define GUARD_DEMAND_H
 
-// cross inclusion if including demand.h in network.h?
-#include <network.h>
-
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
+
+// forward declaration
+class Column;
 
 class Agent {
 public:
@@ -52,15 +53,8 @@ public:
         return id;
     }
 
-    const std::vector<size_t>& get_link_path() const
-    {
-        return col->get_links();
-    }
-
-    const std::vector<size_t>& get_node_path() const
-    {
-        return col->get_nodes();
-    }
+    const std::vector<size_t>& get_link_path() const;
+    const std::vector<size_t>& get_node_path() const;
 
     double get_pce() const
     {
@@ -214,7 +208,42 @@ private:
 };
 
 class SpecialEvent {
+public:
+    SpecialEvent() = delete;
 
+    SpecialEvent(unsigned beg_iter_no_, unsigned end_iter_no_, std::string&& name_)
+        : beg_iter_no {beg_iter_no_}, end_iter_no {end_iter_no_}, name {name_}
+    {
+    }
+
+    SpecialEvent(const SpecialEvent&) = delete;
+    SpecialEvent& operator=(const SpecialEvent&) = delete;
+
+    SpecialEvent(SpecialEvent&&) = default;
+    SpecialEvent& operator=(SpecialEvent&&) = default;
+
+    ~SpecialEvent() = default;
+
+    unsigned get_beg_iter_no() const
+    {
+        return beg_iter_no;
+    }
+
+    unsigned get_end_iter_no() const
+    {
+        return end_iter_no;
+    }
+
+    double get_cap_reduction_ratio(size_t link_no) const
+    {
+        return ratios.at(link_no);
+    }
+private:
+    unsigned beg_iter_no;
+    unsigned end_iter_no;
+
+    std::string name;
+    std::map<size_t, double> ratios;
 };
 
 // can be combined with DemandPeriod?

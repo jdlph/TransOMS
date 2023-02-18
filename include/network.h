@@ -60,7 +60,7 @@ public:
 
     void run_bpr(double reduction_ratio = 1)
     {
-        voc = cap > 0 ? static_cast<double>(vol) / cap * reduction_ratio : INT_MAX;
+        voc = cap > 0 ? static_cast<double>(vol) / (cap * reduction_ratio) : INT_MAX;
         tt = fftt * (1 + alpha * std::pow(voc, beta));
     }
 
