@@ -16,8 +16,7 @@ public:
 
     VDFPeriod(unsigned no_, double alpha_ = 0.15, double beta_ = 4,
               double mu_ = 1000, double cap_ = 1999, double fftt_ = INT_MAX)
-        : no {no_}, alpha {alpha_}, beta {beta_}, mu {mu_},
-          cap {cap_}, fftt {fftt_}, avg_tt {INT_MAX}, voc {0}
+        : no {no_}, alpha {alpha_}, beta {beta_}, mu {mu_}, cap {cap_}, fftt {fftt_}
     {
     }
 
@@ -27,9 +26,9 @@ public:
     VDFPeriod(VDFPeriod&&) = default;
     VDFPeriod& operator=(VDFPeriod&&) = default;
 
-    double get_avg_travel_time() const
+    double get_travel_time() const
     {
-        return avg_tt;
+        return tt;
     }
 
     double get_fftt() const
@@ -42,12 +41,25 @@ public:
         return voc;
     }
 
-    double run_bpr(double reduction_ratio = 1)
+    double get_vol() const
+    {
+        return vol;
+    }
+
+    void increase_vol(double v)
+    {
+        vol += v;
+    }
+
+    void reset_vol()
+    {
+        vol = 0;
+    }
+
+    void run_bpr(double reduction_ratio = 1)
     {
         voc = cap > 0 ? static_cast<double>(vol) / cap * reduction_ratio : INT_MAX;
-        avg_tt = fftt * (1 + alpha * std::pow(voc, beta));
-
-        return avg_tt;
+        tt = fftt * (1 + alpha * std::pow(voc, beta));
     }
 
 private:
@@ -56,15 +68,13 @@ private:
     double alpha;
     double beta;
     double mu;
-    double phf;
 
     double cap;
     double fftt;
 
-    double avg_tt;
-    double tt;
-    double voc;
-    double vol;
+    double tt = INT_MAX;
+    double voc = 0;
+    double vol = 0;
 };
 
 class Link {
@@ -74,17 +84,12 @@ public:
     Link(std::string&& id_, std::size_t no_,
          std::string&& head_node_id_, std::size_t head_node_no_,
          std::string&& tail_node_id_, std::size_t tail_node_no_,
-         unsigned lane_num_, double cap_, double ffs_, double len_, unsigned demand_period_num)
+         unsigned lane_num_, double cap_, double ffs_, double len_)
          : id {id_}, no {no_},
            head_node_id {head_node_id_}, head_node_no {head_node_no_},
            tail_node_id {tail_node_id_}, tail_node_no {tail_node_no},
            lane_num {lane_num_}, cap {cap_}, ffs {ffs_}, len {len_}
     {
-        period_tt = new double[demand_period_num];
-        period_vol = new double[demand_period_num];
-
-        for (unsigned i = 0; i != demand_period_num; ++i)
-            period_tt[i] = period_vol[i] = 0;
     }
 
     Link(const Link&) = delete;
@@ -93,11 +98,7 @@ public:
     Link(Link&&) = delete;
     Link& operator=(Link&&) = delete;
 
-    ~Link()
-    {
-        delete[] period_tt;
-        delete[] period_vol;
-    }
+    ~Link() = default;
 
     const std::string& get_id() const
     {
@@ -144,7 +145,7 @@ public:
         if (vot <= 0)
             vot = std::numeric_limits<double>::epsilon();
 
-        return period_tt[i] + choice_cost + static_cast<double>(toll) / vot * MINUTES_IN_HOUR;
+        return vdfps[i].get_travel_time() + choice_cost + static_cast<double>(toll) / vot * MINUTES_IN_HOUR;
     }
 
     double get_route_choice_cost() const
@@ -152,30 +153,36 @@ public:
         return choice_cost;
     }
 
+    double get_period_voc(unsigned i) const
+    {
+        return vdfps[i].get_voc();
+    }
+
+    // useless as it should be always the same as fftt from link itself?
+    double get_period_fftt(unsigned i) const
+    {
+        return vdfps[i].get_fftt();
+    }
+
     double get_period_travel_time(unsigned i) const
     {
-        return period_tt[i];
+        return vdfps[i].get_travel_time();
     }
 
     double get_period_vol(unsigned i) const
     {
-        return period_vol[i];
+        return vdfps[i].get_vol();
     }
 
     void increase_period_vol(unsigned i, double v)
     {
-        period_vol[i] += v;
+        vdfps[i].increase_vol(v);
     }
 
     void reset_period_vol(unsigned i)
     {
-        period_vol[i] = 0;
+        vdfps[i].reset_vol();
     }
-
-    // to be defined outside
-    double get_period_voc(unsigned i) const;
-    double get_period_fftt(unsigned i) const;
-    double get_period_avg_tt(unsigned i) const;
 
     void update_period_travel_time(unsigned i, int iter_no);
 
@@ -195,21 +202,13 @@ private:
     double ffs;
     double len;
 
-    double cost;
-    double choice_cost;
-    double toll;
-
-    double vol;
-
-    // use vector instead?
-    // these two can be members of VDFPeriod, why separate them out and result
-    // into potential memory fragmentation?
-    double* period_tt;
-    double* period_vol;
+    double choice_cost = 0;
+    double toll = 0;
 
     std::string geo;
-
-    std::vector<VDFPeriod*> vdfps;
+    // ditch pointers to take advantage of stack memory and avoid potential memory fragmentation
+    // given instances of VDFPeriod are small objects
+    std::vector<VDFPeriod> vdfps;
 };
 
 class Node {
@@ -309,10 +308,6 @@ private:
     std::vector<Link*> incoming_links;
     std::vector<Link*> outgoing_links;
 };
-
-
-
-
 
 class Network {
 
