@@ -184,7 +184,7 @@ public:
         vdfps[i].reset_vol();
     }
 
-    void update_period_travel_time(unsigned i, int iter_no);
+    void update_period_travel_time(unsigned iter_no);
 
 private:
     std::string id;
@@ -307,6 +307,143 @@ private:
 
     std::vector<Link*> incoming_links;
     std::vector<Link*> outgoing_links;
+};
+
+class Column {
+public:
+    Column() = delete;
+
+    Column(unsigned id_) : id {id_}
+    {
+    }
+
+    Column(const Column&) = delete;
+    Column& operator=(const Column&) = delete;
+
+    Column(Column&&) = delete;
+    Column& operator=(Column&&) = delete;
+
+    ~Column()
+    {
+    }
+
+    // the following functions can have unified names. take get_dist for example,
+    // double distance() const
+    // double& distance()
+    double get_dist() const
+    {
+        return dist;
+    }
+
+    double get_gradient_cost() const
+    {
+        return gc;
+    }
+
+    double get_gradient_cost_abs_diff() const
+    {
+        return gc_ad;
+    }
+
+    double get_gradient_cost_rel_diff() const
+    {
+        return gc_rd;
+    }
+
+    unsigned get_id() const
+    {
+        return id;
+    }
+
+    std::vector<size_t>::size_type get_link_num() const
+    {
+        return links.size();
+    }
+
+    std::vector<size_t>::size_type get_node_num() const
+    {
+        return nodes.size();
+    }
+
+    double get_travel_time() const
+    {
+        return tt;
+    }
+
+    double get_toll() const
+    {
+        return toll;
+    }
+
+    double get_volume() const
+    {
+        return vol;
+    }
+
+    const std::vector<size_t>& get_links() const
+    {
+        return links;
+    }
+
+    const std::vector<size_t>& get_nodes() const
+    {
+        return nodes;
+    }
+
+    void increase_toll(double t)
+    {
+        toll += t;
+    }
+
+    void increase_volume(double v)
+    {
+        vol += v;
+    }
+
+    void set_distance(double d)
+    {
+        dist = d;
+    }
+
+    void set_geometry(std::string&& s)
+    {
+        geo = s;
+    }
+
+    void set_gradient_cost(double c)
+    {
+        gc = c;
+    }
+
+    void set_gradient_cost_abs_diff(double ad)
+    {
+        gc_ad = ad;
+    }
+
+    void set_gradient_cost_rel_diff(double rd)
+    {
+        gc_rd = rd;
+    }
+
+    void set_travel_time(double t)
+    {
+        tt = t;
+    }
+
+private:
+    unsigned id;
+
+    double dist = 0;
+    double gc = 0;
+    double gc_ad = 0;
+    double gc_rd = 0;
+    double tt = 0;
+    double toll = 0;
+    double vol = 0;
+
+    std::string geo;
+    std::vector<size_t> links;
+    std::vector<size_t> nodes;
 };
 
 class Network {
