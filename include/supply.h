@@ -296,32 +296,32 @@ public:
         return std::make_pair(x, y);
     }
 
-    std::vector<Link*>::size_type incoming_link_num() const
+    std::vector<const Link*>::size_type incoming_link_num() const
     {
         return incoming_links.size();
     }
 
-    std::vector<Link*>::size_type outgoing_link_num() const
+    std::vector<const Link*>::size_type outgoing_link_num() const
     {
         return outgoing_links.size();
     }
 
-    std::vector<Link*>& get_incoming_links()
+    std::vector<const Link*>& get_incoming_links()
     {
         return incoming_links;
     }
 
-    const std::vector<Link*>& get_incoming_links() const
+    const std::vector<const Link*>& get_incoming_links() const
     {
         return incoming_links;
     }
 
-    std::vector<Link*>& get_outgoing_links()
+    std::vector<const Link*>& get_outgoing_links()
     {
         return outgoing_links;
     }
 
-    const std::vector<Link*>& get_outgoing_links() const
+    const std::vector<const Link*>& get_outgoing_links() const
     {
         return outgoing_links;
     }
@@ -352,8 +352,8 @@ private:
     std::string zone_id;
     bool act_node;
 
-    std::vector<Link*> incoming_links;
-    std::vector<Link*> outgoing_links;
+    std::vector<const Link*> incoming_links;
+    std::vector<const Link*> outgoing_links;
 };
 
 class Column {
@@ -643,9 +643,9 @@ public:
         return bd;
     }
 
-    const Node& get_centroid() const
+    const Node* get_centroid() const
     {
-        return *centroid;
+        return centroid;
     }
 
     const Vertex& get_coordinate() const
@@ -740,9 +740,8 @@ public:
 
     virtual size_t get_last_thru_node_no() const = 0;
 
-    // combine them
-    virtual const std::vector<size_t>& get_orig_centroids() const = 0;
-    virtual const std::vector<size_t> get_all_centroids() const = 0;
+    virtual const std::vector<size_t>& get_orig_nodes() const = 0;
+    virtual const std::vector<const Node*>& get_centroids() const = 0;
 
     virtual size_type get_link_num() const = 0;
     virtual size_type get_node_num() const = 0;
@@ -770,12 +769,17 @@ public:
             delete p;
     }
 
-    size_type get_link_num() const
+    std::size_t get_last_thru_node_no() const override
+    {
+        return last_thru_node_no;
+    }
+
+    size_type get_link_num() const override
     {
         return links.size();
     }
 
-    size_type get_node_num() const
+    size_type get_node_num() const override
     {
         return nodes.size();
     }
@@ -810,27 +814,31 @@ public:
         return zones;
     }
 
-    // useless as we need centroid objects / pointers?
-    // performance issue: we will use this extensively in column generation.
-    const std::vector<size_t> get_all_centroids() const override
+    const std::vector<const Node*>& get_centroids() const override
     {
-        std::vector<size_t> vec;
-        for (auto i = last_thru_node_no + 1; i != nodes.size(); ++i)
-            vec.push_back(nodes[i]->get_no());
+        return centroids;
+    }
 
-        // it will be moved outside the function body.
-        return vec;
+    void collect_centroids()
+    {
+        for (const auto& z : zones)
+        {
+            // make sure centroid is not nullptr
+            if (z.second.get_centroid())
+                centroids.push_back(z.second.get_centroid());
+        }
     }
 
 private:
     std::size_t last_thru_node_no;
 
     std::vector<const Link*> links;
-    // it can be vector<Node> if we store the centroid of a zone as node_no
     std::vector<const Node*> nodes;
-    std::vector<Agent> agents;
+
+    std::vector<const Node*> centroids;
     std::map<std::string, Zone> zones;
 
+    std::vector<Agent> agents;
     // time-dependent agents for simulation
     std::map<unsigned, size_t> td_agents;
 };
@@ -858,9 +866,14 @@ public:
         delete[] preds;
     }
 
-    const std::vector<size_t>& get_orig_centroids() const override
+    std::size_t get_last_thru_node_no() const override
     {
-        return centroids;
+        return pn->get_last_thru_node_no();
+    }
+
+    const std::vector<size_t>& get_orig_nodes() const override
+    {
+        return orig_nodes;
     }
 
     size_type get_link_num() const override
@@ -956,7 +969,7 @@ private:
     long* deque;
     double* costs;
 
-    std::vector<std::size_t> centroids;
+    std::vector<std::size_t> orig_nodes;
 
     static constexpr long nullnode = -1;
     static constexpr long pastnode = -3;
