@@ -18,7 +18,7 @@ void Link::update_period_travel_time(unsigned iter_no)
         v.run_bpr();
 }
 
-bool DemandPeriod::contain_iter_no(unsigned iter_no) const
+inline bool DemandPeriod::contain_iter_no(unsigned iter_no) const
 {
     if (!se)
         return false;

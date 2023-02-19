@@ -12,6 +12,9 @@
 // some constants
 constexpr unsigned MINUTES_IN_HOUR = 60;
 
+// forward declaration
+class DemandPeriod;
+
 // move ratio_reduction to each individual VDFPeriod?
 class SpecialEvent {
 public:
@@ -343,8 +346,8 @@ private:
     std::string id;
     std::size_t no;
 
-    double x;
-    double y;
+    double x = 91;
+    double y = 181;
 
     std::string zone_id;
     bool act_node;
@@ -704,8 +707,8 @@ private:
     unsigned bin_id = 0;
 
     Boundary bd;
-    double x = 0;
-    double y = 0;
+    double x = 91;
+    double y = 181;
 
     double prod = 0;
 };
@@ -721,8 +724,8 @@ public:
     virtual std::vector<const Link*>& get_links() = 0;
     virtual const std::vector<const Link*>& get_links() const = 0;
 
-    virtual std::vector<const Zone*>& get_zones() = 0;
-    virtual const std::vector<const Zone*>& get_zones() const = 0;
+    virtual std::map<std::string, Zone>& get_zones() = 0;
+    virtual const std::map<std::string, Zone>& get_zones() const = 0;
 
     virtual size_t* cost_labels() = 0;
     virtual const size_t* cost_labels() const = 0;
@@ -738,7 +741,7 @@ public:
     virtual size_t get_last_thru_node_no() const = 0;
 
     virtual const std::vector<size_t>& get_orig_centroids() const = 0;
-    virtual const std::vector<size_t>& get_all_centroids() const = 0;
+    virtual const std::vector<size_t> get_all_centroids() const = 0;
 
     virtual size_type get_link_num() const = 0;
     virtual size_type get_node_num() const = 0;
@@ -747,11 +750,125 @@ public:
 };
 
 class PhyNetwork : public Network {
+public:
+    PhyNetwork() = default;
 
+    PhyNetwork(const PhyNetwork&) = delete;
+    PhyNetwork& operator=(const PhyNetwork&) = delete;
+
+    PhyNetwork(PhyNetwork&&) = default;
+    PhyNetwork& operator=(PhyNetwork&&) = default;
+
+    ~PhyNetwork()
+    {
+        // release memory
+        for (auto p : links)
+            delete p;
+
+        for (auto p : nodes)
+            delete p;
+    }
+
+    std::vector<const Node*>& get_nodes() override
+    {
+        return nodes;
+    }
+
+    const std::vector<const Node*>& get_nodes() const override
+    {
+        return nodes;
+    }
+
+    std::vector<const Link*>& get_links() override
+    {
+        return links;
+    }
+
+    const std::vector<const Link*>& get_links() const override
+    {
+        return links;
+    }
+
+    std::map<std::string, Zone>& get_zones() override
+    {
+        return zones;
+    }
+
+    const std::map<std::string, Zone>& get_zones() const override
+    {
+        return zones;
+    }
+
+    // useless as we need centroid objects / pointers?
+    // performance issue: we will use this extensively in column generation.
+    const std::vector<size_t> get_all_centroids() const override
+    {
+        std::vector<size_t> vec;
+        for (auto i = last_thru_node_no + 1; i != nodes.size(); ++i)
+            vec.push_back(nodes[i]->get_no());
+
+        // it will be moved outside the function body.
+        return vec;
+    }
+
+private:
+    std::size_t last_thru_node_no;
+
+    std::vector<const Link*> links;
+    // it can be vector<Node> if we store the centroid of a zone as node_no
+    std::vector<const Node*> nodes;
+    std::vector<Agent> agents;
+    std::map<std::string, Zone> zones;
+
+    // time-dependent agents for simulation
+    std::map<unsigned, size_t> td_agents;
 };
 
 class SPNetwork : public Network {
+public:
+    SPNetwork() = delete;
 
+    // do i really need to create an instance of SPNetwork for each agent type
+    // given a demand period?
+    SPNetwork(unsigned id_, DemandPeriod* dp_) : id {id_}, dp {dp_}
+    {
+    }
+
+    SPNetwork(const SPNetwork&) = delete;
+    SPNetwork& operator=(const SPNetwork&) = delete;
+
+    SPNetwork(SPNetwork&) = delete;
+    SPNetwork& operator=(SPNetwork&) = delete;
+
+    ~SPNetwork()
+    {
+        delete[] costs;
+        delete[] deque;
+        delete[] preds;
+    }
+
+    void reset()
+    {
+        for (auto i = 0, n = get_node_num(); i != n; ++i)
+        {
+            costs[i] = INT_MAX;
+            deque[i] = preds[i] = -1;
+        }
+    }
+
+private:
+    // use unsigned short instead?
+    unsigned id;
+    // Assignment is responsible to clean it up.
+    DemandPeriod* dp;
+
+    // inconsistent with the type of node no
+    // but the network usually would not exceed 2,147,483,647 in terms of number of nodes.
+    long* preds;
+    long* deque;
+    double* costs;
+
+    std::vector<std::size_t> centroids;
 };
 
 #endif
