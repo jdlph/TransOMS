@@ -727,19 +727,20 @@ public:
     virtual std::map<std::string, Zone>& get_zones() = 0;
     virtual const std::map<std::string, Zone>& get_zones() const = 0;
 
-    virtual size_t* cost_labels() = 0;
-    virtual const size_t* cost_labels() const = 0;
+    virtual double* cost_labels() = 0;
+    virtual const double* cost_labels() const = 0;
 
     // no need for node predecessors which can be easily inferred
-    virtual size_t* link_preds() = 0;
-    virtual const size_t* link_preds() const = 0;
+    virtual long* link_preds() = 0;
+    virtual const long* link_preds() const = 0;
 
     // deque
-    virtual size_t* next_nodes() = 0;
-    virtual const size_t* next_nodes() const = 0;
+    virtual long* next_nodes() = 0;
+    virtual const long* next_nodes() const = 0;
 
     virtual size_t get_last_thru_node_no() const = 0;
 
+    // combine them
     virtual const std::vector<size_t>& get_orig_centroids() const = 0;
     virtual const std::vector<size_t> get_all_centroids() const = 0;
 
@@ -767,6 +768,16 @@ public:
 
         for (auto p : nodes)
             delete p;
+    }
+
+    size_type get_link_num() const
+    {
+        return links.size();
+    }
+
+    size_type get_node_num() const
+    {
+        return nodes.size();
     }
 
     std::vector<const Node*>& get_nodes() override
@@ -847,20 +858,97 @@ public:
         delete[] preds;
     }
 
+    const std::vector<size_t>& get_orig_centroids() const override
+    {
+        return centroids;
+    }
+
+    size_type get_link_num() const override
+    {
+        return pn->get_link_num();
+    }
+
+    size_type get_node_num() const override
+    {
+        return pn->get_node_num();
+    }
+
+    std::vector<const Node*>& get_nodes() override
+    {
+        return pn->get_nodes();
+    }
+
+    const std::vector<const Node*>& get_nodes() const override
+    {
+        return pn->get_nodes();
+    }
+
+    std::vector<const Link*>& get_links() override
+    {
+        return pn->get_links();
+    }
+
+    const std::vector<const Link*>& get_links() const override
+    {
+        return pn->get_links();
+    }
+
+    std::map<std::string, Zone>& get_zones() override
+    {
+        return pn->get_zones();
+    }
+
+    const std::map<std::string, Zone>& get_zones() const override
+    {
+        return pn->get_zones();
+    }
+
+    double* cost_labels() override
+    {
+        return costs;
+    }
+
+    const double* cost_labels() const override
+    {
+        return costs;
+    }
+
+    long* link_preds() override
+    {
+        return preds;
+    }
+
+    const long* link_preds() const override
+    {
+        return preds;
+    }
+
+    long* next_nodes() override
+    {
+        return deque;
+    }
+
+    const long* next_nodes() const override
+    {
+        return deque;
+    }
+
     void reset()
     {
         for (auto i = 0, n = get_node_num(); i != n; ++i)
         {
             costs[i] = INT_MAX;
-            deque[i] = preds[i] = -1;
+            deque[i] = preds[i] = nullnode;
         }
     }
 
 private:
     // use unsigned short instead?
     unsigned id;
+
     // Assignment is responsible to clean it up.
     DemandPeriod* dp;
+    PhyNetwork* pn;
 
     // inconsistent with the type of node no
     // but the network usually would not exceed 2,147,483,647 in terms of number of nodes.
@@ -869,6 +957,9 @@ private:
     double* costs;
 
     std::vector<std::size_t> centroids;
+
+    static constexpr long nullnode = -1;
+    static constexpr long pastnode = -3;
 };
 
 #endif
