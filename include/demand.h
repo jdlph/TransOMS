@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+namespace opendta
+{
+
 // forward declarations
 class Column;
 class SpecialEvent;
@@ -117,6 +120,7 @@ public:
     }
 
 private:
+    //  move it outside as col is an incomplete pointer?
     void initialize_intervals()
     {
         // throw an error or terminate?
@@ -294,5 +298,7 @@ private:
     // change back to SpecialEvent later
     const SpecialEvent* se;
 };
+
+} // namespace opendta
 
 #endif

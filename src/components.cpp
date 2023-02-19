@@ -1,6 +1,8 @@
 #include <demand.h>
 #include <supply.h>
 
+using namespace opendta;
+
 inline const std::vector<size_t>& Agent::get_link_path() const
 {
     return col->get_links();

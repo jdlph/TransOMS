@@ -9,6 +9,10 @@
 #include <unordered_set>
 #include <vector>
 
+namespace opendta
+{
+// to do: change size_t to size_type later
+using size_type = unsigned long;
 // some constants
 constexpr unsigned MINUTES_IN_HOUR = 60;
 
@@ -56,6 +60,7 @@ private:
     std::map<size_t, double> ratios;
 };
 
+// PeriodVDF might be a better name
 class VDFPeriod {
 public:
     VDFPeriod() = delete;
@@ -146,6 +151,11 @@ public:
 
     ~Link() = default;
 
+    const std::string& get_allowed_modes() const
+    {
+        return allowed_modes;
+    }
+
     const std::string& get_id() const
     {
         return id;
@@ -161,9 +171,19 @@ public:
         return head_node_id;
     }
 
+    std::size_t get_head_node_no() const
+    {
+        return head_node_no;
+    }
+
     const std::string get_tail_node_id() const
     {
         return tail_node_id;
+    }
+
+    std::size_t get_tail_node_no() const
+    {
+        return tail_node_no;
     }
 
     const std::string get_geometry() const
@@ -716,8 +736,6 @@ private:
 // an abstract class
 class Network {
 public:
-    using size_type = std::vector<const Node*>::size_type;
-
     virtual std::vector<const Node*>& get_nodes() = 0;
     virtual const std::vector<const Node*>& get_nodes() const = 0;
 
@@ -731,6 +749,7 @@ public:
     virtual const double* cost_labels() const = 0;
 
     // no need for node predecessors which can be easily inferred
+    // change it to link* link_preds() for better performance in backtrace_shortest_path_tree()?
     virtual long* link_preds() = 0;
     virtual const long* link_preds() const = 0;
 
@@ -921,10 +940,10 @@ public:
         return costs;
     }
 
-    const double* cost_labels() const override
-    {
-        return costs;
-    }
+    // const double* cost_labels() const override
+    // {
+    //     return costs;
+    // }
 
     long* link_preds() override
     {
@@ -948,10 +967,90 @@ public:
 
     void reset()
     {
-        for (auto i = 0, n = get_node_num(); i != n; ++i)
+        for (size_type i = 0, n = get_node_num(); i != n; ++i)
         {
             costs[i] = INT_MAX;
             deque[i] = preds[i] = nullnode;
+        }
+    }
+
+    void generate_columns()
+    {
+        for (auto s : get_orig_nodes())
+        {
+            single_source_shortest_path(s);
+            backtrace_shortest_path_tree(s);
+            reset();
+        }
+    }
+
+private:
+
+    void backtrace_shortest_path_tree(size_type src_node_no)
+    {
+
+    }
+
+    // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
+    void single_source_shortest_path(size_type src_node_no)
+    {
+        static const std::string all_modes {"all"};
+
+        for (size_type cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
+        {
+            if (cur_node <= get_last_thru_node_no() || cur_node == src_node_no)
+            {
+                for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
+                {
+                    // to do: conditions 1 and 3 can be combined;
+                    // use r& = link->get_allowed_modes() to shorten the comparison
+                    if (dp->get_agent_type_name() != all_modes
+                        && link->get_allowed_modes().find(dp->get_agent_type_name()) != std::string::npos
+                        && link->get_allowed_modes().find(all_modes) != std::string::npos)
+                        continue;
+
+                    size_type new_node = link->get_tail_node_no();
+                    // to do: change it later
+                    double new_cost = cost_labels()[cur_node] + link->get_generalized_cost(0, 10);
+                    if (new_cost < cost_labels()[new_node])
+                    {
+                        cost_labels()[new_node] = new_cost;
+                        link_preds()[new_node] = link->get_no();
+
+                        if (next_nodes()[new_node] == pastnode)
+                        {
+                            next_nodes()[new_node] = deq_head;
+                            deq_head = new_node;
+
+                            if (deq_tail == nullnode)
+                                deq_tail = new_node;
+                        }
+                        else if (next_nodes()[new_node] == nullnode && new_node != deq_tail)
+                        {
+                            if (deq_tail == nullnode)
+                            {
+                                deq_head = deq_tail = new_node;
+                                next_nodes()[deq_tail] = nullnode;
+                            }
+                            else
+                            {
+                                next_nodes()[deq_tail] = new_node;
+                                deq_tail = new_node;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (deq_head < 0)
+                break;
+
+            cur_node = deq_head;
+            deq_head = next_nodes()[cur_node];
+            next_nodes()[cur_node] = pastnode;
+
+            if (deq_tail == cur_node)
+                deq_tail = nullnode;
         }
     }
 
@@ -974,5 +1073,7 @@ private:
     static constexpr long nullnode = -1;
     static constexpr long pastnode = -3;
 };
+
+} // namespace opendta
 
 #endif
