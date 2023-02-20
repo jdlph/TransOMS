@@ -389,8 +389,8 @@ public:
     {
     }
 
-    Column(unsigned id_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
-        : id {id_}, links {links_}, nodes {nodes_}
+    Column(unsigned id_, double dist_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
+        : id {id_}, dist {dist_}, links {links_}, nodes {nodes_}
     {
     }
 
@@ -474,11 +474,6 @@ public:
     void increase_volume(double v)
     {
         vol += v;
-    }
-
-    void set_distance(double d)
-    {
-        dist = d;
     }
 
     void set_geometry(std::string&& s)
@@ -604,6 +599,36 @@ public:
     void set_volume(double v)
     {
         vol = v;
+    }
+
+    void update(Column& c, double v)
+    {
+        if (cols.find(c) == cols.end())
+        {
+            c.increase_volume(v);
+            add_new_column(c);
+            return;
+        }
+
+        // a further link-by-link comparison
+        auto er = cols.equal_range(c);
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->get_links() == c.get_links())
+            {
+                v += it->get_volume();
+                // erase the existing one as it is a const iterator
+                // the following operation is not allowed
+                // it->increase_volume(v);
+                cols.erase(it);
+                c.increase_volume(v);
+                add_new_column(c);
+                return;
+            }
+        }
+
+        c.increase_volume(v);
+        add_new_column(c);
     }
 
 private:
@@ -1022,19 +1047,10 @@ private:
             if (link_path.empty())
                 continue;
 
+            Column col {cv.get_column_num(), dist, link_path, node_path};
             auto vol = k_path_prob * cv.get_volume();
 
-            Column col {cv.get_column_num(), link_path, node_path};
-            if (cv.has_column(col))
-            {
-
-            }
-            else
-            {
-                col.set_distance(dist);
-                col.increase_volume(vol);
-                cv.add_new_column(col);
-            }
+            cv.update(col, vol);
         }
     }
 
