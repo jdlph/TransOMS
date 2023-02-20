@@ -594,6 +594,7 @@ private:
     std::unordered_multiset<Column, ColumnHash> cols;
 };
 
+// to do: no need to use at_id as part of the key
 class ColumnPool {
 public:
     using Key = std::tuple<unsigned, unsigned, std::string, std::string>;
@@ -745,18 +746,6 @@ public:
     virtual std::map<std::string, Zone>& get_zones() = 0;
     virtual const std::map<std::string, Zone>& get_zones() const = 0;
 
-    virtual double* cost_labels() = 0;
-    virtual const double* cost_labels() const = 0;
-
-    // no need for node predecessors which can be easily inferred
-    // change it to link* link_preds() for better performance in backtrace_shortest_path_tree()?
-    virtual long* link_preds() = 0;
-    virtual const long* link_preds() const = 0;
-
-    // deque
-    virtual long* next_nodes() = 0;
-    virtual const long* next_nodes() const = 0;
-
     virtual size_t get_last_thru_node_no() const = 0;
 
     virtual const std::vector<size_t>& get_orig_nodes() const = 0;
@@ -784,6 +773,7 @@ public:
         for (auto p : links)
             delete p;
 
+        // this releases memory for centroids as well
         for (auto p : nodes)
             delete p;
     }
@@ -880,9 +870,9 @@ public:
 
     ~SPNetwork()
     {
-        delete[] costs;
-        delete[] deque;
-        delete[] preds;
+        delete[] node_costs;
+        delete[] next_nodes;
+        delete[] link_preds;
     }
 
     std::size_t get_last_thru_node_no() const override
@@ -935,106 +925,99 @@ public:
         return pn->get_zones();
     }
 
-    double* cost_labels() override
-    {
-        return costs;
-    }
-
-    // const double* cost_labels() const override
-    // {
-    //     return costs;
-    // }
-
-    long* link_preds() override
-    {
-        return preds;
-    }
-
-    const long* link_preds() const override
-    {
-        return preds;
-    }
-
-    long* next_nodes() override
-    {
-        return deque;
-    }
-
-    const long* next_nodes() const override
-    {
-        return deque;
-    }
-
     void reset()
     {
         for (size_type i = 0, n = get_node_num(); i != n; ++i)
         {
-            costs[i] = INT_MAX;
-            deque[i] = preds[i] = nullnode;
+            node_costs[i] = INT_MAX;
+            next_nodes[i] = link_preds[i] = nullnode;
         }
     }
 
-    void generate_columns()
+    void generate_columns(unsigned short iter_no)
     {
         for (auto s : get_orig_nodes())
         {
             single_source_shortest_path(s);
-            backtrace_shortest_path_tree(s);
+            backtrace_shortest_path_tree(s, iter_no);
             reset();
         }
     }
 
+    void update_link_cost()
+    {
+        unsigned dp_id = dp->get_id();
+        double vot = dp->get_agent_vot();
+
+        for (auto p : get_links())
+            link_costs[p->get_no()] = p->get_generalized_cost(dp_id, vot);
+    }
+
 private:
 
-    void backtrace_shortest_path_tree(size_type src_node_no)
+    // incomplete
+    void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no)
     {
+        const auto p = get_nodes()[src_node_no];
+        if (p->get_outgoing_links().empty())
+            return;
 
+        const auto oz_id = p->get_zone_id();
+        const auto k_path_prob = 1.0 / (iter_no + 1);
+
+        for (const auto c : get_centroids())
+        {
+            auto dz_id = c->get_zone_id();
+            if (oz_id == dz_id)
+                continue;
+        }
+    }
+
+    // static function?
+    bool is_mode_compatible(const std::string& s1, const std::string& s2)
+    {
+        static const std::string all_modes {"all"};
+
+        return s1.find(s2) == std::string::npos && s1.find(all_modes) == std::string::npos;
     }
 
     // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
     void single_source_shortest_path(size_type src_node_no)
     {
-        static const std::string all_modes {"all"};
-
         for (size_type cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
         {
             if (cur_node <= get_last_thru_node_no() || cur_node == src_node_no)
             {
                 for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
                 {
-                    // to do: conditions 1 and 3 can be combined;
-                    // use r& = link->get_allowed_modes() to shorten the comparison
-                    if (dp->get_agent_type_name() != all_modes
-                        && link->get_allowed_modes().find(dp->get_agent_type_name()) != std::string::npos
-                        && link->get_allowed_modes().find(all_modes) != std::string::npos)
+                    if (is_mode_compatible(link->get_allowed_modes(), dp->get_agent_type_name()))
                         continue;
 
                     size_type new_node = link->get_tail_node_no();
-                    // to do: change it later
-                    double new_cost = cost_labels()[cur_node] + link->get_generalized_cost(0, 10);
-                    if (new_cost < cost_labels()[new_node])
+                    double new_cost = node_costs[cur_node] + link_costs[link->get_no()];
+                    if (new_cost < node_costs[new_node])
                     {
-                        cost_labels()[new_node] = new_cost;
-                        link_preds()[new_node] = link->get_no();
+                        node_costs[new_node] = new_cost;
+                        link_preds[new_node] = link->get_no();
 
-                        if (next_nodes()[new_node] == pastnode)
+                        if (next_nodes[new_node] == pastnode)
                         {
-                            next_nodes()[new_node] = deq_head;
+                            next_nodes[new_node] = deq_head;
                             deq_head = new_node;
 
                             if (deq_tail == nullnode)
                                 deq_tail = new_node;
                         }
-                        else if (next_nodes()[new_node] == nullnode && new_node != deq_tail)
+                        else if (next_nodes[new_node] == nullnode && new_node != deq_tail)
                         {
                             if (deq_tail == nullnode)
                             {
                                 deq_head = deq_tail = new_node;
-                                next_nodes()[deq_tail] = nullnode;
+                                next_nodes[deq_tail] = nullnode;
                             }
                             else
                             {
-                                next_nodes()[deq_tail] = new_node;
+                                next_nodes[deq_tail] = new_node;
                                 deq_tail = new_node;
                             }
                         }
@@ -1046,8 +1029,8 @@ private:
                 break;
 
             cur_node = deq_head;
-            deq_head = next_nodes()[cur_node];
-            next_nodes()[cur_node] = pastnode;
+            deq_head = next_nodes[cur_node];
+            next_nodes[cur_node] = pastnode;
 
             if (deq_tail == cur_node)
                 deq_tail = nullnode;
@@ -1064,9 +1047,14 @@ private:
 
     // inconsistent with the type of node no
     // but the network usually would not exceed 2,147,483,647 in terms of number of nodes.
-    long* preds;
-    long* deque;
-    double* costs;
+    // no need for node predecessors which can be easily inferred
+    // change it to link* link_preds for better performance in backtrace_shortest_path_tree()?
+    long* link_preds;
+    long* node_preds;
+    // deque
+    long* next_nodes;
+    double* link_costs;
+    double* node_costs;
 
     std::vector<std::size_t> orig_nodes;
 

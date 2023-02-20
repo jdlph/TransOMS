@@ -203,6 +203,11 @@ public:
         return pce;
     }
 
+    double get_vot() const
+    {
+        return vot;
+    }
+
     bool use_link_ffs() const
     {
         return is_link_ffs;
@@ -264,6 +269,11 @@ public:
         return at_name;
     }
 
+    double get_agent_vot() const
+    {
+        at->get_vot();
+    }
+
     const std::string& get_demand_file_name() const
     {
         return filename;
@@ -290,11 +300,13 @@ public:
 private:
     unsigned id;
 
+    // to do: no need any more after at is added as member?
     std::string at_name;
     std::string filename;
     std::string period;
     std::string time_period;
 
+    const AgentType* at;
     // change back to SpecialEvent later
     const SpecialEvent* se;
 };
