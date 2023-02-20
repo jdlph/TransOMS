@@ -244,14 +244,28 @@ public:
         return vdfps[i].get_vol();
     }
 
+    // useless
     void increase_period_vol(unsigned i, double v)
     {
         vdfps[i].increase_vol(v);
     }
 
+    void increase_period_vol(double v)
+    {
+        for (auto& vdf : vdfps)
+            vdf.increase_vol(v);
+    }
+
+    // useless
     void reset_period_vol(unsigned i)
     {
         vdfps[i].reset_vol();
+    }
+
+    void reset_period_vol()
+    {
+        for (auto& v : vdfps)
+            v.reset_vol();
     }
 
     void update_period_travel_time(unsigned iter_no);
@@ -385,9 +399,9 @@ class Column {
 public:
     Column() = delete;
 
-    Column(size_type id_) : id {id_}
-    {
-    }
+    // Column(size_type id_) : id {id_}
+    // {
+    // }
 
     Column(size_type id_, double dist_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
         : id {id_}, dist {dist_}, links {links_}, nodes {nodes_}
@@ -474,6 +488,11 @@ public:
     void increase_volume(double v)
     {
         vol += v;
+    }
+
+    void reduce_volume(unsigned short iter_no)
+    {
+        vol *= static_cast<double>(iter_no) / (iter_no + 1);
     }
 
     void set_geometry(std::string&& s)
@@ -596,6 +615,16 @@ public:
         vol += v;
     }
 
+    void set_toll(double t)
+    {
+        toll = t;
+    }
+
+    void set_volume(double v)
+    {
+        vol = v;
+    }
+
     void update(Column& c, unsigned short iter_no)
     {
         // k_path_prob = 1 / (iter_no + 1)
@@ -657,6 +686,7 @@ public:
     }
 
 private:
+    double toll;
     double vol;
     bool route_fixed;
 
@@ -682,6 +712,11 @@ public:
     const ColumnVec& get_column_vec(const ColumnVecKey& k) const
     {
         return cp.at(k);
+    }
+
+    std::map<ColumnVecKey, ColumnVec>& get_column_vecs()
+    {
+        return cp;
     }
 
     bool contains_key(const ColumnVecKey& k) const
@@ -812,8 +847,8 @@ public:
     virtual std::vector<const Node*>& get_nodes() = 0;
     virtual const std::vector<const Node*>& get_nodes() const = 0;
 
-    virtual std::vector<const Link*>& get_links() = 0;
-    virtual const std::vector<const Link*>& get_links() const = 0;
+    virtual std::vector<Link*>& get_links() = 0;
+    virtual const std::vector<Link*>& get_links() const = 0;
 
     virtual std::map<std::string, Zone>& get_zones() = 0;
     virtual const std::map<std::string, Zone>& get_zones() const = 0;
@@ -874,12 +909,12 @@ public:
         return nodes;
     }
 
-    std::vector<const Link*>& get_links() override
+    std::vector<Link*>& get_links() override
     {
         return links;
     }
 
-    const std::vector<const Link*>& get_links() const override
+    const std::vector<Link*>& get_links() const override
     {
         return links;
     }
@@ -912,7 +947,7 @@ public:
 private:
     std::size_t last_thru_node_no;
 
-    std::vector<const Link*> links;
+    std::vector<Link*> links;
     std::vector<const Node*> nodes;
 
     std::vector<const Node*> centroids;
@@ -961,12 +996,12 @@ public:
         return pn->get_node_num();
     }
 
-    std::vector<const Link*>& get_links() override
+    std::vector<Link*>& get_links() override
     {
         return pn->get_links();
     }
 
-    const std::vector<const Link*>& get_links() const override
+    const std::vector<Link*>& get_links() const override
     {
         return pn->get_links();
     }
