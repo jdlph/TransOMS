@@ -385,11 +385,11 @@ class Column {
 public:
     Column() = delete;
 
-    Column(unsigned id_) : id {id_}
+    Column(size_type id_) : id {id_}
     {
     }
 
-    Column(unsigned id_, double dist_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
+    Column(size_type id_, double dist_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
         : id {id_}, dist {dist_}, links {links_}, nodes {nodes_}
     {
     }
@@ -502,7 +502,7 @@ public:
     }
 
 private:
-    unsigned id;
+    size_type id;
 
     double dist = 0;
     double gc = 0;
@@ -596,13 +596,11 @@ public:
         vol += v;
     }
 
-    void set_volume(double v)
+    void update(Column& c, unsigned short iter_no)
     {
-        vol = v;
-    }
+        // k_path_prob = 1 / (iter_no + 1)
+        auto v = vol / (iter_no + 1);
 
-    void update(Column& c, double v)
-    {
         if (cols.find(c) == cols.end())
         {
             c.increase_volume(v);
@@ -617,13 +615,40 @@ public:
             if (it->get_links() == c.get_links())
             {
                 v += it->get_volume();
-                // erase the existing one as it is a const iterator
-                // the following operation is not allowed
+                // erase the existing one as it is a const iterator and the following operation is not allowed
                 // it->increase_volume(v);
+                // it can only be avoided by designing a customer hash table
                 cols.erase(it);
-                c.increase_volume(v);
-                add_new_column(c);
-                return;
+                break;
+            }
+        }
+
+        c.increase_volume(v);
+        add_new_column(c);
+    }
+
+    // move Column c
+    void update(Column&& c, unsigned short iter_no)
+    {
+        // k_path_prob = 1 / (iter_no + 1)
+        auto v = vol / (iter_no + 1);
+
+        if (cols.find(c) == cols.end())
+        {
+            c.increase_volume(v);
+            add_new_column(c);
+            return;
+        }
+
+        // a further link-by-link comparison
+        auto er = cols.equal_range(c);
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->get_links() == c.get_links())
+            {
+                v += it->get_volume();
+                cols.erase(it);
+                break;
             }
         }
 
@@ -635,7 +660,6 @@ private:
     double vol;
     bool route_fixed;
 
-    // use Column* instead (which will require heap memory)?
     std::unordered_multiset<Column, ColumnHash> cols;
 };
 
@@ -983,6 +1007,8 @@ public:
 
     void generate_columns(unsigned short iter_no)
     {
+        update_link_costs();
+
         for (auto s : get_orig_nodes())
         {
             single_source_shortest_path(s);
@@ -991,7 +1017,7 @@ public:
         }
     }
 
-    void update_link_cost()
+    void update_link_costs()
     {
         unsigned dp_id = dp->get_id();
         double vot = dp->get_agent_vot();
@@ -1001,7 +1027,6 @@ public:
     }
 
 private:
-    // incomplete
     void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no)
     {
         const auto p = get_nodes()[src_node_no];
@@ -1009,7 +1034,6 @@ private:
             return;
 
         const auto oz_id = p->get_zone_id();
-        const auto k_path_prob = 1.0 / (iter_no + 1);
 
         for (const auto c : get_centroids())
         {
@@ -1029,6 +1053,8 @@ private:
             std::vector<std::size_t> node_path;
 
             double dist = 0;
+            // use long intensionally as node_preds is long*
+            // otherwise, size_t (later size_type) will be automatically deduced via auto.
             long cur_node = c->get_no();
             while (cur_node >= 0)
             {
@@ -1047,10 +1073,8 @@ private:
             if (link_path.empty())
                 continue;
 
-            Column col {cv.get_column_num(), dist, link_path, node_path};
-            auto vol = k_path_prob * cv.get_volume();
-
-            cv.update(col, vol);
+            // move temporary Column
+            cv.update(Column{cv.get_column_num(), dist, link_path, node_path}, iter_no);
         }
     }
 
