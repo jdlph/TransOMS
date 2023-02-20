@@ -675,9 +675,8 @@ public:
         {
             if (it->get_links() == c.get_links())
             {
-                v += it->get_volume();
-                cols.erase(it);
-                break;
+                const_cast<Column&>(*it).increase_volume(v);
+                return;
             }
         }
 
