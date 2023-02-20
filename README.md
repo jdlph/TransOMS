@@ -24,7 +24,7 @@ Extensive efforts have been or will be in place to ensure its appearance and per
 ### Better Memory Management
 1. Avoid unnecessary copying through the move semantics. 
 2. Fully utilize stack memory. Directly store / move some objects into a container (with the move semantics) and retrieve them later without restoring heap memory (as pointers). This can improve the performance, reduce potential memory fragmentation, and prevent possible risk of memory leak.
-3. Space-efficient column representation to avoid duplicate information among similar columns. Details will be provided later.
+3. Space-efficient column representation to avoid duplications among similar columns. Details will be provided later.
 
 ### Flying and Portable I/O
 1. Adopt the memory-mapping-based [MIOCSV](https://github.com/jdlph/MIOCSV) to handle CSV parsing and writing, which works seamless on different OS's and platforms.

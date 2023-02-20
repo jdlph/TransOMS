@@ -8,7 +8,6 @@
 
 namespace opendta
 {
-
 // forward declarations
 class Column;
 class SpecialEvent;
@@ -136,6 +135,7 @@ private:
 
 private:
     size_t id;
+    // to do: use unsigned short
     unsigned at_id;
     unsigned dp_id;
 
@@ -145,6 +145,7 @@ private:
 
     const Column* col;
 
+    // to do: float?
     double pce;
 
     // simulation

@@ -13,6 +13,10 @@ namespace opendta
 {
 // to do: change size_t to size_type later
 using size_type = unsigned long;
+
+// origin zone id, destination zone id, demand period no
+using ColumnVecKey = std::tuple<std::string, std::string, unsigned>;
+
 // some constants
 constexpr unsigned MINUTES_IN_HOUR = 60;
 
@@ -262,6 +266,7 @@ private:
     std::string tail_node_id;
     std::size_t tail_node_no;
 
+    // to do: use unsigned short?
     unsigned lane_num;
 
     double cap;
@@ -381,6 +386,11 @@ public:
     Column() = delete;
 
     Column(unsigned id_) : id {id_}
+    {
+    }
+
+    Column(unsigned id_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
+        : id {id_}, links {links_}, nodes {nodes_}
     {
     }
 
@@ -555,7 +565,7 @@ public:
         return false;
     }
 
-    int get_column_num() const
+    size_type get_column_num() const
     {
         return cols.size();
     }
@@ -569,6 +579,16 @@ public:
     const std::unordered_multiset<Column, ColumnHash>& get_columns() const
     {
         return cols;
+    }
+
+    double get_volume() const
+    {
+        return vol;
+    }
+
+    void add_new_column(Column& c)
+    {
+        cols.emplace(c);
     }
 
     void add_new_column(Column&& c)
@@ -597,8 +617,6 @@ private:
 // to do: no need to use at_id as part of the key
 class ColumnPool {
 public:
-    using Key = std::tuple<unsigned, unsigned, std::string, std::string>;
-
     ColumnPool() = default;
 
     ColumnPool(const ColumnPool&) = delete;
@@ -607,18 +625,23 @@ public:
     ColumnPool(ColumnPool&&) = default;
     ColumnPool& operator=(ColumnPool&&) = delete;
 
-    ColumnVec& get_column_vec(const Key& k)
+    ColumnVec& get_column_vec(const ColumnVecKey& k)
     {
         return cp.at(k);
     }
 
-    const ColumnVec& get_column_vec(const Key& k) const
+    const ColumnVec& get_column_vec(const ColumnVecKey& k) const
     {
         return cp.at(k);
+    }
+
+    bool contains_key(const ColumnVecKey& k) const
+    {
+        return cp.find(k) != cp.end();
     }
 
 private:
-    std::map<Key, ColumnVec> cp;
+    std::map<ColumnVecKey, ColumnVec> cp;
 };
 
 class Zone {
@@ -746,10 +769,9 @@ public:
     virtual std::map<std::string, Zone>& get_zones() = 0;
     virtual const std::map<std::string, Zone>& get_zones() const = 0;
 
-    virtual size_t get_last_thru_node_no() const = 0;
-
-    virtual const std::vector<size_t>& get_orig_nodes() const = 0;
     virtual const std::vector<const Node*>& get_centroids() const = 0;
+
+    virtual size_t get_last_thru_node_no() const = 0;
 
     virtual size_type get_link_num() const = 0;
     virtual size_type get_node_num() const = 0;
@@ -880,11 +902,6 @@ public:
         return pn->get_last_thru_node_no();
     }
 
-    const std::vector<size_t>& get_orig_nodes() const override
-    {
-        return orig_nodes;
-    }
-
     size_type get_link_num() const override
     {
         return pn->get_link_num();
@@ -893,6 +910,16 @@ public:
     size_type get_node_num() const override
     {
         return pn->get_node_num();
+    }
+
+    std::vector<const Link*>& get_links() override
+    {
+        return pn->get_links();
+    }
+
+    const std::vector<const Link*>& get_links() const override
+    {
+        return pn->get_links();
     }
 
     std::vector<const Node*>& get_nodes() override
@@ -905,14 +932,9 @@ public:
         return pn->get_nodes();
     }
 
-    std::vector<const Link*>& get_links() override
+    const std::vector<size_t>& get_orig_nodes() const
     {
-        return pn->get_links();
-    }
-
-    const std::vector<const Link*>& get_links() const override
-    {
-        return pn->get_links();
+        return orig_nodes;
     }
 
     std::map<std::string, Zone>& get_zones() override
@@ -929,8 +951,8 @@ public:
     {
         for (size_type i = 0, n = get_node_num(); i != n; ++i)
         {
-            node_costs[i] = INT_MAX;
-            next_nodes[i] = link_preds[i] = nullnode;
+            node_costs[i] = std::numeric_limits<double>::max();
+            next_nodes[i] = link_preds[i] = node_preds[i] = nullnode;
         }
     }
 
@@ -954,7 +976,6 @@ public:
     }
 
 private:
-
     // incomplete
     void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no)
     {
@@ -970,6 +991,50 @@ private:
             auto dz_id = c->get_zone_id();
             if (oz_id == dz_id)
                 continue;
+
+            ColumnVecKey cvk {oz_id, dz_id, dp->get_id()};
+            if (!cp->contains_key(cvk))
+                continue;
+
+            auto& cv = cp->get_column_vec(cvk);
+            if (cv.is_route_fixed())
+                continue;
+
+            std::vector<std::size_t> link_path;
+            std::vector<std::size_t> node_path;
+
+            double dist = 0;
+            long cur_node = c->get_no();
+            while (cur_node >= 0)
+            {
+                node_path.push_back(cur_node);
+
+                auto cur_link = link_preds[cur_node];
+                if (cur_link >=0)
+                {
+                    link_path.push_back(cur_link);
+                    dist += get_links()[cur_link]->get_length();
+                }
+
+                cur_node = node_preds[cur_node];
+            }
+
+            if (link_path.empty())
+                continue;
+
+            auto vol = k_path_prob * cv.get_volume();
+
+            Column col {cv.get_column_num(), link_path, node_path};
+            if (cv.has_column(col))
+            {
+
+            }
+            else
+            {
+                col.set_distance(dist);
+                col.increase_volume(vol);
+                cv.add_new_column(col);
+            }
         }
     }
 
@@ -1041,6 +1106,7 @@ private:
     // use unsigned short instead?
     unsigned id;
 
+    ColumnPool* cp;
     // Assignment is responsible to clean it up.
     DemandPeriod* dp;
     PhyNetwork* pn;
