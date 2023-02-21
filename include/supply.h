@@ -490,6 +490,7 @@ public:
         vol += v;
     }
 
+    // to do: a better name is needed to pair with shift_volume()
     void reduce_volume(unsigned short iter_no)
     {
         vol *= static_cast<double>(iter_no) / (iter_no + 1);
@@ -503,16 +504,6 @@ public:
     void set_gradient_cost(double c)
     {
         gc = c;
-    }
-
-    void set_gradient_cost_abs_diff(double ad)
-    {
-        gc_ad = ad;
-    }
-
-    void set_gradient_cost_rel_diff(double rd)
-    {
-        gc_rd = rd;
     }
 
     void set_travel_time(double t)

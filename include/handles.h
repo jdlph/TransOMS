@@ -54,11 +54,11 @@ private:
                     auto link = net.get_links()[i];
                     tt += link->get_period_travel_time(dp_id);
                     pt += link->get_toll();
-
-                    const_cast<Column&>(col).set_travel_time(tt);
-                    // useless?
-                    const_cast<Column&>(col).set_toll(pt);
                 }
+
+                const_cast<Column&>(col).set_travel_time(tt);
+                // useless?
+                const_cast<Column&>(col).set_toll(pt);
             }
         }
     }
@@ -128,15 +128,13 @@ private:
                 // to do: wrap it as a function
                 double path_gradient_cost = 0;
                 for (auto i : col.get_links())
-                {
                     path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_id, vot);
-                    const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
 
-                    if (path_gradient_cost < least_gradient_cost)
-                    {
-                        least_gradient_cost = path_gradient_cost;
-                        p = &col;
-                    }
+                const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
+                if (path_gradient_cost < least_gradient_cost)
+                {
+                    least_gradient_cost = path_gradient_cost;
+                    p = &col;
                 }
             }
 
