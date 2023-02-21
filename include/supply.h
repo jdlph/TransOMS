@@ -520,6 +520,34 @@ public:
         tt = t;
     }
 
+    // optimized interfaces
+    void update_gradient_cost_diffs(double least_gc)
+    {
+        gc_ad = gc - least_gc;
+        gc_rd = least_gc > 0? gc_ad / least_gc : INT_MAX;
+    }
+
+    double get_gap() const
+    {
+        return gc_ad * vol;
+    }
+
+    double get_sys_travel_time() const
+    {
+        return gc * vol;
+    }
+
+    double shift_volume(unsigned short iter_no)
+    {
+        auto step_size = 1.0 / (iter_no + 2) * vol;
+        auto new_vol = std::max(0.0, vol - step_size * gc_rd);
+
+        auto prev_vol = vol;
+        vol = new_vol;
+
+        return prev_vol - vol;
+    }
+
 private:
     size_type id;
 

@@ -79,7 +79,7 @@ private:
 
         for (auto& [k, cv] : cp.get_column_vecs())
         {
-            // col is const??
+            // col is const
             for (auto& col : cv.get_columns())
             {
                 auto vol = col.get_volume();
@@ -118,16 +118,18 @@ private:
         {
             // oz_id, dz_id, dp_id
             auto dp_id = std::get<2>(k);
+            auto vot = dps[dp_id].get_agent_vot();
+
             double least_gradient_cost = std::numeric_limits<double>::max();
             const Column* p = nullptr;
 
             for (auto& col : cv.get_columns())
             {
+                // to do: wrap it as a function
                 double path_gradient_cost = 0;
                 for (auto i : col.get_links())
                 {
-                    // update it later
-                    path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_id, 10);
+                    path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_id, vot);
                     const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
 
                     if (path_gradient_cost < least_gradient_cost)
@@ -147,32 +149,24 @@ private:
                         continue;
 
                     // the api's can be optimized
-                    const_cast<Column&>(col).set_gradient_cost_abs_diff(col.get_gradient_cost() - least_gradient_cost);
-                    const_cast<Column&>(col).set_gradient_cost_rel_diff(col.get_gradient_cost_abs_diff() / std::max(0.00001, least_gradient_cost));
+                    const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
 
-                    total_gap += col.get_gradient_cost_abs_diff() * col.get_volume();
-                    total_travel_time += col.get_gradient_cost() * col.get_volume();
-
-                    auto step_size = 1.0 / (iter_no + 2) * cv.get_volume();
-                    auto prev_path_vol = col.get_volume();
-                    auto vol = std::max(0.0, (prev_path_vol - step_size * col.get_gradient_cost_rel_diff()));
-
-                    const_cast<Column&>(col).set_volume(vol);
-                    total_switched_out_vol += prev_path_vol - col.get_volume();
+                    total_gap += col.get_gap();
+                    total_travel_time += col.get_sys_travel_time();
+                    total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
                 }
             }
 
             if (p)
             {
                 const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
-                total_travel_time += p->get_gradient_cost() * p->get_volume();
+                total_travel_time += p->get_sys_travel_time();
             }
         }
 
         auto rel_gap = total_travel_time > 0 ? total_gap / total_travel_time : std::numeric_limits<double>::max();
 
-        std::cout << "total gap: " << total_gap << "\n";
-        std::cout << "relative gap: " << rel_gap << "\n";
+        std::cout << "total gap: " << total_gap << "\nrelative gap: " << rel_gap << "\n";
     }
 
     // useless
