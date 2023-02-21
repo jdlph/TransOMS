@@ -3,12 +3,12 @@
 
 using namespace opendta;
 
-inline const std::vector<size_t>& Agent::get_link_path() const
+inline const std::vector<size_type>& Agent::get_link_path() const
 {
     return col->get_links();
 }
 
-inline const std::vector<size_t>& Agent::get_node_path() const
+inline const std::vector<size_type>& Agent::get_node_path() const
 {
     return col->get_nodes();
 }
@@ -31,7 +31,7 @@ inline bool DemandPeriod::contain_iter_no(unsigned iter_no) const
     return true;
 }
 
-double DemandPeriod::get_cap_reduction_ratio(size_t link_no, unsigned iter_no) const
+double DemandPeriod::get_cap_reduction_ratio(size_type link_no, unsigned iter_no) const
 {
     if (!contain_iter_no(iter_no))
         return 1;

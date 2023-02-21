@@ -16,7 +16,7 @@ class Agent {
 public:
     Agent() = delete;
 
-    Agent(size_t id_, unsigned at_id_, unsigned dp_id_,
+    Agent(size_type id_, unsigned at_id_, unsigned dp_id_,
           std::string oz_id_, std::string dz_id_, const Column* c = nullptr)
         : id {id_}, at_id {at_id_}, dp_id {dp_id_}, oz_id {oz_id_}, dz_id {dz_id_},
           col {c}, pce {1}
@@ -52,13 +52,13 @@ public:
         return oz_id;
     }
 
-    size_t get_id() const
+    size_type get_id() const
     {
         return id;
     }
 
-    const std::vector<size_t>& get_link_path() const;
-    const std::vector<size_t>& get_node_path() const;
+    const std::vector<size_type>& get_link_path() const;
+    const std::vector<size_type>& get_node_path() const;
 
     double get_pce() const
     {
@@ -81,7 +81,7 @@ public:
         return dep_intvls[curr_link_no];
     }
 
-    size_t get_next_link_no() const
+    size_type get_next_link_no() const
     {
         return get_link_path()[curr_link_no - 1];
     }
@@ -91,7 +91,7 @@ public:
         return dep_time;
     }
 
-    size_t get_orig_dep_interval() const
+    size_type get_orig_dep_interval() const
     {
         return dep_intvls.back();
     }
@@ -102,7 +102,7 @@ public:
             --curr_link_no;
     }
 
-    void set_arr_interval(unsigned i, size_t increment = 0)
+    void set_arr_interval(unsigned i, size_type increment = 0)
     {
         arr_intvls[curr_link_no - increment] = i;
     }
@@ -126,7 +126,7 @@ private:
         if (!col)
             return;
 
-        std::vector<size_t>::size_type n = col->get_node_num();
+        auto n = col->get_node_num();
 
         arr_intvls.resize(n);
         dep_intvls.resize(n);
@@ -134,7 +134,7 @@ private:
     }
 
 private:
-    size_t id;
+    size_type id;
     // to do: use unsigned short
     unsigned at_id;
     unsigned dp_id;
@@ -149,7 +149,7 @@ private:
     double pce;
 
     // simulation
-    size_t curr_link_no;
+    size_type curr_link_no;
     double dep_time;
 
     std::vector<unsigned> arr_intvls;
@@ -295,7 +295,7 @@ public:
     }
 
     bool contain_iter_no(unsigned iter_no) const;
-    double get_cap_reduction_ratio(size_t link_no, unsigned iter_no) const;
+    double get_cap_reduction_ratio(size_type link_no, unsigned iter_no) const;
 
 private:
     unsigned id;

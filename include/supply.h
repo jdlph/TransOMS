@@ -51,7 +51,7 @@ public:
         return end_iter_no;
     }
 
-    double get_cap_reduction_ratio(size_t link_no) const
+    double get_cap_reduction_ratio(size_type link_no) const
     {
         return ratios.at(link_no);
     }
@@ -61,7 +61,7 @@ private:
     unsigned end_iter_no;
 
     std::string name;
-    std::map<size_t, double> ratios;
+    std::map<size_type, double> ratios;
 };
 
 // PeriodVDF might be a better name
@@ -136,9 +136,9 @@ class Link {
 public:
     Link() = default;
 
-    Link(std::string&& id_, std::size_t no_,
-         std::string&& head_node_id_, std::size_t head_node_no_,
-         std::string&& tail_node_id_, std::size_t tail_node_no_,
+    Link(std::string&& id_, size_type no_,
+         std::string&& head_node_id_, size_type head_node_no_,
+         std::string&& tail_node_id_, size_type tail_node_no_,
          unsigned lane_num_, double cap_, double ffs_, double len_)
          : id {id_}, no {no_},
            head_node_id {head_node_id_}, head_node_no {head_node_no_},
@@ -165,7 +165,7 @@ public:
         return id;
     }
 
-    std::size_t get_no() const
+    size_type get_no() const
     {
         return no;
     }
@@ -175,7 +175,7 @@ public:
         return head_node_id;
     }
 
-    std::size_t get_head_node_no() const
+    size_type get_head_node_no() const
     {
         return head_node_no;
     }
@@ -185,7 +185,7 @@ public:
         return tail_node_id;
     }
 
-    std::size_t get_tail_node_no() const
+    size_type get_tail_node_no() const
     {
         return tail_node_no;
     }
@@ -272,13 +272,13 @@ public:
 
 private:
     std::string id;
-    std::size_t no;
+    size_type no;
 
     std::string head_node_id;
-    std::size_t head_node_no;
+    size_type head_node_no;
 
     std::string tail_node_id;
-    std::size_t tail_node_no;
+    size_type tail_node_no;
 
     // to do: use unsigned short?
     unsigned lane_num;
@@ -301,7 +301,7 @@ class Node {
 public:
     Node() = default;
 
-    Node(std::size_t no_, std::string&& id_,  double x_, double y_,
+    Node(size_type no_, std::string&& id_,  double x_, double y_,
          std::string&& z_id, bool act_node_ = false)
         : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id}, act_node {act_node_}
     {
@@ -320,7 +320,7 @@ public:
         return id;
     }
 
-    std::size_t get_no() const
+    size_type get_no() const
     {
         return no;
     }
@@ -383,7 +383,7 @@ public:
 
 private:
     std::string id;
-    std::size_t no;
+    size_type no;
 
     double x = 91;
     double y = 181;
@@ -403,7 +403,7 @@ public:
     {
     }
 
-    Column(size_type id_, double dist_, std::vector<std::size_t>& links_, std::vector<std::size_t>& nodes_)
+    Column(size_type id_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_)
         : id {id_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
     {
     }
@@ -445,12 +445,12 @@ public:
         return id;
     }
 
-    std::vector<size_t>::size_type get_link_num() const
+    std::vector<size_type>::size_type get_link_num() const
     {
         return links.size();
     }
 
-    std::vector<size_t>::size_type get_node_num() const
+    std::vector<size_type>::size_type get_node_num() const
     {
         return nodes.size();
     }
@@ -470,12 +470,12 @@ public:
         return vol;
     }
 
-    const std::vector<size_t>& get_links() const
+    const std::vector<size_type>& get_links() const
     {
         return links;
     }
 
-    const std::vector<size_t>& get_nodes() const
+    const std::vector<size_type>& get_nodes() const
     {
         return nodes;
     }
@@ -556,8 +556,8 @@ private:
     double vol = 0;
 
     std::string geo;
-    std::vector<size_t> links;
-    std::vector<size_t> nodes;
+    std::vector<size_type> links;
+    std::vector<size_type> nodes;
 };
 
 struct ColumnHash {
@@ -751,11 +751,11 @@ public:
 
     Zone() = default;
 
-    explicit Zone(size_t no_) : no {no_}
+    explicit Zone(size_type no_) : no {no_}
     {
     }
 
-    Zone(size_t no_, unsigned bin_id_) : no {no_}, bin_id {bin_id_}
+    Zone(size_type no_, unsigned bin_id_) : no {no_}, bin_id {bin_id_}
     {
     }
 
@@ -767,12 +767,12 @@ public:
 
     ~Zone() = default;
 
-    const std::vector<size_t>& get_activity_nodes() const
+    const std::vector<size_type>& get_activity_nodes() const
     {
         return act_nodes;
     }
 
-    std::vector<size_t>::size_type get_activity_nodes_num() const
+    size_type get_activity_nodes_num() const
     {
         return act_nodes.size();
     }
@@ -818,7 +818,7 @@ public:
         return prod;
     }
 
-    void add_activity_node(size_t node_no)
+    void add_activity_node(size_type node_no)
     {
         act_nodes.push_back(node_no);
     }
@@ -842,9 +842,9 @@ public:
 
 private:
     std::string id;
-    size_t no = 0;
+    size_type no = 0;
 
-    std::vector<size_t> act_nodes;
+    std::vector<size_type> act_nodes;
     Node* centroid;
 
     // the following members are related to zone synthesis
@@ -871,7 +871,7 @@ public:
 
     virtual const std::vector<const Node*>& get_centroids() const = 0;
 
-    virtual size_t get_last_thru_node_no() const = 0;
+    virtual size_type get_last_thru_node_no() const = 0;
 
     virtual size_type get_link_num() const = 0;
     virtual size_type get_node_num() const = 0;
@@ -900,7 +900,7 @@ public:
             delete p;
     }
 
-    std::size_t get_last_thru_node_no() const override
+    size_type get_last_thru_node_no() const override
     {
         return last_thru_node_no;
     }
@@ -961,7 +961,7 @@ public:
     }
 
 private:
-    std::size_t last_thru_node_no;
+    size_type last_thru_node_no;
 
     std::vector<Link*> links;
     std::vector<const Node*> nodes;
@@ -971,7 +971,7 @@ private:
 
     std::vector<Agent> agents;
     // time-dependent agents for simulation
-    std::map<unsigned, size_t> td_agents;
+    std::map<unsigned, size_type> td_agents;
 };
 
 class SPNetwork : public Network {
@@ -997,7 +997,7 @@ public:
         delete[] link_preds;
     }
 
-    std::size_t get_last_thru_node_no() const override
+    size_type get_last_thru_node_no() const override
     {
         return pn->get_last_thru_node_no();
     }
@@ -1032,7 +1032,7 @@ public:
         return pn->get_nodes();
     }
 
-    const std::vector<size_t>& get_orig_nodes() const
+    const std::vector<size_type>& get_orig_nodes() const
     {
         return orig_nodes;
     }
@@ -1100,8 +1100,8 @@ private:
             if (cv.is_route_fixed())
                 continue;
 
-            std::vector<std::size_t> link_path;
-            std::vector<std::size_t> node_path;
+            std::vector<size_type> link_path;
+            std::vector<size_type> node_path;
 
             double dist = 0;
             // use long intensionally as node_preds is long*
@@ -1213,7 +1213,7 @@ private:
     double* link_costs;
     double* node_costs;
 
-    std::vector<std::size_t> orig_nodes;
+    std::vector<size_type> orig_nodes;
 
     static constexpr long nullnode = -1;
     static constexpr long pastnode = -3;
