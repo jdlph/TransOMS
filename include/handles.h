@@ -31,8 +31,15 @@ public:
         }
 
         for (auto i = 0; i != column_opt_num; ++i)
+        {
+            update_link_and_column_volume(i);
+            update_link_travel_time(i);
             update_column_gradient_and_flow(i);
+        }
 
+        // post-processing on link flow and link link travel time 
+        // according to the path flow from the last iteration
+        // note that we would not change path flow any more after the last iteration
         update_link_and_column_volume(column_gen_num, false);
         update_link_travel_time(column_gen_num);
         update_column_attributes();
@@ -87,7 +94,7 @@ private:
                     net.get_links()[i]->increase_period_vol(vol);
 
                 if (reduce_path_vol && !cv.is_route_fixed())
-                    const_cast<Column&>(col).reduce_volume(vol);
+                    const_cast<Column&>(col).reduce_volume(iter_no);
             }
         }
     }
@@ -108,9 +115,6 @@ private:
 
     void update_column_gradient_and_flow(unsigned short iter_no)
     {
-        update_link_and_column_volume(iter_no);
-        update_link_travel_time(iter_no);
-
         double total_gap = 0;
         double total_travel_time = 0;
 
@@ -120,12 +124,11 @@ private:
             auto dp_id = std::get<2>(k);
             auto vot = dps[dp_id].get_agent_vot();
 
-            double least_gradient_cost = std::numeric_limits<double>::max();
             const Column* p = nullptr;
+            double least_gradient_cost = std::numeric_limits<double>::max();
 
             for (auto& col : cv.get_columns())
             {
-                // to do: wrap it as a function
                 double path_gradient_cost = 0;
                 for (auto i : col.get_links())
                     path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_id, vot);
@@ -146,7 +149,6 @@ private:
                     if (&col == p)
                         continue;
 
-                    // the api's can be optimized
                     const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
 
                     total_gap += col.get_gap();

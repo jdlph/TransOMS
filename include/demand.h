@@ -156,7 +156,6 @@ private:
     std::vector<unsigned> dep_intvls;
 };
 
-// to do: embed it into DemandPeriod as one DemandPeriod can have only one AgentType
 class AgentType {
 public:
     AgentType() : id {0}, flow_type {0}, ffs {60}, pce {1},

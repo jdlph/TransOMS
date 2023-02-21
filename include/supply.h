@@ -399,12 +399,12 @@ class Column {
 public:
     Column() = delete;
 
-    // Column(size_type id_) : id {id_}
-    // {
-    // }
+    Column(size_type id_) : id {id_}
+    {
+    }
 
-    Column(size_type id_, double dist_, std::vector<std::size_t>&& links_, std::vector<std::size_t>&& nodes_)
-        : id {id_}, dist {dist_}, links {links_}, nodes {nodes_}
+    Column(size_type id_, double dist_, std::vector<std::size_t>& links_, std::vector<std::size_t>& nodes_)
+        : id {id_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
     {
     }
 
@@ -528,6 +528,11 @@ public:
         return gc * vol;
     }
 
+    void set_toll(double t)
+    {
+        toll = t;
+    }
+
     double shift_volume(unsigned short iter_no)
     {
         auto step_size = 1.0 / (iter_no + 2) * vol;
@@ -634,11 +639,6 @@ public:
         vol += v;
     }
 
-    void set_toll(double t)
-    {
-        toll = t;
-    }
-
     void set_volume(double v)
     {
         vol = v;
@@ -704,14 +704,12 @@ public:
     }
 
 private:
-    double toll;
     double vol;
     bool route_fixed;
 
     std::unordered_multiset<Column, ColumnHash> cols;
 };
 
-// to do: no need to use at_id as part of the key
 class ColumnPool {
 public:
     ColumnPool() = default;
