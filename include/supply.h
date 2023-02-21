@@ -15,10 +15,10 @@ namespace opendta
 using size_type = unsigned long;
 
 // origin zone id, destination zone id, demand period no
-using ColumnVecKey = std::tuple<std::string, std::string, unsigned>;
+using ColumnVecKey = std::tuple<std::string, std::string, unsigned short>;
 
 // some constants
-constexpr unsigned MINUTES_IN_HOUR = 60;
+constexpr unsigned short MINUTES_IN_HOUR = 60;
 
 // forward declaration
 class DemandPeriod;
@@ -28,7 +28,7 @@ class SpecialEvent {
 public:
     SpecialEvent() = delete;
 
-    SpecialEvent(unsigned beg_iter_no_, unsigned end_iter_no_, std::string&& name_)
+    SpecialEvent(unsigned short beg_iter_no_, unsigned short end_iter_no_, std::string&& name_)
         : beg_iter_no {beg_iter_no_}, end_iter_no {end_iter_no_}, name {name_}
     {
     }
@@ -41,12 +41,12 @@ public:
 
     ~SpecialEvent() = default;
 
-    unsigned get_beg_iter_no() const
+    unsigned short get_beg_iter_no() const
     {
         return beg_iter_no;
     }
 
-    unsigned get_end_iter_no() const
+    unsigned short get_end_iter_no() const
     {
         return end_iter_no;
     }
@@ -57,8 +57,8 @@ public:
     }
 
 private:
-    unsigned beg_iter_no;
-    unsigned end_iter_no;
+    unsigned short beg_iter_no;
+    unsigned short end_iter_no;
 
     std::string name;
     std::map<size_type, double> ratios;
@@ -69,7 +69,7 @@ class VDFPeriod {
 public:
     VDFPeriod() = delete;
 
-    VDFPeriod(unsigned no_, double alpha_ = 0.15, double beta_ = 4,
+    VDFPeriod(unsigned short no_, double alpha_ = 0.15, double beta_ = 4,
               double mu_ = 1000, double cap_ = 1999, double fftt_ = INT_MAX)
         : no {no_}, alpha {alpha_}, beta {beta_}, mu {mu_}, cap {cap_}, fftt {fftt_}
     {
@@ -118,7 +118,7 @@ public:
     }
 
 private:
-    unsigned no;
+    unsigned short no;
 
     double alpha;
     double beta;
@@ -139,7 +139,7 @@ public:
     Link(std::string&& id_, size_type no_,
          std::string&& head_node_id_, size_type head_node_no_,
          std::string&& tail_node_id_, size_type tail_node_no_,
-         unsigned lane_num_, double cap_, double ffs_, double len_)
+         unsigned short lane_num_, double cap_, double ffs_, double len_)
          : id {id_}, no {no_},
            head_node_id {head_node_id_}, head_node_no {head_node_no_},
            tail_node_id {tail_node_id_}, tail_node_no {tail_node_no},
@@ -210,7 +210,7 @@ public:
         return ffs > 0 ? static_cast<double>(len) / ffs * MINUTES_IN_HOUR : INT_MAX;
     }
 
-    double get_generalized_cost(unsigned i, double vot) const
+    double get_generalized_cost(unsigned short i, double vot) const
     {
         if (vot <= 0)
             vot = std::numeric_limits<double>::epsilon();
@@ -223,29 +223,29 @@ public:
         return choice_cost;
     }
 
-    double get_period_voc(unsigned i) const
+    double get_period_voc(unsigned short i) const
     {
         return vdfps[i].get_voc();
     }
 
     // useless as it should be always the same as fftt from link itself?
-    double get_period_fftt(unsigned i) const
+    double get_period_fftt(unsigned short i) const
     {
         return vdfps[i].get_fftt();
     }
 
-    double get_period_travel_time(unsigned i) const
+    double get_period_travel_time(unsigned short i) const
     {
         return vdfps[i].get_travel_time();
     }
 
-    double get_period_vol(unsigned i) const
+    double get_period_vol(unsigned short i) const
     {
         return vdfps[i].get_vol();
     }
 
     // useless
-    void increase_period_vol(unsigned i, double v)
+    void increase_period_vol(unsigned short i, double v)
     {
         vdfps[i].increase_vol(v);
     }
@@ -257,7 +257,7 @@ public:
     }
 
     // useless
-    void reset_period_vol(unsigned i)
+    void reset_period_vol(unsigned short i)
     {
         vdfps[i].reset_vol();
     }
@@ -268,7 +268,7 @@ public:
             v.reset_vol();
     }
 
-    void update_period_travel_time(unsigned iter_no);
+    void update_period_travel_time(unsigned short iter_no);
 
 private:
     std::string id;
@@ -281,7 +281,7 @@ private:
     size_type tail_node_no;
 
     // to do: use unsigned short?
-    unsigned lane_num;
+    unsigned short lane_num;
 
     double cap;
     double ffs;
@@ -440,7 +440,7 @@ public:
         return gc_rd;
     }
 
-    unsigned get_id() const
+    unsigned short get_id() const
     {
         return id;
     }
@@ -755,7 +755,7 @@ public:
     {
     }
 
-    Zone(size_type no_, unsigned bin_id_) : no {no_}, bin_id {bin_id_}
+    Zone(size_type no_, unsigned short bin_id_) : no {no_}, bin_id {bin_id_}
     {
     }
 
@@ -777,7 +777,7 @@ public:
         return act_nodes.size();
     }
 
-    unsigned get_bin_index() const
+    unsigned short get_bin_index() const
     {
         return bin_id;
     }
@@ -823,7 +823,7 @@ public:
         act_nodes.push_back(node_no);
     }
 
-    void set_bin_index(unsigned bi)
+    void set_bin_index(unsigned short bi)
     {
         bin_id = bi;
     }
@@ -848,7 +848,7 @@ private:
     Node* centroid;
 
     // the following members are related to zone synthesis
-    unsigned bin_id = 0;
+    unsigned short bin_id = 0;
 
     Boundary bd;
     double x = 91;
@@ -980,7 +980,7 @@ public:
 
     // do i really need to create an instance of SPNetwork for each agent type
     // given a demand period?
-    SPNetwork(unsigned id_, DemandPeriod* dp_) : id {id_}, dp {dp_}
+    SPNetwork(unsigned short id_, DemandPeriod* dp_) : id {id_}, dp {dp_}
     {
     }
 
@@ -1070,7 +1070,7 @@ public:
 
     void update_link_costs()
     {
-        unsigned dp_id = dp->get_id();
+        auto dp_id = dp->get_id();
         double vot = dp->get_agent_vot();
 
         for (auto p : get_links())
@@ -1194,8 +1194,7 @@ private:
     }
 
 private:
-    // use unsigned short instead?
-    unsigned id;
+    unsigned short id;
 
     ColumnPool* cp;
     // Assignment is responsible to clean it up.

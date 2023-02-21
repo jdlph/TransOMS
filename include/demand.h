@@ -16,7 +16,7 @@ class Agent {
 public:
     Agent() = delete;
 
-    Agent(size_type id_, unsigned at_id_, unsigned dp_id_,
+    Agent(size_type id_, unsigned short at_id_, unsigned short dp_id_,
           std::string oz_id_, std::string dz_id_, const Column* c = nullptr)
         : id {id_}, at_id {at_id_}, dp_id {dp_id_}, oz_id {oz_id_}, dz_id {dz_id_},
           col {c}, pce {1}
@@ -32,12 +32,12 @@ public:
 
     ~Agent() = default;
 
-    unsigned get_agent_type_id() const
+    auto get_agent_type_id() const
     {
         return at_id;
     }
 
-    unsigned get_demand_period_id() const
+    auto get_demand_period_id() const
     {
         return dp_id;
     }
@@ -71,12 +71,12 @@ public:
         return curr_link_no == 0;
     }
 
-    unsigned get_arr_interval() const
+    auto get_arr_interval() const
     {
         return arr_intvls[curr_link_no];
     }
 
-    unsigned get_dep_interval() const
+    auto get_dep_interval() const
     {
         return dep_intvls[curr_link_no];
     }
@@ -136,8 +136,8 @@ private:
 private:
     size_type id;
     // to do: use unsigned short
-    unsigned at_id;
-    unsigned dp_id;
+    unsigned short at_id;
+    unsigned short dp_id;
 
     // use unsigned instead?
     std::string oz_id;
@@ -163,7 +163,7 @@ public:
     {
     }
 
-    AgentType(unsigned id_, unsigned flow_type_, double ffs_, double pce_,
+    AgentType(unsigned short id_, unsigned short flow_type_, double ffs_, double pce_,
               double vot_, std::string&& name_, bool use_link_ffs_)
         : id {id_}, flow_type {flow_type_}, ffs {ffs_}, pce {pce_},
           vot {vot_}, name {name_}, is_link_ffs {use_link_ffs_}
@@ -178,17 +178,17 @@ public:
 
     ~AgentType() = default;
 
-    unsigned get_id() const
+    auto get_id() const
     {
         return id;
     }
 
-    unsigned get_flow_type() const
+    auto get_flow_type() const
     {
         return flow_type;
     }
 
-    double get_ffs() const
+    auto get_ffs() const
     {
         return ffs;
     }
@@ -198,12 +198,12 @@ public:
         return name;
     }
 
-    double get_pce() const
+    auto get_pce() const
     {
         return pce;
     }
 
-    double get_vot() const
+    auto get_vot() const
     {
         return vot;
     }
@@ -228,8 +228,8 @@ public:
     static const std::string legacy_name;
 
 private:
-    unsigned id;
-    unsigned flow_type;
+    unsigned short id;
+    unsigned short flow_type;
 
     double ffs;
     double pce;
@@ -246,7 +246,7 @@ public:
     {
     }
 
-    DemandPeriod(unsigned id_, std::string&& at_name_, std::string&& filename_,
+    DemandPeriod(unsigned short id_, std::string&& at_name_, std::string&& filename_,
                  std::string&& period_, std::string&& time_period_, const SpecialEvent* se_)
         : id {id_}, at_name {at_name_}, filename {filename_},
           period {period_}, time_period {time_period_}, se {se_}
@@ -279,7 +279,7 @@ public:
         return filename;
     }
 
-    unsigned get_id() const
+    auto get_id() const
     {
         return id;
     }
@@ -294,11 +294,11 @@ public:
         return time_period;
     }
 
-    bool contain_iter_no(unsigned iter_no) const;
-    double get_cap_reduction_ratio(size_type link_no, unsigned iter_no) const;
+    bool contain_iter_no(unsigned short iter_no) const;
+    double get_cap_reduction_ratio(size_type link_no, unsigned short iter_no) const;
 
 private:
-    unsigned id;
+    unsigned short id;
 
     // to do: no need any more after at is added as member?
     std::string at_name;
