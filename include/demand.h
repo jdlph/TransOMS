@@ -239,17 +239,59 @@ private:
     bool is_link_ffs;
 };
 
+class Demand {
+public:
+    Demand() = delete;
+
+    Demand(unsigned short no_, std::string&& filename_, const AgentType* at_)
+        : no {no_}, filename {filename_}, at {at_}
+    {
+    }
+
+    Demand(const Demand&) = delete;
+    Demand& operator=(const Demand&) = delete;
+
+    Demand(Demand&&) = default;
+    Demand& operator=(Demand&&) = default;
+
+    ~Demand() = default;
+
+    auto get_no() const
+    {
+        return no;
+    }
+
+    const std::string& get_agent_type_name() const
+    {
+        return at->get_name();
+    }
+
+    auto get_agent_type_no() const
+    {
+        return at->get_id();
+    }
+
+    const std::string& get_file_name() const
+    {
+        return filename;
+    }
+
+private:
+    unsigned short no = 0;
+    std::string filename = "demand.csv";
+
+    const AgentType* at;
+};
+
 class DemandPeriod {
 public:
-    DemandPeriod() : id {0}, at_name {"auto"}, filename {"demand.csv"},
-                     period {"AM"}, time_period {"0700_0800"}, se {nullptr}
+    DemandPeriod() : id {0}, period {"AM"}, time_period {"0700_0800"}, se {nullptr}
     {
     }
 
     DemandPeriod(unsigned short id_, std::string&& at_name_, std::string&& filename_,
                  std::string&& period_, std::string&& time_period_, const SpecialEvent* se_)
-        : id {id_}, at_name {at_name_}, filename {filename_},
-          period {period_}, time_period {time_period_}, se {se_}
+        : id {id_}, period {period_}, time_period {time_period_}, se {se_}
     {
     }
 
@@ -264,19 +306,14 @@ public:
         delete se;
     }
 
-    const std::string& get_agent_type_name() const
+    void add_agent_type(const AgentType* at)
     {
-        return at_name;
+        ats.push_back(at);
     }
 
-    double get_agent_vot() const
+    void attached_special_event(const SpecialEvent* s)
     {
-        at->get_vot();
-    }
-
-    const std::string& get_demand_file_name() const
-    {
-        return filename;
+        se = s;
     }
 
     auto get_id() const
@@ -300,13 +337,10 @@ public:
 private:
     unsigned short id;
 
-    // to do: no need any more after at is added as member?
-    std::string at_name;
-    std::string filename;
     std::string period;
     std::string time_period;
 
-    const AgentType* at;
+    std::vector<const AgentType*> ats;
     // change back to SpecialEvent later
     const SpecialEvent* se;
 };

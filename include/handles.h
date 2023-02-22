@@ -37,7 +37,7 @@ public:
             update_column_gradient_and_flow(i);
         }
 
-        // post-processing on link flow and link link travel time 
+        // post-processing on link flow and link link travel time
         // according to the path flow from the last iteration
         // note that we would not change path flow any more after the last iteration
         update_link_and_column_volume(column_gen_num, false);
@@ -50,7 +50,7 @@ private:
     {
         for (auto& [k, cv] : cp.get_column_vecs())
         {
-            // oz_id, dz_id, dp_id
+            // oz_id, dz_id, dp_id, at_id
             auto dp_id = std::get<2>(k);
             for (auto& col : cv.get_columns())
             {
@@ -120,9 +120,10 @@ private:
 
         for (auto& [k, cv] : cp.get_column_vecs())
         {
-            // oz_id, dz_id, dp_id
+            // oz_id, dz_id, dp_id, at_id
             auto dp_id = std::get<2>(k);
-            auto vot = dps[dp_id].get_agent_vot();
+            auto at_id = std::get<3>(k);
+            auto vot = ats[at_id].get_vot();
 
             const Column* p = nullptr;
             double least_gradient_cost = std::numeric_limits<double>::max();

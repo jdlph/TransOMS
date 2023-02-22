@@ -14,8 +14,8 @@ namespace opendta
 // to do: change size_t to size_type later
 using size_type = unsigned long;
 
-// origin zone id, destination zone id, demand period no
-using ColumnVecKey = std::tuple<std::string, std::string, unsigned short>;
+// origin zone id, destination zone id, demand period no, agent type no
+using ColumnVecKey = std::tuple<std::string, std::string, unsigned short, unsigned short>;
 
 // some constants
 constexpr unsigned short MINUTES_IN_HOUR = 60;
@@ -741,6 +741,7 @@ public:
     }
 
 private:
+    // it must be an ordered or sequential container?
     std::map<ColumnVecKey, ColumnVec> cp;
 };
 
