@@ -24,7 +24,7 @@ public:
     {
         for (auto i = 0; i != column_gen_num; ++i)
         {
-            update_link_travel_time(i);
+            update_link_travel_time(&dps, i);
             update_link_and_column_volume(i);
             for (auto& spn : spns)
                 spn.generate_columns(i);
@@ -33,7 +33,7 @@ public:
         for (auto i = 0; i != column_opt_num; ++i)
         {
             update_link_and_column_volume(i);
-            update_link_travel_time(i);
+            update_link_travel_time();
             update_column_gradient_and_flow(i);
         }
 
@@ -41,7 +41,7 @@ public:
         // according to the path flow from the last iteration
         // note that we would not change path flow any more after the last iteration
         update_link_and_column_volume(column_gen_num, false);
-        update_link_travel_time(column_gen_num);
+        update_link_travel_time();
         update_column_attributes();
     }
 
@@ -85,12 +85,13 @@ private:
 
         for (auto& [k, cv] : cp.get_column_vecs())
         {
+            auto at_no = std::get<3>(k);
             // col is const
             for (auto& col : cv.get_columns())
             {
                 auto vol = col.get_volume();
                 for (auto i : col.get_links())
-                    net.get_links()[i]->increase_period_vol(vol);
+                    net.get_links()[i]->increase_period_vol(at_no, vol);
 
                 if (reduce_path_vol && !cv.is_route_fixed())
                     const_cast<Column&>(col).reduce_volume(iter_no);
@@ -98,7 +99,8 @@ private:
         }
     }
 
-    void update_link_travel_time(unsigned short iter_no)
+    // a little bit ugly
+    void update_link_travel_time(const std::vector<DemandPeriod>* dps = nullptr, short iter_no = -1)
     {
         if (!iter_no)
             return;
@@ -108,7 +110,7 @@ private:
             if (!link->get_length())
                 continue;
 
-            link->update_period_travel_time(iter_no);
+            link->update_period_travel_time(dps, iter_no);
         }
     }
 

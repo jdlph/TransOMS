@@ -244,16 +244,9 @@ public:
         return vdfps[i].get_vol();
     }
 
-    // useless
     void increase_period_vol(unsigned short i, double v)
     {
         vdfps[i].increase_vol(v);
-    }
-
-    void increase_period_vol(double v)
-    {
-        for (auto& vdf : vdfps)
-            vdf.increase_vol(v);
     }
 
     // useless
@@ -268,7 +261,7 @@ public:
             v.reset_vol();
     }
 
-    void update_period_travel_time(unsigned short iter_no);
+    void update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no);
 
 private:
     std::string id;

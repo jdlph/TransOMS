@@ -13,11 +13,17 @@ inline const std::vector<size_type>& Agent::get_node_path() const
     return col->get_nodes();
 }
 
-// incomplete
-void Link::update_period_travel_time(unsigned short iter_no)
+void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
 {
-    for (auto& v: vdfps)
-        v.run_bpr();
+    for (auto i = 0; i != vdfps.size(); ++i)
+    {
+        // make sure vdfps has the same size as dps
+        auto reduction_ratio = 1.0;
+        if (dps)
+            reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_no(), iter_no);
+
+        vdfps[i].run_bpr(reduction_ratio);
+    }
 }
 
 inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
