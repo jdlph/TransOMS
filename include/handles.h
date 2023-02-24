@@ -64,7 +64,6 @@ private:
                 }
 
                 const_cast<Column&>(col).set_travel_time(tt);
-                // useless?
                 const_cast<Column&>(col).set_toll(pt);
             }
         }
@@ -168,13 +167,6 @@ private:
         auto rel_gap = total_travel_time > 0 ? total_gap / total_travel_time : std::numeric_limits<double>::max();
 
         std::cout << "total gap: " << total_gap << "\nrelative gap: " << rel_gap << "\n";
-    }
-
-    // useless
-    void optimize_column_pool(unsigned short update_num)
-    {
-        for (auto i = 0; i != update_num; ++i)
-            update_column_gradient_and_flow(i);
     }
 
 private:

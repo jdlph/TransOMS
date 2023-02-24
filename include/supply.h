@@ -403,8 +403,8 @@ public:
     {
     }
 
-    Column(size_type id_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_)
-        : id {id_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
+    Column(size_type id_, double od_vol_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_)
+        : id {id_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
     {
     }
 
@@ -535,8 +535,8 @@ public:
 
     double shift_volume(unsigned short iter_no)
     {
-        auto step_size = 1.0 / (iter_no + 2) * vol;
-        auto new_vol = std::max(0.0, vol - step_size * gc_rd);
+        auto step_size = 1.0 / (iter_no + 2);
+        auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
 
         auto prev_vol = vol;
         vol = new_vol;
@@ -546,6 +546,7 @@ public:
 
 private:
     size_type id;
+    double od_vol = 0;
 
     double dist = 0;
     double gc = 0;
@@ -1072,7 +1073,7 @@ public:
     void update_link_costs()
     {
         auto dp_id = dp->get_id();
-        double vot = dp->get_agent_vot();
+        auto vot = at->get_vot();
 
         for (auto p : get_links())
             link_costs[p->get_no()] = p->get_generalized_cost(dp_id, vot);
@@ -1126,7 +1127,7 @@ private:
                 continue;
 
             // move temporary Column
-            cv.update(Column{cv.get_column_num(), dist, link_path, node_path}, iter_no);
+            cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path, node_path}, iter_no);
         }
     }
 
@@ -1147,7 +1148,7 @@ private:
             {
                 for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
                 {
-                    if (is_mode_compatible(link->get_allowed_modes(), dp->get_agent_type_name()))
+                    if (is_mode_compatible(link->get_allowed_modes(), at->get_name()))
                         continue;
 
                     size_type new_node = link->get_tail_node_no();
@@ -1197,9 +1198,11 @@ private:
 private:
     unsigned short id;
 
-    ColumnPool* cp;
-    // Assignment is responsible to clean it up.
+    // Assignment is responsible to clean them up.
+    AgentType* at;
     DemandPeriod* dp;
+
+    ColumnPool* cp;
     PhyNetwork* pn;
 
     // inconsistent with the type of node no
