@@ -16,9 +16,9 @@ class Agent {
 public:
     Agent() = delete;
 
-    Agent(size_type id_, unsigned short at_id_, unsigned short dp_id_,
-          std::string oz_id_, std::string dz_id_, const Column* c = nullptr)
-        : id {id_}, at_id {at_id_}, dp_id {dp_id_}, oz_id {oz_id_}, dz_id {dz_id_},
+    Agent(size_type no_, unsigned short at_no_, unsigned short dp_no_,
+          size_type oz_no_, size_type dz_no_, const Column* c = nullptr)
+        : no {no_}, at_no {at_no_}, dp_no {dp_no_}, oz_no {oz_no_}, dz_no {dz_no_},
           col {c}, pce {1}
     {
         initialize_intervals();
@@ -32,29 +32,29 @@ public:
 
     ~Agent() = default;
 
-    auto get_agent_type_id() const
+    auto get_agent_type_no() const
     {
-        return at_id;
+        return at_no;
     }
 
-    auto get_demand_period_id() const
+    auto get_demand_period_no() const
     {
-        return dp_id;
+        return dp_no;
     }
 
-    const std::string& get_dest_zone_id() const
+    auto get_dest_zone_no() const
     {
-        return dz_id;
+        return dz_no;
     }
 
-    const std::string& get_orig_zone_id() const
+    auto get_orig_zone_no() const
     {
-        return oz_id;
+        return oz_no;
     }
 
-    size_type get_id() const
+    size_type get_no() const
     {
-        return id;
+        return no;
     }
 
     const std::vector<size_type>& get_link_path() const;
@@ -134,14 +134,14 @@ private:
     }
 
 private:
-    size_type id;
-    // to do: use unsigned short
-    unsigned short at_id;
-    unsigned short dp_id;
+    size_type no;
 
-    // use unsigned instead?
-    std::string oz_id;
-    std::string dz_id;
+    unsigned short at_no;
+    unsigned short dp_no;
+
+    // use unsigned short instead?
+    size_type oz_no;
+    size_type dz_no;
 
     const Column* col;
 
@@ -158,14 +158,14 @@ private:
 
 class AgentType {
 public:
-    AgentType() : id {0}, flow_type {0}, ffs {60}, pce {1},
+    AgentType() : no {0}, flow_type {0}, ffs {60}, pce {1},
                   vot {10}, name {"auto"}, is_link_ffs {true}
     {
     }
 
-    AgentType(unsigned short id_, unsigned short flow_type_, double ffs_, double pce_,
+    AgentType(unsigned short no_, unsigned short flow_type_, double ffs_, double pce_,
               double vot_, std::string&& name_, bool use_link_ffs_)
-        : id {id_}, flow_type {flow_type_}, ffs {ffs_}, pce {pce_},
+        : no {no_}, flow_type {flow_type_}, ffs {ffs_}, pce {pce_},
           vot {vot_}, name {name_}, is_link_ffs {use_link_ffs_}
     {
     }
@@ -178,9 +178,9 @@ public:
 
     ~AgentType() = default;
 
-    auto get_id() const
+    auto get_no() const
     {
-        return id;
+        return no;
     }
 
     auto get_flow_type() const
@@ -228,7 +228,7 @@ public:
     static const std::string legacy_name;
 
 private:
-    unsigned short id;
+    unsigned short no;
     unsigned short flow_type;
 
     double ffs;
@@ -268,7 +268,7 @@ public:
 
     auto get_agent_type_no() const
     {
-        return at->get_id();
+        return at->get_no();
     }
 
     const std::string& get_file_name() const
@@ -285,13 +285,13 @@ private:
 
 class DemandPeriod {
 public:
-    DemandPeriod() : id {0}, period {"AM"}, time_period {"0700_0800"}, se {nullptr}
+    DemandPeriod() : no {0}, period {"AM"}, time_period {"0700_0800"}, se {nullptr}
     {
     }
 
-    DemandPeriod(unsigned short id_, std::string&& at_name_, std::string&& filename_,
+    DemandPeriod(unsigned short no_, std::string&& at_name_, std::string&& filename_,
                  std::string&& period_, std::string&& time_period_, const SpecialEvent* se_)
-        : id {id_}, period {period_}, time_period {time_period_}, se {se_}
+        : no {no_}, period {period_}, time_period {time_period_}, se {se_}
     {
     }
 
@@ -316,9 +316,9 @@ public:
         se = s;
     }
 
-    auto get_id() const
+    auto get_no() const
     {
-        return id;
+        return no;
     }
 
     const std::string& get_period() const
@@ -335,7 +335,7 @@ public:
     double get_cap_reduction_ratio(size_type link_no, unsigned short iter_no) const;
 
 private:
-    unsigned short id;
+    unsigned short no;
 
     std::string period;
     std::string time_period;

@@ -15,7 +15,7 @@ namespace opendta
 using size_type = unsigned long;
 
 // origin zone id, destination zone id, demand period no, agent type no
-using ColumnVecKey = std::tuple<std::string, std::string, unsigned short, unsigned short>;
+using ColumnVecKey = std::tuple<size_type, size_type, unsigned short, unsigned short>;
 
 // some constants
 constexpr unsigned short MINUTES_IN_HOUR = 60;
@@ -295,8 +295,8 @@ public:
     Node() = default;
 
     Node(size_type no_, std::string&& id_,  double x_, double y_,
-         std::string&& z_id, bool act_node_ = false)
-        : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id}, act_node {act_node_}
+         size_type z_no_, bool act_node_ = false)
+        : no {no_}, id {id_},  x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
     {
     }
 
@@ -318,9 +318,9 @@ public:
         return no;
     }
 
-    const std::string& get_zone_id() const
+    auto get_zone_no() const
     {
-        return zone_id;
+        return zone_no;
     }
 
     auto get_coordinate() const
@@ -381,7 +381,7 @@ private:
     double x = 91;
     double y = 181;
 
-    std::string zone_id;
+    size_type zone_no;
     bool act_node;
 
     std::vector<const Link*> incoming_links;
@@ -392,12 +392,12 @@ class Column {
 public:
     Column() = delete;
 
-    Column(size_type id_) : id {id_}
+    Column(size_type no_) : no {no_}
     {
     }
 
-    Column(size_type id_, double od_vol_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_)
-        : id {id_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
+    Column(size_type no_, double od_vol_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_)
+        : no {no_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
     {
     }
 
@@ -433,9 +433,9 @@ public:
         return gc_rd;
     }
 
-    unsigned short get_id() const
+    unsigned short get_no() const
     {
-        return id;
+        return no;
     }
 
     std::vector<size_type>::size_type get_link_num() const
@@ -538,7 +538,7 @@ public:
     }
 
 private:
-    size_type id;
+    size_type no;
     double od_vol = 0;
 
     double dist = 0;
@@ -742,7 +742,7 @@ private:
 class Zone {
 public:
     using Vertex = std::pair<double, double>;
-    using Boundary = std::tuple<Vertex, Vertex, Vertex, Vertex>;
+    using Boundary = std::tuple<double, double, double, double>;
 
     Zone() = default;
 
@@ -792,15 +792,16 @@ public:
         return std::make_pair(x, y);
     }
 
-    // incomplete
     std::string get_geometry() const
     {
         try
         {
-            auto U = std::get<0>(bd);
-            auto D = std::get<1>(bd);
-            auto L = std::get<2>(bd);
-            auto R = std::get<3>(bd);
+            auto U = std::to_string(std::get<0>(bd));
+            auto D = std::to_string(std::get<1>(bd));
+            auto L = std::to_string(std::get<2>(bd));
+            auto R = std::to_string(std::get<3>(bd));
+
+            return "LINESTRING (" + L + U + ',' + R + U + ',' + R + D + ',' + L + D + ',' + L + U + ')';
         }
         catch(const std::exception& e)
         {
@@ -823,11 +824,11 @@ public:
         bin_id = bi;
     }
 
-    // incomplete
-    void set_geometry(double x_, double y_)
+    void set_geometry(double x_, double y_, Boundary& bd_)
     {
         x = x_;
         y = y_;
+        bd = bd_;
     }
 
     void set_production(double p)
@@ -975,7 +976,7 @@ public:
 
     // do i really need to create an instance of SPNetwork for each agent type
     // given a demand period?
-    SPNetwork(unsigned short id_, DemandPeriod* dp_) : id {id_}, dp {dp_}
+    SPNetwork(unsigned short no_, DemandPeriod* dp_) : no {no_}, dp {dp_}
     {
     }
 
@@ -1065,11 +1066,11 @@ public:
 
     void update_link_costs()
     {
-        auto dp_id = dp->get_id();
+        auto dp_no = dp->get_no();
         auto vot = at->get_vot();
 
         for (auto p : get_links())
-            link_costs[p->get_no()] = p->get_generalized_cost(dp_id, vot);
+            link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
     }
 
 private:
@@ -1079,15 +1080,15 @@ private:
         if (p->get_outgoing_links().empty())
             return;
 
-        const auto oz_id = p->get_zone_id();
+        const auto oz_no = p->get_zone_no();
 
         for (const auto c : get_centroids())
         {
-            auto dz_id = c->get_zone_id();
-            if (oz_id == dz_id)
+            auto dz_no = c->get_zone_no();
+            if (oz_no == dz_no)
                 continue;
 
-            ColumnVecKey cvk {oz_id, dz_id, dp->get_id()};
+            ColumnVecKey cvk {oz_no, dz_no, dp->get_no()};
             if (!cp->contains_key(cvk))
                 continue;
 
@@ -1189,7 +1190,7 @@ private:
     }
 
 private:
-    unsigned short id;
+    unsigned short no;
 
     // Assignment is responsible to clean them up.
     AgentType* at;

@@ -50,8 +50,8 @@ private:
     {
         for (auto& [k, cv] : cp.get_column_vecs())
         {
-            // oz_id, dz_id, dp_id, at_id
-            auto dp_id = std::get<2>(k);
+            // oz_no, dz_no, dp_no, at_no
+            auto dp_no = std::get<2>(k);
             for (auto& col : cv.get_columns())
             {
                 double tt = 0;
@@ -59,7 +59,7 @@ private:
                 for (auto i : col.get_links())
                 {
                     auto link = net.get_links()[i];
-                    tt += link->get_period_travel_time(dp_id);
+                    tt += link->get_period_travel_time(dp_no);
                     pt += link->get_toll();
                 }
 
@@ -121,10 +121,10 @@ private:
 
         for (auto& [k, cv] : cp.get_column_vecs())
         {
-            // oz_id, dz_id, dp_id, at_id
-            auto dp_id = std::get<2>(k);
-            auto at_id = std::get<3>(k);
-            auto vot = ats[at_id].get_vot();
+            // oz_no, dz_no, dp_no, at_no
+            auto dp_no = std::get<2>(k);
+            auto at_no = std::get<3>(k);
+            auto vot = ats[at_no].get_vot();
 
             const Column* p = nullptr;
             double least_gradient_cost = std::numeric_limits<double>::max();
@@ -133,7 +133,7 @@ private:
             {
                 double path_gradient_cost = 0;
                 for (auto i : col.get_links())
-                    path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_id, vot);
+                    path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_no, vot);
 
                 const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
                 if (path_gradient_cost < least_gradient_cost)
