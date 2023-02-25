@@ -295,8 +295,8 @@ public:
     Node() = default;
 
     Node(size_type no_, std::string&& id_,  double x_, double y_,
-         size_type z_no_, bool act_node_ = false)
-        : no {no_}, id {id_},  x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
+         std::string&& z_id_, bool act_node_ = false)
+        : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id_}, act_node {act_node_}
     {
     }
 
@@ -381,6 +381,7 @@ private:
     double x = 91;
     double y = 181;
 
+    std::string zone_id;
     size_type zone_no;
     bool act_node;
 
@@ -750,7 +751,7 @@ public:
     {
     }
 
-    Zone(size_type no_, unsigned short bin_id_) : no {no_}, bin_id {bin_id_}
+    Zone(size_type no_, const std::string& id_, unsigned short bin_id_) : no {no_}, id {id_}, bin_id {bin_id_}
     {
     }
 
@@ -809,6 +810,11 @@ public:
         }
     }
 
+    const auto& get_id() const
+    {
+        return id;
+    }
+
     double get_production() const
     {
         return prod;
@@ -819,12 +825,17 @@ public:
         act_nodes.push_back(node_no);
     }
 
+    void add_node(size_type node_no)
+    {
+        nodes.push_back(node_no);
+    }
+
     void set_bin_index(unsigned short bi)
     {
         bin_id = bi;
     }
 
-    void set_geometry(double x_, double y_, Boundary& bd_)
+    void set_geometry(double x_, double y_, const Boundary& bd_)
     {
         x = x_;
         y = y_;
@@ -841,6 +852,7 @@ private:
     size_type no = 0;
 
     std::vector<size_type> act_nodes;
+    std::vector<size_type> nodes;
     Node* centroid;
 
     // the following members are related to zone synthesis
@@ -944,6 +956,16 @@ public:
     const std::vector<const Node*>& get_centroids() const override
     {
         return centroids;
+    }
+
+    void add_node(const Node* n)
+    {
+        nodes.push_back(n);
+    }
+
+    void add_zone(Zone& z)
+    {
+        zones[z.get_id()] = std::move(z);
     }
 
     void collect_centroids()

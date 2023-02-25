@@ -45,6 +45,10 @@ public:
         update_column_attributes();
     }
 
+    void read_links(const std::string& input_dir);
+    void read_nodes(const std::string& input_dir);
+    void read_network(const std::string& input_dir);
+
 private:
     void update_column_attributes()
     {
@@ -85,13 +89,16 @@ private:
 
         for (auto& [k, cv] : cp.get_column_vecs())
         {
+            // oz_no, dz_no, dp_no, at_no
+            auto dp_no = std::get<2>(k);
             auto at_no = std::get<3>(k);
+            auto pce = ats[at_no].get_pce();
             // col is const
             for (auto& col : cv.get_columns())
             {
-                auto vol = col.get_volume();
+                auto vol = col.get_volume() * pce;
                 for (auto i : col.get_links())
-                    net.get_links()[i]->increase_period_vol(at_no, vol);
+                    net.get_links()[i]->increase_period_vol(dp_no, vol);
 
                 if (reduce_path_vol && !cv.is_route_fixed())
                     const_cast<Column&>(col).reduce_volume(iter_no);
@@ -102,9 +109,6 @@ private:
     // a little bit ugly
     void update_link_travel_time(const std::vector<DemandPeriod>* dps = nullptr, short iter_no = -1)
     {
-        if (!iter_no)
-            return;
-
         for (auto link : net.get_links())
         {
             if (!link->get_length())
