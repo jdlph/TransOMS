@@ -295,7 +295,7 @@ public:
     Node() = default;
 
     Node(size_type no_, std::string&& id_,  double x_, double y_,
-         std::string&& z_id_, bool act_node_ = false)
+         const std::string& z_id_, bool act_node_ = false)
         : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id_}, act_node {act_node_}
     {
     }
@@ -874,8 +874,8 @@ public:
     virtual std::vector<Link*>& get_links() = 0;
     virtual const std::vector<Link*>& get_links() const = 0;
 
-    virtual std::map<std::string, Zone>& get_zones() = 0;
-    virtual const std::map<std::string, Zone>& get_zones() const = 0;
+    virtual std::map<std::string, Zone*>& get_zones() = 0;
+    virtual const std::map<std::string, Zone*>& get_zones() const = 0;
 
     virtual const std::vector<const Node*>& get_centroids() const = 0;
 
@@ -943,12 +943,12 @@ public:
         return links;
     }
 
-    std::map<std::string, Zone>& get_zones() override
+    std::map<std::string, Zone*>& get_zones() override
     {
         return zones;
     }
 
-    const std::map<std::string, Zone>& get_zones() const override
+    const std::map<std::string, Zone*>& get_zones() const override
     {
         return zones;
     }
@@ -963,9 +963,9 @@ public:
         nodes.push_back(n);
     }
 
-    void add_zone(Zone& z)
+    void add_zone(Zone* z)
     {
-        zones[z.get_id()] = std::move(z);
+        zones[z->get_id()] = z;
     }
 
     void collect_centroids()
@@ -973,8 +973,8 @@ public:
         for (const auto& z : zones)
         {
             // make sure centroid is not nullptr
-            if (z.second.get_centroid())
-                centroids.push_back(z.second.get_centroid());
+            if (z.second->get_centroid())
+                centroids.push_back(z.second->get_centroid());
         }
     }
 
@@ -985,7 +985,7 @@ private:
     std::vector<const Node*> nodes;
 
     std::vector<const Node*> centroids;
-    std::map<std::string, Zone> zones;
+    std::map<std::string, Zone*> zones;
 
     std::vector<Agent> agents;
     // time-dependent agents for simulation
@@ -1055,12 +1055,12 @@ public:
         return orig_nodes;
     }
 
-    std::map<std::string, Zone>& get_zones() override
+    std::map<std::string, Zone*>& get_zones() override
     {
         return pn->get_zones();
     }
 
-    const std::map<std::string, Zone>& get_zones() const override
+    const std::map<std::string, Zone*>& get_zones() const override
     {
         return pn->get_zones();
     }
