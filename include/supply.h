@@ -75,11 +75,11 @@ public:
     {
     }
 
-    VDFPeriod(const VDFPeriod&) = delete;
+    VDFPeriod(const VDFPeriod&) = default;
     VDFPeriod& operator=(const VDFPeriod&) = delete;
 
-    VDFPeriod(VDFPeriod&&) = default;
-    VDFPeriod& operator=(VDFPeriod&&) = default;
+    VDFPeriod(VDFPeriod&&) = delete;
+    VDFPeriod& operator=(VDFPeriod&&) = delete;
 
     double get_travel_time() const
     {
@@ -139,11 +139,13 @@ public:
     Link(std::string&& id_, size_type no_,
          std::string&& head_node_id_, size_type head_node_no_,
          std::string&& tail_node_id_, size_type tail_node_no_,
-         unsigned short lane_num_, double cap_, double ffs_, double len_)
+         unsigned short lane_num_, double cap_, double ffs_, double len_,
+         std::string&& modes_, std::string&& geo_)
          : id {id_}, no {no_},
            head_node_id {head_node_id_}, head_node_no {head_node_no_},
            tail_node_id {tail_node_id_}, tail_node_no {tail_node_no},
-           lane_num {lane_num_}, cap {cap_}, ffs {ffs_}, len {len_}
+           lane_num {lane_num_}, cap {cap_}, ffs {ffs_}, len {len_},
+           allowed_modes {modes_}, geo {geo_}
     {
     }
 
@@ -163,6 +165,11 @@ public:
     const std::string& get_id() const
     {
         return id;
+    }
+
+    auto get_cap() const
+    {
+        return cap * lane_num;
     }
 
     size_type get_no() const
@@ -259,6 +266,11 @@ public:
     {
         for (auto& v : vdfps)
             v.reset_vol();
+    }
+
+    void add_vdfperiod(VDFPeriod& vdf)
+    {
+        vdfps.push_back(vdf);
     }
 
     void update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no);
@@ -868,8 +880,8 @@ private:
 // an abstract class
 class Network {
 public:
-    virtual std::vector<const Node*>& get_nodes() = 0;
-    virtual const std::vector<const Node*>& get_nodes() const = 0;
+    virtual std::vector<Node*>& get_nodes() = 0;
+    virtual const std::vector<Node*>& get_nodes() const = 0;
 
     virtual std::vector<Link*>& get_links() = 0;
     virtual const std::vector<Link*>& get_links() const = 0;
@@ -923,12 +935,12 @@ public:
         return nodes.size();
     }
 
-    std::vector<const Node*>& get_nodes() override
+    std::vector<Node*>& get_nodes() override
     {
         return nodes;
     }
 
-    const std::vector<const Node*>& get_nodes() const override
+    const std::vector<Node*>& get_nodes() const override
     {
         return nodes;
     }
@@ -958,7 +970,12 @@ public:
         return centroids;
     }
 
-    void add_node(const Node* n)
+    void add_link(Link* link)
+    {
+        links.push_back(link);
+    }
+
+    void add_node(Node* n)
     {
         nodes.push_back(n);
     }
@@ -978,11 +995,28 @@ public:
         }
     }
 
+    bool contains(const std::string& node_id)
+    {
+        if (id_no_map.empty())
+        {
+            for (const auto node : nodes)
+                id_no_map[node->get_id()] = node->get_no();
+        }
+
+        return id_no_map.find(node_id) != id_no_map.end();
+    }
+
+    size_type get_node_no(const std::string& node_id) const
+    {
+        return id_no_map.at(node_id);
+    }
+
 private:
     size_type last_thru_node_no;
 
     std::vector<Link*> links;
-    std::vector<const Node*> nodes;
+    std::vector<Node*> nodes;
+    std::map<std::string, size_type> id_no_map;
 
     std::vector<const Node*> centroids;
     std::map<std::string, Zone*> zones;
@@ -1040,12 +1074,12 @@ public:
         return pn->get_links();
     }
 
-    std::vector<const Node*>& get_nodes() override
+    std::vector<Node*>& get_nodes() override
     {
         return pn->get_nodes();
     }
 
-    const std::vector<const Node*>& get_nodes() const override
+    const std::vector<Node*>& get_nodes() const override
     {
         return pn->get_nodes();
     }
