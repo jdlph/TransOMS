@@ -581,10 +581,10 @@ public:
     }
 
     ColumnVec(const ColumnVec&) = delete;
-    ColumnVec& operator=(const ColumnVec) = delete;
+    ColumnVec& operator=(const ColumnVec&) = delete;
 
     ColumnVec(ColumnVec&&) = delete;
-    ColumnVec& operator=(ColumnVec&&) = delete;
+    ColumnVec& operator=(ColumnVec&&) = default;
 
     ~ColumnVec() = default;
 
@@ -747,6 +747,11 @@ public:
         return cp.find(k) != cp.end();
     }
 
+    void create_columnvec(const ColumnVecKey& cvk)
+    {
+        cp[cvk] = ColumnVec();
+    }
+
 private:
     // it must be an ordered or sequential container?
     std::map<ColumnVecKey, ColumnVec> cp;
@@ -825,6 +830,11 @@ public:
     const auto& get_id() const
     {
         return id;
+    }
+
+    size_type get_no() const
+    {
+        return no;
     }
 
     double get_production() const
@@ -972,14 +982,24 @@ public:
 
     void add_link(Link* link)
     {
+        auto head_node = nodes[link->get_head_node_no()];
+        auto tail_node = nodes[link->get_tail_node_no()];
+
+        head_node->add_outgoing_link(link);
+        tail_node->add_incoming_link(link); 
+        
         links.push_back(link);
     }
 
+    // user is responsible for the uniqueness of node id
     void add_node(Node* n)
     {
+        id_no_map[n->get_id()] = n->get_no();
+        
         nodes.push_back(n);
     }
 
+    // user is responsible for the uniqueness of zone id
     void add_zone(Zone* z)
     {
         zones[z->get_id()] = z;
@@ -995,7 +1015,7 @@ public:
         }
     }
 
-    bool contains(const std::string& node_id)
+    bool contains_node(const std::string& node_id)
     {
         if (id_no_map.empty())
         {
@@ -1006,9 +1026,19 @@ public:
         return id_no_map.find(node_id) != id_no_map.end();
     }
 
+    bool contains_zone(const std::string& zone_id) const
+    {
+        return zones.find(zone_id) != zones.end();
+    }
+
     size_type get_node_no(const std::string& node_id) const
     {
         return id_no_map.at(node_id);
+    }
+
+    size_type get_zone_no(const std::string& zone_id) const
+    {
+        return zones.at(zone_id)->get_no();
     }
 
 private:

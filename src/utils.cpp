@@ -279,13 +279,67 @@ void NetworkHandle::read_links(const std::string& dir)
 
             VDFPeriod vdf {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt};
             link->add_vdfperiod(vdf);
-
-            auto head_node = this->net.get_nodes()[head_node_no];
-            auto tail_node = this->net.get_nodes()[tail_node_no];
-
-            head_node->add_outgoing_link(link);
-            tail_node->add_incoming_link(link);
             this->net.add_link(link);
         }
+    }
+}
+
+void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no)
+{
+    auto reader = miocsv::DictReader(dir);
+
+    size_type num = 0;
+    for (const auto& line : reader)
+    {
+        std::string oz_id;
+        try
+        {
+            oz_id = line["o_zone_id"];
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        std::string dz_id;
+        try
+        {
+            dz_id = line["d_zone_id"];
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        if (!this->net.contains_zone(oz_id))
+            continue;
+
+        if (!this->net.contains_zone(dz_id))
+            continue;
+
+        double vol = 0;
+        try
+        {
+            vol = std::stod(line["volume"]);
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        if (!vol)
+            continue;
+
+        auto oz_no = this->net.get_zone_no(oz_id);
+        auto dz_no = this->net.get_zone_no(dz_id);
+
+        ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
+        if (!this->cp.contains_key(cvk))
+            this->cp.create_columnvec(cvk);
+
+        ColumnVec& cv = this->cp.get_column_vec(cvk);
+        cv.increase_volume(vol);
+
+        ++num;
     }
 }

@@ -45,9 +45,10 @@ public:
         update_column_attributes();
     }
 
-    void read_links(const std::string& input_dir);
-    void read_nodes(const std::string& input_dir);
-    void read_network(const std::string& input_dir);
+    void read_links(const std::string& dir);
+    void read_nodes(const std::string& dir);
+    void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
+    void read_network(const std::string& dir);
 
 private:
     void update_column_attributes()
