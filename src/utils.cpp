@@ -277,6 +277,7 @@ void NetworkHandle::read_links(const std::string& dir)
                 // do nothing
             }
 
+            // move it?
             VDFPeriod vdf {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt};
             link->add_vdfperiod(vdf);
             this->net.add_link(link);
@@ -334,12 +335,22 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         auto dz_no = this->net.get_zone_no(dz_id);
 
         ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
-        if (!this->cp.contains_key(cvk))
-            this->cp.create_columnvec(cvk);
-
-        ColumnVec& cv = this->cp.get_column_vec(cvk);
-        cv.increase_volume(vol);
+        this->cp.update(cvk, vol);
 
         ++num;
     }
+}
+
+void NetworkHandle::auto_setup()
+{
+    const auto at = new AgentType();
+    DemandPeriod dp {Demand {at}};
+    
+    this->ats.push_back(at);
+    this->dps.push_back(dp);
+}
+
+void NetworkHandle::read_settings(const std::string& dir)
+{
+    auto_setup();
 }

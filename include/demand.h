@@ -243,6 +243,10 @@ class Demand {
 public:
     Demand() = delete;
 
+    Demand(const AgentType* at_) : at {at_}
+    {
+    }
+
     Demand(unsigned short no_, std::string&& filename_, const AgentType* at_)
         : no {no_}, filename {filename_}, at {at_}
     {
@@ -289,7 +293,12 @@ public:
     {
     }
 
-    DemandPeriod(unsigned short no_, std::string&& at_name_, std::string&& filename_,
+    DemandPeriod(Demand&& dp)
+    {
+        ds.push_back(dp);
+    }
+
+    DemandPeriod(unsigned short no_, std::string&& at_name_,
                  std::string&& period_, std::string&& time_period_, const SpecialEvent* se_)
         : no {no_}, period {period_}, time_period {time_period_}, se {se_}
     {
@@ -341,6 +350,7 @@ private:
     std::string time_period;
 
     std::vector<const AgentType*> ats;
+    std::vector<Demand> ds;
     // change back to SpecialEvent later
     const SpecialEvent* se;
 };

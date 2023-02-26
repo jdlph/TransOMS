@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <forward_list>
 #include <limits>
 #include <map>
 #include <string>
@@ -399,6 +400,8 @@ private:
 
     std::vector<const Link*> incoming_links;
     std::vector<const Link*> outgoing_links;
+    // for future performance comparison
+    // std::forward_list<const Link*> outgoing_links;
 };
 
 class Column {
@@ -656,25 +659,21 @@ public:
         // k_path_prob = 1 / (iter_no + 1)
         auto v = vol / (iter_no + 1);
 
-        if (cols.find(c) == cols.end())
+        if (cols.find(c) != cols.end())
         {
-            c.increase_volume(v);
-            add_new_column(c);
-            return;
-        }
-
-        // a further link-by-link comparison
-        auto er = cols.equal_range(c);
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->get_links() == c.get_links())
+            // a further link-by-link comparison
+            auto er = cols.equal_range(c);
+            for (auto it = er.first; it != er.second; ++it)
             {
-                v += it->get_volume();
-                // erase the existing one as it is a const iterator and the following operation is not allowed
-                // it->increase_volume(v);
-                // it can only be avoided by designing a customer hash table
-                cols.erase(it);
-                break;
+                if (it->get_links() == c.get_links())
+                {
+                    v += it->get_volume();
+                    // erase the existing one as it is a const iterator and the following operation is not allowed
+                    // it->increase_volume(v);
+                    // it can only be avoided by designing a customer hash table
+                    cols.erase(it);
+                    break;
+                }
             }
         }
 
@@ -688,21 +687,17 @@ public:
         // k_path_prob = 1 / (iter_no + 1)
         auto v = vol / (iter_no + 1);
 
-        if (cols.find(c) == cols.end())
+        if (cols.find(c) != cols.end())
         {
-            c.increase_volume(v);
-            add_new_column(c);
-            return;
-        }
-
-        // a further link-by-link comparison
-        auto er = cols.equal_range(c);
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->get_links() == c.get_links())
+            // a further link-by-link comparison
+            auto er = cols.equal_range(c);
+            for (auto it = er.first; it != er.second; ++it)
             {
-                const_cast<Column&>(*it).increase_volume(v);
-                return;
+                if (it->get_links() == c.get_links())
+                {
+                    const_cast<Column&>(*it).increase_volume(v);
+                    return;
+                }
             }
         }
 
@@ -747,9 +742,18 @@ public:
         return cp.find(k) != cp.end();
     }
 
+    // useless?
     void create_columnvec(const ColumnVecKey& cvk)
     {
         cp[cvk] = ColumnVec();
+    }
+
+    void update(const ColumnVecKey& cvk, double vol)
+    {
+        if (!contains_key(cvk))
+            cp[cvk] = ColumnVec();
+
+        cp[cvk].increase_volume(vol);
     }
 
 private:
@@ -986,8 +990,8 @@ public:
         auto tail_node = nodes[link->get_tail_node_no()];
 
         head_node->add_outgoing_link(link);
-        tail_node->add_incoming_link(link); 
-        
+        tail_node->add_incoming_link(link);
+
         links.push_back(link);
     }
 
@@ -995,7 +999,7 @@ public:
     void add_node(Node* n)
     {
         id_no_map[n->get_id()] = n->get_no();
-        
+
         nodes.push_back(n);
     }
 
@@ -1013,17 +1017,6 @@ public:
             if (z.second->get_centroid())
                 centroids.push_back(z.second->get_centroid());
         }
-    }
-
-    bool contains_node(const std::string& node_id)
-    {
-        if (id_no_map.empty())
-        {
-            for (const auto node : nodes)
-                id_no_map[node->get_id()] = node->get_no();
-        }
-
-        return id_no_map.find(node_id) != id_no_map.end();
     }
 
     bool contains_zone(const std::string& zone_id) const

@@ -26,8 +26,8 @@ public:
         {
             update_link_travel_time(&dps, i);
             update_link_and_column_volume(i);
-            for (auto& spn : spns)
-                spn.generate_columns(i);
+            for (auto spn : spns)
+                spn->generate_columns(i);
         }
 
         for (auto i = 0; i != column_opt_num; ++i)
@@ -49,6 +49,8 @@ public:
     void read_nodes(const std::string& dir);
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
     void read_network(const std::string& dir);
+    void read_settings(const std::string& dir);
+    void auto_setup();
 
 private:
     void update_column_attributes()
@@ -93,7 +95,7 @@ private:
             // oz_no, dz_no, dp_no, at_no
             auto dp_no = std::get<2>(k);
             auto at_no = std::get<3>(k);
-            auto pce = ats[at_no].get_pce();
+            auto pce = ats[at_no]->get_pce();
             // col is const
             for (auto& col : cv.get_columns())
             {
@@ -129,7 +131,7 @@ private:
             // oz_no, dz_no, dp_no, at_no
             auto dp_no = std::get<2>(k);
             auto at_no = std::get<3>(k);
-            auto vot = ats[at_no].get_vot();
+            auto vot = ats[at_no]->get_vot();
 
             const Column* p = nullptr;
             double least_gradient_cost = std::numeric_limits<double>::max();
@@ -180,9 +182,9 @@ private:
     ColumnPool cp;
 
     PhyNetwork net;
-    std::vector<SPNetwork> spns;
+    std::vector<SPNetwork*> spns;
 
-    std::vector<AgentType> ats;
+    std::vector<const AgentType*> ats;
     std::vector<DemandPeriod> dps;
 };
 
