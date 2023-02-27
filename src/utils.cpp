@@ -203,7 +203,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
                                std::move(tail_node_id), tail_node_no,
                                lane_num, cap, ffs, len, std::move(modes), std::move(geo)};
 
-        for (auto i = 0; i != this->dps.size(); ++i)
+        for (auto i = 0, n = this->dps.size(); i != n; ++i)
         {
             auto dp_id = std::to_string(i + 1);
 
@@ -328,7 +328,7 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
             continue;
         }
 
-        if (!vol)
+        if (vol <= 0)
             continue;
 
         auto oz_no = this->net.get_zone_no(oz_id);
@@ -337,12 +337,15 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
         this->cp.update(cvk, vol);
 
-        ++num;
+        num += std::ceil(vol);
     }
+
+    std::cout << "the number of agents is " << num << '\n';
 }
 
 void NetworkHandle::read_network(const std::string& dir)
 {
+    read_settings(dir);
     read_nodes(dir);
     read_links(dir);
 }

@@ -175,8 +175,7 @@ private:
         }
 
         auto rel_gap = total_travel_time > 0 ? total_gap / total_travel_time : std::numeric_limits<double>::max();
-
-        std::cout << "total gap: " << total_gap << "\nrelative gap: " << rel_gap << "\n";
+        std::cout << "total gap: " << total_gap << "\nrelative gap: " << rel_gap << '\n';
     }
 
 private:

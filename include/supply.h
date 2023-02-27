@@ -672,7 +672,7 @@ public:
                     // it->increase_volume(v);
                     // it can only be avoided by designing a customer hash table
                     cols.erase(it);
-                    break;
+                    return;
                 }
             }
         }
@@ -1062,8 +1062,8 @@ public:
     SPNetwork(const SPNetwork&) = delete;
     SPNetwork& operator=(const SPNetwork&) = delete;
 
-    SPNetwork(SPNetwork&) = delete;
-    SPNetwork& operator=(SPNetwork&) = delete;
+    SPNetwork(SPNetwork&&) = delete;
+    SPNetwork& operator=(SPNetwork&&) = delete;
 
     ~SPNetwork()
     {
@@ -1167,7 +1167,7 @@ private:
             if (oz_no == dz_no)
                 continue;
 
-            ColumnVecKey cvk {oz_no, dz_no, dp->get_no()};
+            ColumnVecKey cvk {oz_no, dz_no, dp->get_no(), at->get_no()};
             if (!cp->contains_key(cvk))
                 continue;
 
