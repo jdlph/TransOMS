@@ -3,9 +3,9 @@
 
 using namespace opendta;
 
-void NetworkHandle::read_nodes(const std::string& dir)
+void NetworkHandle::read_nodes(const std::string& dir, const std::string& filename)
 {
-    auto reader = miocsv::DictReader(dir);
+    auto reader = miocsv::DictReader(dir + '/' + filename);
 
     size_type node_no = 0;
     for (const auto& line : reader)
@@ -80,9 +80,9 @@ void NetworkHandle::read_nodes(const std::string& dir)
     }
 }
 
-void NetworkHandle::read_links(const std::string& dir)
+void NetworkHandle::read_links(const std::string& dir, const std::string& filename)
 {
-    auto reader = miocsv::DictReader(dir);
+    auto reader = miocsv::DictReader(dir + '/' + filename);
 
     size_type link_no = 0;
     for (const auto& line : reader)
@@ -341,11 +341,17 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
     }
 }
 
+void NetworkHandle::read_network(const std::string& dir)
+{
+    read_nodes(dir);
+    read_links(dir);
+}
+
 void NetworkHandle::auto_setup()
 {
     const auto at = new AgentType();
     DemandPeriod dp {Demand {at}};
-    
+
     this->ats.push_back(at);
     this->dps.push_back(dp);
 }
@@ -353,4 +359,18 @@ void NetworkHandle::auto_setup()
 void NetworkHandle::read_settings(const std::string& dir)
 {
     auto_setup();
+}
+
+void NetworkHandle::read_demands(const std::string& dir)
+{
+    for (auto& dp : this->dps)
+    {
+        auto dp_no = dp.get_no();
+        for (auto& d : dp.get_demands())
+        {
+            auto at_no = d.get_agent_type_no();
+            auto file_path = dir + d.get_file_name();
+            read_demand(file_path, dp_no, at_no);
+        }
+    }
 }

@@ -45,9 +45,10 @@ public:
         update_column_attributes();
     }
 
-    void read_links(const std::string& dir);
-    void read_nodes(const std::string& dir);
+    void read_links(const std::string& dir, const std::string& filename = "link.csv");
+    void read_nodes(const std::string& dir, const std::string& filename = "node.csv");
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
+    void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
     void auto_setup();

@@ -243,7 +243,7 @@ class Demand {
 public:
     Demand() = delete;
 
-    Demand(const AgentType* at_) : at {at_}
+    explicit Demand(const AgentType* at_) : at {at_}
     {
     }
 
@@ -293,7 +293,7 @@ public:
     {
     }
 
-    DemandPeriod(Demand&& dp)
+    explicit DemandPeriod(Demand&& dp)
     {
         ds.push_back(dp);
     }
@@ -338,6 +338,11 @@ public:
     const std::string& get_time_period() const
     {
         return time_period;
+    }
+
+    const auto& get_demands() const
+    {
+        return ds;
     }
 
     bool contain_iter_no(unsigned short iter_no) const;
