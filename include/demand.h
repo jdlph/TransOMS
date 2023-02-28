@@ -254,7 +254,7 @@ public:
     {
     }
 
-    Demand(const Demand&) = delete;
+    Demand(const Demand&) = default;
     Demand& operator=(const Demand&) = delete;
 
     Demand(Demand&&) = default;
@@ -306,10 +306,10 @@ public:
     {
     }
 
-    DemandPeriod(const DemandPeriod&) = delete;
+    DemandPeriod(const DemandPeriod&) = default;
     DemandPeriod& operator=(const DemandPeriod&) = delete;
 
-    DemandPeriod(DemandPeriod&&) = delete;
+    DemandPeriod(DemandPeriod&&) = default;
     DemandPeriod& operator=(DemandPeriod&&) = delete;
 
     ~DemandPeriod()

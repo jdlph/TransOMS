@@ -203,7 +203,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
                                std::move(tail_node_id), tail_node_no,
                                lane_num, cap, ffs, len, std::move(modes), std::move(geo)};
 
-        for (auto i = 0, n = this->dps.size(); i != n; ++i)
+        for (unsigned short i = 0; i != this->dps.size(); ++i)
         {
             auto dp_id = std::to_string(i + 1);
 
