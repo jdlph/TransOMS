@@ -1,6 +1,8 @@
 #ifndef GUARD_DEMAND_H
 #define GUARD_DEMAND_H
 
+#include <supply.h>
+
 #include <cstddef>
 #include <map>
 #include <string>

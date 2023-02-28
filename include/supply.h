@@ -21,7 +21,9 @@ using ColumnVecKey = std::tuple<size_type, size_type, unsigned short, unsigned s
 // some constants
 constexpr unsigned short MINUTES_IN_HOUR = 60;
 
-// forward declaration
+// forward declarations
+class Agent;
+class AgentType;
 class DemandPeriod;
 
 // move ratio_reduction to each individual VDFPeriod?
@@ -144,7 +146,7 @@ public:
          std::string&& modes_, std::string&& geo_)
          : id {id_}, no {no_},
            head_node_id {head_node_id_}, head_node_no {head_node_no_},
-           tail_node_id {tail_node_id_}, tail_node_no {tail_node_no},
+           tail_node_id {tail_node_id_}, tail_node_no {tail_node_no_},
            lane_num {lane_num_}, cap {cap_}, ffs {ffs_}, len {len_},
            allowed_modes {modes_}, geo {geo_}
     {
@@ -809,7 +811,7 @@ public:
         return centroid;
     }
 
-    const Vertex& get_coordinate() const
+    const Vertex get_coordinate() const
     {
         return std::make_pair(x, y);
     }
