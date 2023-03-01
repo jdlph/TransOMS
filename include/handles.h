@@ -29,8 +29,11 @@ public:
 
     void find_ue(unsigned short column_gen_num, unsigned short column_opt_num)
     {
+        setup_spnetworks();
+
         for (auto i = 0; i != column_gen_num; ++i)
         {
+            std::cout << i << '\n';
             update_link_travel_time(&dps, i);
             update_link_and_column_volume(i);
             for (auto spn : spns)
@@ -39,7 +42,7 @@ public:
 
         for (auto i = 0; i != column_opt_num; ++i)
         {
-            update_link_and_column_volume(i);
+            update_link_and_column_volume(i, false);
             update_link_travel_time();
             update_column_gradient_and_flow(i);
         }
@@ -74,6 +77,9 @@ private:
                 for (auto i : col.get_links())
                 {
                     auto link = net.get_links()[i];
+                    if (!link->get_length())
+                        continue;
+
                     tt += link->get_period_travel_time(dp_no);
                     pt += link->get_toll();
                 }
@@ -109,7 +115,12 @@ private:
             {
                 auto vol = col.get_volume() * pce;
                 for (auto i : col.get_links())
+                {
+                    if (!net.get_links()[i]->get_length())
+                        continue;
+                    
                     net.get_links()[i]->increase_period_vol(dp_no, vol);
+                }
 
                 if (reduce_path_vol && !cv.is_route_fixed())
                     const_cast<Column&>(col).reduce_volume(iter_no);
@@ -148,7 +159,12 @@ private:
             {
                 double path_gradient_cost = 0;
                 for (auto i : col.get_links())
+                {
+                    if (!net.get_links()[i]->get_length())
+                        continue;
+
                     path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_no, vot);
+                }
 
                 const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
                 if (path_gradient_cost < least_gradient_cost)
@@ -190,6 +206,8 @@ private:
         auto node_no = net.get_node_num();
         auto link_no = net.get_link_num();
 
+        this->net.set_last_thru_node_no(node_no);
+
         for (auto& [k, z] : net.get_zones())
         {
             if (k == "-1")
@@ -204,7 +222,7 @@ private:
                 y = node->get_coordinate().second;
             }
 
-            auto* node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, k};
+            auto* node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
             z->set_centroid(node);
             net.add_node(node);
 
@@ -216,14 +234,19 @@ private:
                 auto* forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no, head_node->get_id(), head_node->get_no(), tail_node->get_id(), tail_node->get_no()};
                 auto* backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1, tail_node->get_id(), tail_node->get_no(), head_node->get_id(), head_node->get_no()};
 
-                head_node->add_outgoing_link(forward_link);
-                tail_node->add_outgoing_link(backward_link);
+                // head_node->add_outgoing_link(forward_link);
+                // tail_node->add_outgoing_link(backward_link);
+
+                this->net.add_link(forward_link);
+                this->net.add_link(backward_link);
 
                 link_no += 2;
             }
 
             ++node_no;
         }
+
+        this->net.collect_centroids();
     }
 
     void setup_spnetworks();

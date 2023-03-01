@@ -295,7 +295,7 @@ public:
     {
     }
 
-    explicit DemandPeriod(Demand&& dp)
+    explicit DemandPeriod(Demand&& dp) : DemandPeriod()
     {
         ds.push_back(dp);
     }

@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <iostream>
 
 namespace opendta
 {
@@ -308,7 +309,7 @@ private:
     double choice_cost = 0;
     double toll = 0;
 
-    std::string allowed_modes;
+    std::string allowed_modes {"all"};
     std::string geo;
     // ditch pointers to take advantage of stack memory and avoid potential memory fragmentation
     // given instances of VDFPeriod are small objects
@@ -322,6 +323,12 @@ public:
     Node(size_type no_, std::string&& id_,  double x_, double y_,
          const std::string& z_id_, bool act_node_ = false)
         : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id_}, act_node {act_node_}
+    {
+    }
+
+    Node(size_type no_, std::string&& id_,  double x_, double y_,
+         size_type z_no_, bool act_node_ = false)
+        : no {no_}, id {id_},  x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
     {
     }
 
@@ -424,8 +431,8 @@ public:
     {
     }
 
-    Column(size_type no_, double od_vol_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_)
-        : no {no_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}
+    Column(size_type no_, double od_vol_, double dist_, std::vector<size_type>& links_, std::vector<size_type>& nodes_, double tt_)
+        : no {no_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, nodes {std::move(nodes_)}, tt {tt_}
     {
     }
 
@@ -441,7 +448,7 @@ public:
 
     friend bool operator==(const Column& c1, const Column& c2)
     {
-        if (c1.get_hash() != c2.get_hash())
+        if (c1.get_dist() != c2.get_dist())
             return false;
 
         if (c1.get_links() != c2.get_links())
@@ -547,7 +554,7 @@ public:
     void update_gradient_cost_diffs(double least_gc)
     {
         gc_ad = gc - least_gc;
-        gc_rd = least_gc > 0? gc_ad / least_gc : INT_MAX;
+        gc_rd = least_gc > 0 ? gc_ad / least_gc : INT_MAX;
     }
 
     double get_gap() const
@@ -1072,6 +1079,11 @@ public:
         return zones.at(zone_id)->get_no();
     }
 
+    void set_last_thru_node_no(size_type no)
+    {
+        last_thru_node_no = no;
+    }
+
 private:
     size_type last_thru_node_no;
 
@@ -1093,7 +1105,8 @@ public:
 
     // do i really need to create an instance of SPNetwork for each agent type
     // given a demand period?
-    SPNetwork(unsigned short no_, DemandPeriod* dp_) : no {no_}, dp {dp_}
+    SPNetwork(unsigned short no_, PhyNetwork* net_, ColumnPool* cp_, DemandPeriod* dp_, const AgentType* at_) 
+        : no {no_}, pn {net_}, cp {cp_}, dp {dp_}, at {at_}
     {
     }
 
@@ -1170,6 +1183,27 @@ public:
         orig_nodes.push_back(z->get_centroid()->get_no());
     }
 
+    void initialize()
+    {
+        auto n = get_node_num();
+        auto m = get_link_num();
+
+        link_costs = new double [m];
+        node_costs = new double [n];
+        next_nodes = new long [n];
+        link_preds = new long [n];
+        node_preds = new long [n];
+
+        for (size_type i = 0; i != m; ++i)
+            link_costs[i] = 0;
+        
+        for (size_type i = 0; i != n; ++i)
+        {
+            node_costs[i] = std::numeric_limits<double>::max();
+            next_nodes[i] = link_preds[i] = node_preds[i] = nullnode;
+        }
+    }
+    
     void reset()
     {
         for (size_type i = 0, n = get_node_num(); i != n; ++i)
@@ -1181,7 +1215,16 @@ public:
 
     void generate_columns(unsigned short iter_no)
     {
+        if (!iter_no)
+            initialize();
+        
         update_link_costs();
+
+        // if (iter_no <= 3)
+        // {
+        //     for (auto i = 0; i != get_link_num(); ++i)
+        //         std::cout << i << " " << link_costs[i] << '\n';
+        // }
 
         for (auto s : get_orig_nodes())
         {
@@ -1204,14 +1247,14 @@ private:
     {
         static const std::string all_modes {"all"};
 
-        return s1.find(s2) == std::string::npos && s1.find(all_modes) == std::string::npos;
+        return s1.find(s2) != std::string::npos || s1.find(all_modes) != std::string::npos;
     }
 
 private:
     unsigned short no;
 
     // Assignment is responsible to clean them up.
-    AgentType* at;
+    const AgentType* at;
     DemandPeriod* dp;
 
     ColumnPool* cp;

@@ -59,7 +59,12 @@ void SPNetwork::update_link_costs()
     auto vot = at->get_vot();
 
     for (auto p : get_links())
+    {
+        if (!p->get_length())
+            continue;
+        
         link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
+    }
 }
 
 void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no)
@@ -96,7 +101,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
             node_path.push_back(cur_node);
 
             auto cur_link = link_preds[cur_node];
-            if (cur_link >=0)
+            if (cur_link >= 0)
             {
                 link_path.push_back(cur_link);
                 dist += get_links()[cur_link]->get_length();
@@ -105,23 +110,26 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
             cur_node = node_preds[cur_node];
         }
 
-        if (link_path.empty())
+        if (link_path.size() < 3)
             continue;
 
         // move temporary Column
-        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path, node_path}, iter_no);
+        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path, node_path, node_costs[c->get_no()]}, iter_no);
     }
 }
 
 void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
-    for (size_type cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
+    node_costs[src_node_no] = 0;
+    next_nodes[src_node_no] = pastnode;
+    
+    for (long cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
     {
-        if (cur_node <= get_last_thru_node_no() || cur_node == src_node_no)
+        if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
             for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
             {
-                if (is_mode_compatible(link->get_allowed_modes(), at->get_name()))
+                if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
                     continue;
 
                 size_type new_node = link->get_tail_node_no();
@@ -130,6 +138,7 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                 {
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link->get_no();
+                    node_preds[new_node] = link->get_head_node_no();
 
                     if (next_nodes[new_node] == pastnode)
                     {
@@ -174,21 +183,33 @@ void NetworkHandle::setup_spnetworks()
     using SPNKey = std::tuple<unsigned short, unsigned short, unsigned short>;
     std::map<SPNKey, size_type> spn_map;
 
-    for (auto& [k, z] : net.get_zones())
+    this->build_connectors();
+
+    std::vector<Zone*> tmp_zones;
+    for (auto& [k, z] : this->net.get_zones())
     {
         if (k == "-1")
             continue;
 
+        tmp_zones.push_back(z);
+    }
+
+    sort(tmp_zones.begin(), tmp_zones.end(), [](Zone* z1, Zone* z2){ return z1->get_no() < z2->get_no();});
+
+    // for (auto& [k, z] : this->net.get_zones())
+    for (auto z : tmp_zones)
+    {
         for (auto& dp : dps)
         {
             for (auto& d : dp.get_demands())
             {
                 auto at_no = d.get_agent_type_no();
+                auto at = this->ats[at_no];
                 if (z->get_no() < memory_blocks)
                 {
                     unsigned short no = spns.size();
                     spn_map[{dp.get_no(), at_no, z->get_no()}] = no;
-                    auto* sp = new SPNetwork {no, &dp};
+                    auto* sp = new SPNetwork {no, &(this->net), &(this->cp), &dp, at};
                     spns.push_back(sp);
                 }
                 else

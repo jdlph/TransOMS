@@ -20,7 +20,7 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             continue;
         }
 
-        std::string zone_id;
+        std::string zone_id {"-1"};
         try
         {
             zone_id = line["zone_id"];
@@ -76,7 +76,9 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
 
         this->net.get_zones()[zone_id]->add_node(node_no);
         if (activity_node)
-            this->net.get_zones()[zone_id]->add_activity_node(node_no++);
+            this->net.get_zones()[zone_id]->add_activity_node(node_no);
+
+        ++node_no;
     }
 }
 
@@ -185,7 +187,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // do nothing
         }
 
         std::string geo;
@@ -195,7 +197,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // do nothing
         }
 
         auto* link = new Link {std::move(link_id), link_no,
@@ -260,7 +262,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_cap = link->get_cap();
             try
             {
-                vdf_fftt = std::stod(line[header_vdf_cap]);
+                vdf_cap = std::stod(line[header_vdf_cap]);
             }
             catch(const std::exception& e)
             {
@@ -280,8 +282,10 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             // move it?
             VDFPeriod vdf {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt};
             link->add_vdfperiod(vdf);
-            this->net.add_link(link);
         }
+        
+        this->net.add_link(link);
+        ++link_no;
     }
 }
 
@@ -352,7 +356,7 @@ void NetworkHandle::read_network(const std::string& dir)
 
 void NetworkHandle::auto_setup()
 {
-    const auto at = new AgentType();
+    const auto* at = new AgentType();
     DemandPeriod dp {Demand {at}};
 
     this->ats.push_back(at);
