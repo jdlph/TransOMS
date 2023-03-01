@@ -1,4 +1,5 @@
 #include <demand.h>
+#include <handles.h>
 #include <supply.h>
 
 using namespace opendta;
@@ -164,5 +165,40 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
         if (deq_tail == cur_node)
             deq_tail = nullnode;
+    }
+}
+
+void NetworkHandle::setup_spnetworks()
+{
+    constexpr unsigned memory_blocks = 1;
+    using SPNKey = std::tuple<unsigned short, unsigned short, unsigned short>;
+    std::map<SPNKey, size_type> spn_map;
+
+    for (auto& [k, z] : net.get_zones())
+    {
+        if (k == "-1")
+            continue;
+
+        for (auto& dp : dps)
+        {
+            for (auto& d : dp.get_demands())
+            {
+                auto at_no = d.get_agent_type_no();
+                if (z->get_no() < memory_blocks)
+                {
+                    unsigned short no = spns.size();
+                    spn_map[{dp.get_no(), at_no, z->get_no()}] = no;
+                    auto* sp = new SPNetwork {no, &dp};
+                    spns.push_back(sp);
+                }
+                else
+                {
+                    unsigned short m = z->get_no() % memory_blocks;
+                    auto sp_no = spn_map[{dp.get_no(), at_no, m}];
+                    auto sp = this->spns[sp_no];
+                    sp->add_orig_nodes(z);
+                }
+            }
+        }
     }
 }

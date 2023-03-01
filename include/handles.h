@@ -18,7 +18,14 @@ public:
     NetworkHandle(NetworkHandle&&) = delete;
     NetworkHandle& operator=(NetworkHandle&&) = delete;
 
-    ~NetworkHandle() = default;
+    ~NetworkHandle()
+    {
+        for (auto at : ats)
+            delete at;
+
+        for (auto spn : spns)
+            delete spn;
+    }
 
     void find_ue(unsigned short column_gen_num, unsigned short column_opt_num)
     {
@@ -177,6 +184,49 @@ private:
         auto rel_gap = total_travel_time > 0 ? total_gap / total_travel_time : std::numeric_limits<double>::max();
         std::cout << "total gap: " << total_gap << "\nrelative gap: " << rel_gap << '\n';
     }
+
+    void build_connectors()
+    {
+        auto node_no = net.get_node_num();
+        auto link_no = net.get_link_num();
+
+        for (auto& [k, z] : net.get_zones())
+        {
+            if (k == "-1")
+                continue;
+
+            auto [x, y] = z->get_coordinate();
+            if (x == 91 || y == 181)
+            {
+                auto node_no = z->get_nodes()[0];
+                auto node = net.get_nodes()[node_no];
+                x = node->get_coordinate().first;
+                y = node->get_coordinate().second;
+            }
+
+            auto* node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, k};
+            z->set_centroid(node);
+            net.add_node(node);
+
+            // build connectors
+            for (auto i : z->get_nodes())
+            {
+                auto head_node = net.get_nodes()[node_no];
+                auto tail_node = net.get_nodes()[i];
+                auto* forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no, head_node->get_id(), head_node->get_no(), tail_node->get_id(), tail_node->get_no()};
+                auto* backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1, tail_node->get_id(), tail_node->get_no(), head_node->get_id(), head_node->get_no()};
+
+                head_node->add_outgoing_link(forward_link);
+                tail_node->add_outgoing_link(backward_link);
+
+                link_no += 2;
+            }
+
+            ++node_no;
+        }
+    }
+
+    void setup_spnetworks();
 
 private:
     ColumnPool cp;

@@ -152,6 +152,16 @@ public:
     {
     }
 
+    // for connector only
+    Link(std::string&& id_, size_type no_,
+         const std::string& head_node_id_, size_type head_node_no_,
+         const std::string& tail_node_id_, size_type tail_node_no_)
+         : id {id_}, no {no_},
+           head_node_id {head_node_id_}, head_node_no {head_node_no_},
+           tail_node_id {tail_node_id_}, tail_node_no {tail_node_no_}
+    {
+    }
+
     Link(const Link&) = delete;
     Link& operator=(const Link&) = delete;
 
@@ -289,11 +299,11 @@ private:
     size_type tail_node_no;
 
     // to do: use unsigned short?
-    unsigned short lane_num;
+    unsigned short lane_num = 1;
 
     double cap;
     double ffs;
-    double len;
+    double len = 0;
 
     double choice_cost = 0;
     double toll = 0;
@@ -859,6 +869,11 @@ public:
         return no;
     }
 
+    const std::vector<size_type>& get_nodes() const
+    {
+        return nodes;
+    }
+
     double get_production() const
     {
         return prod;
@@ -891,13 +906,18 @@ public:
         prod = p;
     }
 
+    void set_centroid(const Node* p)
+    {
+        centroid = p;
+    }
+
 private:
     std::string id;
     size_type no = 0;
 
     std::vector<size_type> act_nodes;
     std::vector<size_type> nodes;
-    Node* centroid;
+    const Node* centroid;
 
     // the following members are related to zone synthesis
     unsigned short bin_id = 0;
@@ -1140,6 +1160,16 @@ public:
         return pn->get_zones();
     }
 
+    const std::vector<const Node*>& get_centroids() const override
+    {
+        return pn->get_centroids();
+    }
+
+    void add_orig_nodes(const Zone* z)
+    {
+        orig_nodes.push_back(z->get_centroid()->get_no());
+    }
+
     void reset()
     {
         for (size_type i = 0, n = get_node_num(); i != n; ++i)
@@ -1165,7 +1195,7 @@ public:
 
 private:
     void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no);
-    
+
     // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
     void single_source_shortest_path(size_type src_node_no);
 
