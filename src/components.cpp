@@ -53,6 +53,51 @@ double DemandPeriod::get_cap_reduction_ratio(size_type link_no, unsigned short i
     }
 }
 
+void SPNetwork::generate_columns(unsigned short iter_no)
+{
+    if (!iter_no)
+        initialize();
+
+    update_link_costs();
+
+    for (auto s : get_orig_nodes())
+    {
+        single_source_shortest_path(s);
+        backtrace_shortest_path_tree(s, iter_no);
+        reset();
+    }
+}
+
+void SPNetwork::initialize()
+{
+    const auto n = get_node_num();
+    const auto m = get_link_num();
+
+    link_costs = new double [m];
+    node_costs = new double [n];
+    next_nodes = new long [n];
+    link_preds = new long [n];
+    node_preds = new long [n];
+
+    for (size_type i = 0; i != m; ++i)
+        link_costs[i] = 0;
+
+    for (size_type i = 0; i != n; ++i)
+    {
+        node_costs[i] = std::numeric_limits<double>::max();
+        next_nodes[i] = link_preds[i] = node_preds[i] = nullnode;
+    }
+}
+
+void SPNetwork::reset()
+{
+    for (size_type i = 0, n = get_node_num(); i != n; ++i)
+    {
+        node_costs[i] = std::numeric_limits<double>::max();
+        next_nodes[i] = link_preds[i] = node_preds[i] = nullnode;
+    }
+}
+
 void SPNetwork::update_link_costs()
 {
     auto dp_no = dp->get_no();

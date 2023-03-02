@@ -33,9 +33,9 @@ public:
 
         for (auto i = 0; i != column_gen_num; ++i)
         {
-            std::cout << i << '\n';
-            update_link_travel_time(&dps, i);
+            std::cout << "column generation: " << i << '\n';
             update_link_and_column_volume(i);
+            update_link_travel_time(&dps, i);
             for (auto spn : spns)
                 spn->generate_columns(i);
         }

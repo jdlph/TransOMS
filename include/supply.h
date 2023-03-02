@@ -282,7 +282,7 @@ public:
             v.reset_vol();
     }
 
-    void add_vdfperiod(VDFPeriod& vdf)
+    void add_vdfperiod(VDFPeriod&& vdf)
     {
         vdfps.push_back(vdf);
     }
@@ -311,8 +311,6 @@ private:
 
     std::string allowed_modes {"all"};
     std::string geo;
-    // ditch pointers to take advantage of stack memory and avoid potential memory fragmentation
-    // given instances of VDFPeriod are small objects
     std::vector<VDFPeriod> vdfps;
 };
 
@@ -424,6 +422,17 @@ private:
 };
 
 class Column {
+    friend bool operator==(const Column& c1, const Column& c2)
+    {
+        if (c1.get_dist() != c2.get_dist())
+            return false;
+
+        if (c1.get_links() != c2.get_links())
+            return false;
+
+        return true;
+    }
+
 public:
     Column() = delete;
 
@@ -449,17 +458,6 @@ public:
 
     ~Column()
     {
-    }
-
-    friend bool operator==(const Column& c1, const Column& c2)
-    {
-        if (c1.get_dist() != c2.get_dist())
-            return false;
-
-        if (c1.get_links() != c2.get_links())
-            return false;
-
-        return true;
     }
 
     // the following functions can have unified names via traditional C++ practices.
@@ -797,7 +795,6 @@ public:
     }
 
 private:
-    // it must be an ordered or sequential container?
     std::map<ColumnVecKey, ColumnVec> cp;
 };
 
@@ -1108,12 +1105,9 @@ class SPNetwork : public Network {
 public:
     SPNetwork() = delete;
 
-    // do i really need to create an instance of SPNetwork for each agent type
-    // given a demand period?
-    SPNetwork(unsigned short no_, PhyNetwork* net_, ColumnPool* cp_, DemandPeriod* dp_, const AgentType* at_)
-        : no {no_}, pn {net_}, cp {cp_}, dp {dp_}, at {at_}
+    SPNetwork(unsigned short no_, PhyNetwork* pn_, ColumnPool* cp_, DemandPeriod* dp_, const AgentType* at_)
+        : no {no_}, pn {pn_}, cp {cp_}, dp {dp_}, at {at_}
     {
-        initialize();
     }
 
     SPNetwork(const SPNetwork&) = delete;
@@ -1191,55 +1185,16 @@ public:
         orig_nodes.push_back(z->get_centroid()->get_no());
     }
 
-    void initialize()
-    {
-        const auto n = get_node_num();
-        const auto m = get_link_num();
-
-        link_costs = new double [m];
-        node_costs = new double [n];
-        next_nodes = new long [n];
-        link_preds = new long [n];
-        node_preds = new long [n];
-
-        for (size_type i = 0; i != m; ++i)
-            link_costs[i] = 0;
-
-        for (size_type i = 0; i != n; ++i)
-        {
-            node_costs[i] = std::numeric_limits<double>::max();
-            next_nodes[i] = link_preds[i] = node_preds[i] = nullnode;
-        }
-    }
-
-    void reset()
-    {
-        for (size_type i = 0, n = get_node_num(); i != n; ++i)
-        {
-            node_costs[i] = std::numeric_limits<double>::max();
-            next_nodes[i] = link_preds[i] = node_preds[i] = nullnode;
-        }
-    }
-
-    void generate_columns(unsigned short iter_no)
-    {
-        update_link_costs();
-
-        for (auto s : get_orig_nodes())
-        {
-            single_source_shortest_path(s);
-            backtrace_shortest_path_tree(s, iter_no);
-            reset();
-        }
-    }
-
-    void update_link_costs();
+    void generate_columns(unsigned short iter_no);
 
 private:
-    void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no);
+    void initialize();
+    void reset();
+    void update_link_costs();
 
     // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
     void single_source_shortest_path(size_type src_node_no);
+    void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no);
 
     // static function?
     bool is_mode_compatible(const std::string& s1, const std::string& s2)

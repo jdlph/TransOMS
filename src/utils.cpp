@@ -280,9 +280,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
                 // do nothing
             }
 
-            // move it?
-            VDFPeriod vdf {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt};
-            link->add_vdfperiod(vdf);
+            link->add_vdfperiod(VDFPeriod {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt});
         }
 
         this->net.add_link(link);
