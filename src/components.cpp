@@ -170,6 +170,9 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
     for (long cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
     {
+        // if (src_node_no == 933 && cur_node == 933)
+        //     std::cout << "check\n";
+
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
             for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
@@ -178,6 +181,9 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                     continue;
 
                 size_type new_node = link->get_tail_node_no();
+                // if (new_node == 933)
+                //     std::cout << "check\n";
+
                 double new_cost = node_costs[cur_node] + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
                 {
@@ -247,7 +253,8 @@ void NetworkHandle::setup_spnetworks()
                 {
                     unsigned short no = spns.size();
                     spn_map[{dp.get_no(), at_no, i}] = no;
-                    auto* sp = new SPNetwork {no, &(this->net), &(this->cp), &dp, at};
+                    auto* sp = new SPNetwork {no, this->net, this->cp, dp, at};
+                    sp->add_orig_nodes(z);
                     spns.push_back(sp);
                 }
                 else

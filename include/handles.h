@@ -216,8 +216,8 @@ private:
             auto [x, y] = z->get_coordinate();
             if (x == 91 || y == 181)
             {
-                auto node_no = z->get_nodes()[0];
-                auto node = net.get_nodes()[node_no];
+                auto node_no_ = z->get_nodes()[0];
+                auto node = net.get_nodes()[node_no_];
                 x = node->get_coordinate().first;
                 y = node->get_coordinate().second;
             }

@@ -1105,8 +1105,8 @@ class SPNetwork : public Network {
 public:
     SPNetwork() = delete;
 
-    SPNetwork(unsigned short no_, PhyNetwork* pn_, ColumnPool* cp_, DemandPeriod* dp_, const AgentType* at_)
-        : no {no_}, pn {pn_}, cp {cp_}, dp {dp_}, at {at_}
+    SPNetwork(unsigned short no_, PhyNetwork& pn_, ColumnPool& cp_, DemandPeriod& dp_, const AgentType* at_)
+        : no {no_}, pn {&pn_}, cp {&cp_}, dp {&dp_}, at {at_}
     {
     }
 

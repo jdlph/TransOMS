@@ -4,8 +4,7 @@
 #include <string>
 
 using namespace opendta;
-using std::chrono::high_resolution_clock;
-using std::chrono::milliseconds;
+using namespace std::chrono;
 
 int main()
 {
@@ -22,5 +21,5 @@ int main()
     nh.find_ue(column_gen_num, column_opt_num);
 
     auto te = high_resolution_clock::now();
-    std::cout << "openDTA finds UE in " << std::chrono::duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+    std::cout << "openDTA finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 }

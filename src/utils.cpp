@@ -23,7 +23,9 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
         std::string zone_id {"-1"};
         try
         {
-            zone_id = line["zone_id"];
+            auto s = line["zone_id"];
+            if (!s.empty())
+                zone_id = std::move(s);
         }
         catch(const std::exception& e)
         {
@@ -80,6 +82,10 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
 
         ++node_no;
     }
+
+    std::cout << "the number of nodes is " << node_no << '\n'
+              << "the number of zones is " << this->net.get_zones().size() << '\n';
+
 }
 
 void NetworkHandle::read_links(const std::string& dir, const std::string& filename)
@@ -286,6 +292,8 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         this->net.add_link(link);
         ++link_no;
     }
+
+    std::cout << "the number of links is " << link_no << '\n';
 }
 
 void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no)
