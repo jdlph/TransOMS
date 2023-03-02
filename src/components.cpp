@@ -264,3 +264,54 @@ void NetworkHandle::setup_spnetworks()
         ++i;
     }
 }
+
+void NetworkHandle::build_connectors()
+{
+    auto node_no = net.get_node_num();
+    auto link_no = net.get_link_num();
+
+    this->net.set_last_thru_node_no(node_no);
+
+    for (auto& [k, z] : net.get_zones())
+    {
+        if (k.empty())
+            continue;
+
+        auto [x, y] = z->get_coordinate();
+        if (x == 91 || y == 181)
+        {
+            auto node_no_ = z->get_nodes()[0];
+            auto node = net.get_nodes()[node_no_];
+            x = node->get_coordinate().first;
+            y = node->get_coordinate().second;
+        }
+
+        auto* node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
+        z->set_centroid(node);
+        net.add_node(node);
+
+        // build connectors
+        for (auto i : z->get_nodes())
+        {
+            auto head_node = net.get_nodes()[node_no];
+            auto tail_node = net.get_nodes()[i];
+
+            auto* forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no,
+                                            head_node->get_id(), head_node->get_no(),
+                                            tail_node->get_id(), tail_node->get_no()};
+
+            auto* backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1,
+                                            tail_node->get_id(), tail_node->get_no(),
+                                            head_node->get_id(), head_node->get_no()};
+
+            this->net.add_link(forward_link);
+            this->net.add_link(backward_link);
+
+            link_no += 2;
+        }
+
+        ++node_no;
+    }
+
+    this->net.collect_centroids();
+}
