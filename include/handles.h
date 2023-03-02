@@ -118,7 +118,7 @@ private:
                 {
                     if (!net.get_links()[i]->get_length())
                         continue;
-                    
+
                     net.get_links()[i]->increase_period_vol(dp_no, vol);
                 }
 
@@ -231,11 +231,14 @@ private:
             {
                 auto head_node = net.get_nodes()[node_no];
                 auto tail_node = net.get_nodes()[i];
-                auto* forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no, head_node->get_id(), head_node->get_no(), tail_node->get_id(), tail_node->get_no()};
-                auto* backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1, tail_node->get_id(), tail_node->get_no(), head_node->get_id(), head_node->get_no()};
 
-                // head_node->add_outgoing_link(forward_link);
-                // tail_node->add_outgoing_link(backward_link);
+                auto* forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no,
+                                               head_node->get_id(), head_node->get_no(),
+                                               tail_node->get_id(), tail_node->get_no()};
+
+                auto* backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1,
+                                                tail_node->get_id(), tail_node->get_no(),
+                                                head_node->get_id(), head_node->get_no()};
 
                 this->net.add_link(forward_link);
                 this->net.add_link(backward_link);

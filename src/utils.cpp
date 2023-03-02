@@ -203,7 +203,8 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         auto* link = new Link {std::move(link_id), link_no,
                                std::move(head_node_id), head_node_no,
                                std::move(tail_node_id), tail_node_no,
-                               lane_num, cap, ffs, len, std::move(modes), std::move(geo)};
+                               lane_num, cap, ffs, len,
+                               std::move(modes), std::move(geo)};
 
         for (unsigned short i = 0; i != this->dps.size(); ++i)
         {
@@ -283,7 +284,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             VDFPeriod vdf {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt};
             link->add_vdfperiod(vdf);
         }
-        
+
         this->net.add_link(link);
         ++link_no;
     }

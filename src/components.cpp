@@ -62,7 +62,7 @@ void SPNetwork::update_link_costs()
     {
         if (!p->get_length())
             continue;
-        
+
         link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
     }
 }
@@ -122,7 +122,7 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
     next_nodes[src_node_no] = pastnode;
-    
+
     for (long cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
     {
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
@@ -179,47 +179,42 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
 void NetworkHandle::setup_spnetworks()
 {
-    constexpr unsigned memory_blocks = 1;
     using SPNKey = std::tuple<unsigned short, unsigned short, unsigned short>;
     std::map<SPNKey, size_type> spn_map;
 
     this->build_connectors();
 
-    std::vector<Zone*> tmp_zones;
+    constexpr unsigned memory_blocks = 1;
+
+    size_type i = 0;
     for (auto& [k, z] : this->net.get_zones())
     {
         if (k == "-1")
             continue;
 
-        tmp_zones.push_back(z);
-    }
-
-    sort(tmp_zones.begin(), tmp_zones.end(), [](Zone* z1, Zone* z2){ return z1->get_no() < z2->get_no();});
-
-    // for (auto& [k, z] : this->net.get_zones())
-    for (auto z : tmp_zones)
-    {
         for (auto& dp : dps)
         {
             for (auto& d : dp.get_demands())
             {
                 auto at_no = d.get_agent_type_no();
                 auto at = this->ats[at_no];
-                if (z->get_no() < memory_blocks)
+                if (i < memory_blocks)
                 {
                     unsigned short no = spns.size();
-                    spn_map[{dp.get_no(), at_no, z->get_no()}] = no;
+                    spn_map[{dp.get_no(), at_no, i}] = no;
                     auto* sp = new SPNetwork {no, &(this->net), &(this->cp), &dp, at};
                     spns.push_back(sp);
                 }
                 else
                 {
-                    unsigned short m = z->get_no() % memory_blocks;
+                    unsigned short m = i % memory_blocks;
                     auto sp_no = spn_map[{dp.get_no(), at_no, m}];
                     auto sp = this->spns[sp_no];
                     sp->add_orig_nodes(z);
                 }
             }
         }
+
+        ++i;
     }
 }
