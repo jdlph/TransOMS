@@ -47,9 +47,14 @@ public:
             update_column_gradient_and_flow(i);
         }
 
-        // post-processing on link flow and link link travel time
-        // according to the path flow from the last iteration
-        // note that we would not change path flow any more after the last iteration
+        /**
+         * @brief post-process of link flow and link travel time
+         *
+         * update link flow and link travel time according to the path flow from
+         * the last iteration.
+         *
+         * path flow will keep constant any more after the last iteration.
+         */
         update_link_and_column_volume(column_gen_num, false);
         update_link_travel_time();
         update_column_attributes();
@@ -143,7 +148,7 @@ private:
     void update_column_gradient_and_flow(unsigned short iter_no)
     {
         double total_gap = 0;
-        double total_travel_time = 0;
+        double total_sys_travel_time = 0;
 
         for (auto& [k, cv] : cp.get_column_vecs())
         {
@@ -185,7 +190,7 @@ private:
                     const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
 
                     total_gap += col.get_gap();
-                    total_travel_time += col.get_sys_travel_time();
+                    total_sys_travel_time += col.get_sys_travel_time();
                     total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
                 }
             }
@@ -193,12 +198,13 @@ private:
             if (p)
             {
                 const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
-                total_travel_time += p->get_sys_travel_time();
+                total_sys_travel_time += p->get_sys_travel_time();
             }
         }
 
-        auto rel_gap = total_travel_time > 0 ? total_gap / total_travel_time : std::numeric_limits<double>::max();
-        std::cout << "total gap: " << total_gap << "\nrelative gap: " << rel_gap << '\n';
+        auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
+        std::cout << "column updating: " << iter_no
+                  << "\ntotal gap: " << total_gap << "; relative gap: " << rel_gap << '\n';
     }
 
     void build_connectors()
@@ -210,7 +216,7 @@ private:
 
         for (auto& [k, z] : net.get_zones())
         {
-            if (k == "-1")
+            if (k.empty())
                 continue;
 
             auto [x, y] = z->get_coordinate();

@@ -20,12 +20,10 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             continue;
         }
 
-        std::string zone_id {"-1"};
+        std::string zone_id;
         try
         {
-            auto s = line["zone_id"];
-            if (!s.empty())
-                zone_id = std::move(s);
+            zone_id = line["zone_id"];
         }
         catch(const std::exception& e)
         {
