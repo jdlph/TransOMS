@@ -25,10 +25,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
     }
 
     /**
-     * @brief post-process of link flow and link travel time
-     *
-     * update link flow and link travel time according to the path flow from
-     * the last iteration.
+     * @brief update link flow and link travel time per path flow from the last iteration.
      *
      * path flow will keep constant any more after the last iteration.
      */
@@ -96,7 +93,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
     std::cout << "column updating: " << iter_no
-              << "\ntotal gap: " << total_gap << "; relative gap: " << rel_gap << '\n';
+              << "\ntotal gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
 }
 
 void NetworkHandle::update_column_attributes()

@@ -18,7 +18,6 @@ void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short
 {
     for (auto i = 0; i != vdfps.size(); ++i)
     {
-        // make sure vdfps has the same size as dps
         auto reduction_ratio = 1.0;
         if (dps)
             reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_no(), iter_no);
@@ -89,7 +88,7 @@ void SPNetwork::initialize()
     }
 }
 
-void SPNetwork::reset()
+inline void SPNetwork::reset()
 {
     for (size_type i = 0, n = get_node_num(); i != n; ++i)
     {
@@ -139,7 +138,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
 
         double dist = 0;
         // use long intensionally as node_preds is long*
-        // otherwise, size_t (later size_type) will be automatically deduced via auto.
+        // otherwise, size_type will be automatically deduced via auto.
         long cur_node = c->get_no();
         while (cur_node >= 0)
         {

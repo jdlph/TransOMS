@@ -9,7 +9,6 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <iostream>
 
 namespace opendta
 {
@@ -117,7 +116,7 @@ public:
 
     void run_bpr(double reduction_ratio = 1)
     {
-        voc = cap > 0 ? static_cast<double>(vol) / (cap * reduction_ratio) : INT_MAX;
+        voc = cap > 0 ? vol / (cap * reduction_ratio) : INT_MAX;
         tt = fftt * (1 + alpha * std::pow(voc, beta));
     }
 
@@ -228,7 +227,7 @@ public:
 
     double get_fftt() const
     {
-        return ffs > 0 ? static_cast<double>(len) / ffs * MINUTES_IN_HOUR : INT_MAX;
+        return ffs > 0 ? len / ffs * MINUTES_IN_HOUR : INT_MAX;
     }
 
     double get_generalized_cost(unsigned short i, double vot) const
@@ -236,7 +235,7 @@ public:
         if (vot <= 0)
             vot = std::numeric_limits<double>::epsilon();
 
-        return vdfps[i].get_travel_time() + choice_cost + static_cast<double>(toll) / vot * MINUTES_IN_HOUR;
+        return vdfps[i].get_travel_time() + choice_cost + toll / vot * MINUTES_IN_HOUR;
     }
 
     double get_route_choice_cost() const
@@ -535,7 +534,7 @@ public:
     // to do: a better name is needed to pair with shift_volume()
     void reduce_volume(unsigned short iter_no)
     {
-        vol *= static_cast<double>(iter_no) / (iter_no + 1);
+        vol *= iter_no / (iter_no + 1.0);
     }
 
     void set_geometry(std::string&& s)
@@ -637,15 +636,15 @@ public:
 
     bool has_column(const Column& c) const
     {
-        if (cols.find(c) == cols.end())
-            return false;
-
-        // a further link-by-link comparison
-        auto er = cols.equal_range(c);
-        for (auto it = er.first; it != er.second; ++it)
+        if (cols.find(c) != cols.end())
         {
-            if (it->get_links() == c.get_links())
-                return true;
+            // a further link-by-link comparison
+            auto er = cols.equal_range(c);
+            for (auto it = er.first; it != er.second; ++it)
+            {
+                if (it->get_links() == c.get_links())
+                    return true;
+            }
         }
 
         return false;
@@ -706,9 +705,7 @@ public:
                 if (it->get_links() == c.get_links())
                 {
                     v += it->get_volume();
-                    // erase the existing one as it is a const iterator and the following operation is not allowed
-                    // it->increase_volume(v);
-                    // it can only be avoided by designing a customer hash table
+                    // erase the existing one as it is a const iterator
                     cols.erase(it);
                     return;
                 }
@@ -1207,7 +1204,7 @@ private:
 private:
     unsigned short no;
 
-    // Assignment is responsible to clean them up.
+    // NetworkHandle is responsible to clean them up
     const AgentType* at;
     DemandPeriod* dp;
 
@@ -1215,9 +1212,7 @@ private:
     PhyNetwork* pn;
 
     // inconsistent with the type of node no
-    // but the network usually would not exceed 2,147,483,647 in terms of number of nodes.
-    // no need for node predecessors which can be easily inferred
-    // change it to link* link_preds for better performance in backtrace_shortest_path_tree()?
+    // but a network usually would not have 2,147,483,647 nodes
     long* link_preds;
     long* node_preds;
     // deque
