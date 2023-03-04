@@ -395,7 +395,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
 
-    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type", "demand_period", 
+    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type", "demand_period",
                       "volume", "toll", "travel_time", "distance", "node_sequence", "link_sequence", "geometry"});
 
     size_type i = 0;
@@ -417,7 +417,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
         {
             std::string link_path;
             std::string node_path;
-            std::string geo;
+            std::string geo {"LINESTRING ("};
 
             for (auto j = col.get_link_num() - 2; j != 1; --j)
             {
@@ -428,7 +428,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             auto link_no = col.get_links()[1];
             auto link = this->net.get_links()[link_no];
             link_path += link->get_id();
-            
+
             for (auto j = col.get_node_num() - 2; j != 1; --j)
             {
                 auto node_no = col.get_nodes()[j];
@@ -441,15 +441,40 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             auto node = this->net.get_nodes()[node_no];
             node_path += node->get_id();
             auto [x, y] = node->get_coordinate();
-            geo += std::to_string(x) + ' ' + std::to_string(y);
+            geo += std::to_string(x) + ' ' + std::to_string(y) + ')';
 
-            geo = "LINESTRING (" + geo + ')';
-
-            writer.write_row({++i, oz_no, dz_no, col.get_no(), at_str, dp_str, 
+            writer.write_row({++i, oz_no, dz_no, col.get_no(), at_str, dp_str,
                               col.get_volume(), col.get_toll(), col.get_travel_time(),
                               col.get_dist(), node_path, link_path, geo});
         }
     }
 
-    std::cout << "check " << filename << " in " << dir <<  " for path finding results\n";
+    std::cout << "check " << filename << " in " << dir <<  " for UE results\n";
+}
+
+void NetworkHandle::output_link_performance(const std::string& dir, const std::string& filename)
+{
+    auto writer = miocsv::Writer(dir + '/' + filename);
+
+    writer.write_row({"link_id", "from_node_id", "to_node_id", "time_period", "volume",
+                      "travel_time", "speed", "VOC", "queue", "density", "geometry"});
+
+    for (const auto link : this->net.get_links())
+    {
+        if (!link->get_length())
+            continue;
+
+        for (const auto& dp : this->dps)
+        {
+            auto dp_no = dp.get_no();
+            auto tt = link->get_period_travel_time(dp_no);
+            auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : INT_MAX;
+
+            writer.write_row({link->get_id(), link->get_head_node_id(), link->get_tail_node_id(),
+                              dp.get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),
+                              ' ', ' ', link->get_geometry()});
+        }
+    }
+
+    std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
 }
