@@ -30,8 +30,8 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             continue;
         }
 
-        double cx = 91;
-        double cy = 181;
+        double cx = COORD_X;
+        double cy = COORD_Y;
         try
         {
             cx = std::stod(line["x_coord"]);

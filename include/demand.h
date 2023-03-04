@@ -1,7 +1,7 @@
 #ifndef GUARD_DEMAND_H
 #define GUARD_DEMAND_H
 
-#include <supply.h>
+#include <global.h>
 
 #include <map>
 #include <string>
@@ -9,10 +9,6 @@
 
 namespace opendta
 {
-// forward declarations
-class Column;
-class SpecialEvent;
-
 class Agent {
 public:
     Agent() = delete;
@@ -120,19 +116,7 @@ public:
     }
 
 private:
-    //  move it outside as col is an incomplete pointer?
-    void initialize_intervals()
-    {
-        // throw an error or terminate?
-        if (!col)
-            return;
-
-        auto n = col->get_node_num();
-
-        arr_intvls.resize(n);
-        dep_intvls.resize(n);
-        curr_link_no = n - 1;
-    }
+    void initialize_intervals();
 
 private:
     size_type no;
@@ -311,10 +295,7 @@ public:
     DemandPeriod(DemandPeriod&&) = default;
     DemandPeriod& operator=(DemandPeriod&&) = delete;
 
-    ~DemandPeriod()
-    {
-        delete se;
-    }
+    ~DemandPeriod();
 
     void add_agent_type(const AgentType* at)
     {

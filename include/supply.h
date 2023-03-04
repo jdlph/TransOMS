@@ -1,6 +1,8 @@
 #ifndef GUARD_SUPPLY_H
 #define GUARD_SUPPLY_H
 
+#include <global.h>
+
 #include <cmath>
 #include <cstddef>
 // #include <forward_list>
@@ -12,20 +14,6 @@
 
 namespace opendta
 {
-// to do: change size_t to size_type later
-using size_type = unsigned long;
-
-// origin zone id, destination zone id, demand period no, agent type no
-using ColumnVecKey = std::tuple<size_type, size_type, unsigned short, unsigned short>;
-
-// some constants
-constexpr unsigned short MINUTES_IN_HOUR = 60;
-
-// forward declarations
-class Agent;
-class AgentType;
-class DemandPeriod;
-
 // move ratio_reduction to each individual VDFPeriod?
 class SpecialEvent {
 public:
@@ -407,8 +395,8 @@ private:
     std::string id;
     size_type no;
 
-    double x = 91;
-    double y = 181;
+    double x = COORD_X;
+    double y = COORD_Y;
 
     std::string zone_id;
     size_type zone_no;
@@ -455,9 +443,7 @@ public:
     Column(Column&&) = default;
     Column& operator=(Column&&) = delete;
 
-    ~Column()
-    {
-    }
+    ~Column() = default;
 
     // the following functions can have unified names via traditional C++ practices.
     // take get_dist for example, double distance() const and double& distance()
@@ -576,7 +562,7 @@ public:
 
     double shift_volume(unsigned short iter_no)
     {
-        auto step_size = 1.0 / (iter_no + 2);
+        auto step_size = 1 / (iter_no + 2.0);
         auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
 
         auto prev_vol = vol;

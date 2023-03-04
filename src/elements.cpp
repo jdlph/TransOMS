@@ -14,6 +14,24 @@ inline const std::vector<size_type>& Agent::get_node_path() const
     return col->get_nodes();
 }
 
+void Agent::initialize_intervals()
+{
+    // throw an error or terminate?
+    if (!col)
+        return;
+
+    auto n = col->get_node_num();
+
+    arr_intvls.resize(n);
+    dep_intvls.resize(n);
+    curr_link_no = n - 1;
+}
+
+DemandPeriod::~DemandPeriod()
+{
+    delete se;
+}
+
 void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
 {
     for (auto i = 0; i != vdfps.size(); ++i)
@@ -277,7 +295,7 @@ void NetworkHandle::build_connectors()
             continue;
 
         auto [x, y] = z->get_coordinate();
-        if (x == 91 || y == 181)
+        if (x == COORD_X || y == COORD_Y)
         {
             auto node_no_ = z->get_nodes()[0];
             auto node = net.get_nodes()[node_no_];
@@ -295,11 +313,11 @@ void NetworkHandle::build_connectors()
             auto head_node = net.get_nodes()[node_no];
             auto tail_node = net.get_nodes()[i];
 
-            auto* forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no,
-                                            head_node->get_id(), head_node->get_no(),
-                                            tail_node->get_id(), tail_node->get_no()};
+            auto forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no,
+                                           head_node->get_id(), head_node->get_no(),
+                                           tail_node->get_id(), tail_node->get_no()};
 
-            auto* backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1,
+            auto backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1,
                                             tail_node->get_id(), tail_node->get_no(),
                                             head_node->get_id(), head_node->get_no()};
 
