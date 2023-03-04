@@ -630,6 +630,28 @@ public:
         ost << '\n';
     }
 
+    template<typename T>
+    void append(T& t, const std::string sep = "", bool add_delim = true, bool last_one = false)
+    {
+        if (!last_one && add_delim)
+            ost << t << sep << delim;
+        else if (!last_one && !add_delim)
+            ost << t << sep;
+        else if (last_one)
+            ost << t << sep << '\n';
+    }
+
+    template<typename T>
+    void append(T&& t, const std::string sep = "", bool add_delim = true, bool last_one = false)
+    {
+        if (!last_one && add_delim)
+            ost << t << sep << delim;
+        else if (!last_one && !add_delim)
+            ost << t << sep;
+        else if (last_one)
+            ost << t << sep << '\n';
+    }
+
 private:
     std::ofstream ost;
     const char delim;

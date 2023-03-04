@@ -415,36 +415,48 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 
         for (auto& col : cv.get_columns())
         {
-            std::ostringstream link_path;
-            std::ostringstream node_path;
-            std::ostringstream geo;
+            writer.append(++i);
+            writer.append(oz_no);
+            writer.append(oz_no);
+            writer.append(col.get_no());
+            writer.append(at_str);
+            writer.append(dp_str);
+            writer.append(col.get_volume());
+            writer.append(col.get_toll());
+            writer.append(col.get_travel_time());
+            writer.append(col.get_dist());
 
             for (auto j = col.get_link_num() - 2; j != 1; --j)
             {
                 auto link_no = col.get_links()[j];
                 auto link = this->net.get_links()[link_no];
-                link_path << link->get_id() << ';';
+                writer.append(link->get_id(), ";", false);
             }
             auto link_no = col.get_links()[1];
             auto link = this->net.get_links()[link_no];
-            link_path << link->get_id();
+            writer.append(link->get_id(), "");
 
-            geo << "LINESTRING (";
             for (auto j = col.get_node_num() - 2; j != 1; --j)
             {
                 auto node_no = col.get_nodes()[j];
                 auto node = this->net.get_nodes()[node_no];
-                node_path << node->get_id() << ';';
-                geo << node->get_coordinate_str() << ", ";
+                writer.append(node->get_id(), ";", false);
             }
             auto node_no = col.get_nodes()[1];
             auto node = this->net.get_nodes()[node_no];
-            node_path << node->get_id();
-            geo << node->get_coordinate_str() << ')';
+            writer.append(node->get_id(), "", true);
 
-            writer.write_row({++i, oz_no, dz_no, col.get_no(), at_str, dp_str,
-                              col.get_volume(), col.get_toll(), col.get_travel_time(),
-                              col.get_dist(), node_path.str(), link_path.str(), geo.str()});
+            writer.append('"', "", false);
+            writer.append("LINESTRING (", "", false);
+            for (auto j = col.get_node_num() - 2; j != 1; --j)
+            {
+                node_no = col.get_nodes()[j];
+                node = this->net.get_nodes()[node_no];
+                writer.append(node->get_coordinate_str(), ", ", false);
+            }
+            node_no = col.get_nodes()[1];
+            node = this->net.get_nodes()[node_no];
+            writer.append(node->get_coordinate_str(), ")", false, true);
         }
     }
 
