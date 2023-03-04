@@ -423,7 +423,8 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             {
                 auto link_no = col.get_links()[j];
                 auto link = this->net.get_links()[link_no];
-                link_path += link->get_id() + ';';
+                link_path += link->get_id();
+                link_path += ';';
             }
             auto link_no = col.get_links()[1];
             auto link = this->net.get_links()[link_no];
@@ -433,15 +434,16 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             {
                 auto node_no = col.get_nodes()[j];
                 auto node = this->net.get_nodes()[node_no];
-                node_path += node->get_id() + ';';
-                auto [x, y] = node->get_coordinate();
-                geo += std::to_string(x) + ' ' + std::to_string(y) + ", ";
+                node_path += node->get_id();
+                node_path += ';';
+                geo += node->get_coordinate_str();
+                geo += ", ";
             }
             auto node_no = col.get_nodes()[1];
             auto node = this->net.get_nodes()[node_no];
             node_path += node->get_id();
-            auto [x, y] = node->get_coordinate();
-            geo += std::to_string(x) + ' ' + std::to_string(y) + ')';
+            geo += node->get_coordinate_str();
+            geo += ')';
 
             writer.write_row({++i, oz_no, dz_no, col.get_no(), at_str, dp_str,
                               col.get_volume(), col.get_toll(), col.get_travel_time(),

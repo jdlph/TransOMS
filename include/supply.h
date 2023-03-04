@@ -345,6 +345,11 @@ public:
         return std::make_pair(x, y);
     }
 
+    auto get_coordinate_str() const
+    {
+        return std::to_string(x) + ' ' + std::to_string(y);
+    }
+
     std::vector<const Link*>::size_type incoming_link_num() const
     {
         return incoming_links.size();
