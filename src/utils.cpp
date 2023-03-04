@@ -413,7 +413,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
         auto dp_str = dps[dp_no].get_period();
         auto at_str = ats[at_no]->get_name();
 
-        for (auto& col : cv.get_columns())
+        for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
             writer.append(oz_no);
@@ -428,33 +428,27 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 
             for (auto j = col.get_link_num() - 2; j != 1; --j)
             {
-                auto link_no = col.get_links()[j];
-                auto link = this->net.get_links()[link_no];
+                auto link = this->net.get_links()[col.get_links()[j]];
                 writer.append(link->get_id(), ";");
             }
-            auto link_no = col.get_links()[1];
-            auto link = this->net.get_links()[link_no];
+            auto link = this->net.get_links()[col.get_links()[1]];
             writer.append(link->get_id(), ",");
 
             for (auto j = col.get_node_num() - 2; j != 1; --j)
             {
-                auto node_no = col.get_nodes()[j];
-                auto node = this->net.get_nodes()[node_no];
+                auto node = this->net.get_nodes()[col.get_nodes()[j]];
                 writer.append(node->get_id(), ";");
             }
-            auto node_no = col.get_nodes()[1];
-            auto node = this->net.get_nodes()[node_no];
+            auto node = this->net.get_nodes()[col.get_nodes()[1]];
             writer.append(node->get_id(), ",");
 
             writer.append("\"LINESTRING (", "", false);
             for (auto j = col.get_node_num() - 2; j != 1; --j)
             {
-                node_no = col.get_nodes()[j];
-                node = this->net.get_nodes()[node_no];
+                node = this->net.get_nodes()[col.get_nodes()[j]];
                 writer.append(node->get_coordinate_str(), ", ");
             }
-            node_no = col.get_nodes()[1];
-            node = this->net.get_nodes()[node_no];
+            node = this->net.get_nodes()[col.get_nodes()[1]];
             writer.append(node->get_coordinate_str(), ")\"", true);
         }
     }
