@@ -67,16 +67,20 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        if (this->net.get_zones().find(zone_id) == this->net.get_zones().end())
+        // skip zone with empty id
+        if (!zone_id.empty())
         {
-            size_type no = this->net.get_zones().size();
-            auto* zone = new Zone {no, zone_id, bin_index};
-            this->net.add_zone(zone);
-        }
+            if (this->net.get_zones().find(zone_id) == this->net.get_zones().end())
+            {
+                size_type no = this->net.get_zones().size();
+                auto* zone = new Zone {no, zone_id, bin_index};
+                this->net.add_zone(zone);
+            }
 
-        this->net.get_zones()[zone_id]->add_node(node_no);
-        if (activity_node)
-            this->net.get_zones()[zone_id]->add_activity_node(node_no);
+            this->net.get_zones()[zone_id]->add_node(node_no);
+            if (activity_node)
+                this->net.get_zones()[zone_id]->add_activity_node(node_no);
+        }
 
         ++node_no;
     }
@@ -385,4 +389,67 @@ void NetworkHandle::read_demands(const std::string& dir)
             read_demand(file_path, dp_no, at_no);
         }
     }
+}
+
+void NetworkHandle::output_columns(const std::string& dir, const std::string& filename)
+{
+    auto writer = miocsv::Writer(dir + '/' + filename);
+
+    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type", "demand_period", 
+                      "volume", "toll", "travel_time", "distance", "node_sequence", "link_sequence", "geometry"});
+
+    size_type i = 0;
+    for (auto& [k, cv] : cp.get_column_vecs())
+    {
+        if (cv.get_volume() <= 0)
+            continue;
+
+        // oz_no, dz_no, dp_no, at_no
+        auto oz_no = std::get<0>(k);
+        auto dz_no = std::get<1>(k);
+        auto dp_no = std::get<2>(k);
+        auto at_no = std::get<3>(k);
+
+        auto dp_str = dps[dp_no].get_period();
+        auto at_str = ats[at_no]->get_name();
+
+        for (auto& col : cv.get_columns())
+        {
+            std::string link_path;
+            std::string node_path;
+            std::string geo;
+
+            for (auto j = col.get_link_num() - 2; j != 1; --j)
+            {
+                auto link_no = col.get_links()[j];
+                auto link = this->net.get_links()[link_no];
+                link_path += link->get_id() + ';';
+            }
+            auto link_no = col.get_links()[1];
+            auto link = this->net.get_links()[link_no];
+            link_path += link->get_id();
+            
+            for (auto j = col.get_node_num() - 2; j != 1; --j)
+            {
+                auto node_no = col.get_nodes()[j];
+                auto node = this->net.get_nodes()[node_no];
+                node_path += node->get_id() + ';';
+                auto [x, y] = node->get_coordinate();
+                geo += std::to_string(x) + ' ' + std::to_string(y) + ", ";
+            }
+            auto node_no = col.get_nodes()[1];
+            auto node = this->net.get_nodes()[node_no];
+            node_path += node->get_id();
+            auto [x, y] = node->get_coordinate();
+            geo += std::to_string(x) + ' ' + std::to_string(y);
+
+            geo = "LINESTRING (" + geo + ')';
+
+            writer.write_row({++i, oz_no, dz_no, col.get_no(), at_str, dp_str, 
+                              col.get_volume(), col.get_toll(), col.get_travel_time(),
+                              col.get_dist(), node_path, link_path, geo});
+        }
+    }
+
+    std::cout << "check " << filename << " in " << dir <<  " for path finding results\n";
 }

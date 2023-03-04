@@ -31,6 +31,9 @@ public:
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
 
+    void output_columns(const std::string& dir, const std::string& filename = "agents.csv");
+    void output_link_performance(const std::string& dir, const std::string& filename = "link_performance.csv");
+
 private:
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
     void auto_setup();

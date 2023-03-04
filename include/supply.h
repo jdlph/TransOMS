@@ -620,22 +620,6 @@ public:
         return route_fixed;
     }
 
-    bool has_column(const Column& c) const
-    {
-        if (cols.find(c) != cols.end())
-        {
-            // a further link-by-link comparison
-            auto er = cols.equal_range(c);
-            for (auto it = er.first; it != er.second; ++it)
-            {
-                if (it->get_links() == c.get_links())
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
     size_type get_column_num() const
     {
         return cols.size();
@@ -677,54 +661,11 @@ public:
         vol = v;
     }
 
-    void update(Column& c, unsigned short iter_no)
-    {
-        // k_path_prob = 1 / (iter_no + 1)
-        auto v = vol / (iter_no + 1);
+    bool has_column(const Column& c) const;
 
-        if (cols.find(c) != cols.end())
-        {
-            // a further link-by-link comparison
-            auto er = cols.equal_range(c);
-            for (auto it = er.first; it != er.second; ++it)
-            {
-                if (it->get_links() == c.get_links())
-                {
-                    v += it->get_volume();
-                    // erase the existing one as it is a const iterator
-                    cols.erase(it);
-                    return;
-                }
-            }
-        }
-
-        c.increase_volume(v);
-        add_new_column(c);
-    }
-
+    void update(Column& c, unsigned short iter_no);
     // move Column c
-    void update(Column&& c, unsigned short iter_no)
-    {
-        // k_path_prob = 1 / (iter_no + 1)
-        auto v = vol / (iter_no + 1);
-
-        if (cols.find(c) != cols.end())
-        {
-            // a further link-by-link comparison
-            auto er = cols.equal_range(c);
-            for (auto it = er.first; it != er.second; ++it)
-            {
-                if (it->get_links() == c.get_links())
-                {
-                    const_cast<Column&>(*it).increase_volume(v);
-                    return;
-                }
-            }
-        }
-
-        c.increase_volume(v);
-        add_new_column(c);
-    }
+    void update(Column&& c, unsigned short iter_no);
 
 private:
     double vol;

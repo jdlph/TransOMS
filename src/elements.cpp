@@ -70,6 +70,70 @@ double DemandPeriod::get_cap_reduction_ratio(size_type link_no, unsigned short i
     }
 }
 
+bool ColumnVec::has_column(const Column& c) const
+{
+    if (cols.find(c) != cols.end())
+    {
+        // a further link-by-link comparison
+        auto er = cols.equal_range(c);
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->get_links() == c.get_links())
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void ColumnVec::update(Column& c, unsigned short iter_no)
+{
+    // k_path_prob = 1 / (iter_no + 1)
+    auto v = vol / (iter_no + 1);
+
+    if (cols.find(c) != cols.end())
+    {
+        // a further link-by-link comparison
+        auto er = cols.equal_range(c);
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->get_links() == c.get_links())
+            {
+                v += it->get_volume();
+                // erase the existing one as it is a const iterator
+                cols.erase(it);
+                return;
+            }
+        }
+    }
+
+    c.increase_volume(v);
+    add_new_column(c);
+}
+
+void ColumnVec::update(Column&& c, unsigned short iter_no)
+{
+    // k_path_prob = 1 / (iter_no + 1)
+    auto v = vol / (iter_no + 1);
+
+    if (cols.find(c) != cols.end())
+    {
+        // a further link-by-link comparison
+        auto er = cols.equal_range(c);
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->get_links() == c.get_links())
+            {
+                const_cast<Column&>(*it).increase_volume(v);
+                return;
+            }
+        }
+    }
+
+    c.increase_volume(v);
+    add_new_column(c);
+}
+
 void SPNetwork::generate_columns(unsigned short iter_no)
 {
     if (!iter_no)
@@ -172,6 +236,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
             cur_node = node_preds[cur_node];
         }
 
+        // the first and the last are connectors
         if (link_path.size() < 3)
             continue;
 
@@ -251,9 +316,6 @@ void NetworkHandle::setup_spnetworks()
     size_type i = 0;
     for (auto& [k, z] : this->net.get_zones())
     {
-        if (k.empty())
-            continue;
-
         for (auto& dp : dps)
         {
             for (auto& d : dp.get_demands())
@@ -291,9 +353,6 @@ void NetworkHandle::build_connectors()
 
     for (auto& [k, z] : net.get_zones())
     {
-        if (k.empty())
-            continue;
-
         auto [x, y] = z->get_coordinate();
         if (x == COORD_X || y == COORD_Y)
         {
@@ -314,12 +373,12 @@ void NetworkHandle::build_connectors()
             auto tail_node = net.get_nodes()[i];
 
             auto forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no,
-                                           head_node->get_id(), head_node->get_no(),
-                                           tail_node->get_id(), tail_node->get_no()};
+                                          head_node->get_id(), head_node->get_no(),
+                                          tail_node->get_id(), tail_node->get_no()};
 
             auto backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1,
-                                            tail_node->get_id(), tail_node->get_no(),
-                                            head_node->get_id(), head_node->get_no()};
+                                           tail_node->get_id(), tail_node->get_no(),
+                                           head_node->get_id(), head_node->get_no()};
 
             this->net.add_link(forward_link);
             this->net.add_link(backward_link);

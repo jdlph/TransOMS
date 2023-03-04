@@ -20,6 +20,8 @@ int main()
     unsigned short column_opt_num = 20;
     nh.find_ue(column_gen_num, column_opt_num);
 
+    nh.output_columns(".");
+
     auto te = high_resolution_clock::now();
     std::cout << "openDTA finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 }
