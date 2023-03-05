@@ -4,7 +4,6 @@
 #include <global.h>
 
 #include <map>
-#include <string>
 #include <vector>
 
 namespace opendta
@@ -201,16 +200,13 @@ public:
 public:
     static const std::string& get_default_name()
     {
-        return default_name;
+        return AT_DEFAULT_NAME;
     }
 
     static const std::string& get_legacy_name()
     {
-        return legacy_name;
+        return AT_LEGACY_NAME;
     }
-
-    static const std::string default_name;
-    static const std::string legacy_name;
 
 private:
     unsigned short no;
@@ -338,7 +334,7 @@ private:
 
     std::vector<const AgentType*> ats;
     std::vector<Demand> ds;
-    // change back to SpecialEvent later
+
     const SpecialEvent* se;
 };
 

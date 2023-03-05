@@ -165,7 +165,7 @@ void SPNetwork::initialize()
     for (size_type i = 0; i != n; ++i)
     {
         node_costs[i] = std::numeric_limits<double>::max();
-        next_nodes[i] = nullnode;
+        next_nodes[i] = NULL_NODE;
     }
 }
 
@@ -174,7 +174,7 @@ inline void SPNetwork::reset()
     for (size_type i = 0, n = get_node_num(); i != n; ++i)
     {
         node_costs[i] = std::numeric_limits<double>::max();
-        next_nodes[i] = nullnode;
+        next_nodes[i] = NULL_NODE;
         link_preds[i] = nullptr;
     }
 }
@@ -219,13 +219,13 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
 
         double dist = 0;
         auto link = link_preds[c->get_no()];
-        
+
         while (link)
         {
             // the first and the last are connectors, use link->get_length() to eliminate them
             if (link->get_length())
                 link_path.push_back(link->get_no());
-            
+
             dist += link->get_length();
             link = link_preds[link->get_head_node_no()];
         }
@@ -233,17 +233,17 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
         if (link_path.empty())
             continue;
 
-        // move temporary Column
-        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path, node_costs[c->get_no()]}, iter_no);
+        // move temporary Column. note that link_path will be moved as well!
+        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
     }
 }
 
 void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
-    next_nodes[src_node_no] = pastnode;
+    next_nodes[src_node_no] = PAST_NODE;
 
-    for (long cur_node = src_node_no, deq_head = nullnode, deq_tail = nullnode;;)
+    for (long cur_node = src_node_no, deq_head = NULL_NODE, deq_tail = NULL_NODE;;)
     {
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
@@ -259,20 +259,20 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
 
-                    if (next_nodes[new_node] == pastnode)
+                    if (next_nodes[new_node] == PAST_NODE)
                     {
                         next_nodes[new_node] = deq_head;
                         deq_head = new_node;
 
-                        if (deq_tail == nullnode)
+                        if (deq_tail == NULL_NODE)
                             deq_tail = new_node;
                     }
-                    else if (next_nodes[new_node] == nullnode && new_node != deq_tail)
+                    else if (next_nodes[new_node] == NULL_NODE && new_node != deq_tail)
                     {
-                        if (deq_tail == nullnode)
+                        if (deq_tail == NULL_NODE)
                         {
                             deq_head = deq_tail = new_node;
-                            next_nodes[deq_tail] = nullnode;
+                            next_nodes[deq_tail] = NULL_NODE;
                         }
                         else
                         {
@@ -289,10 +289,10 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
         cur_node = deq_head;
         deq_head = next_nodes[cur_node];
-        next_nodes[cur_node] = pastnode;
+        next_nodes[cur_node] = PAST_NODE;
 
         if (deq_tail == cur_node)
-            deq_tail = nullnode;
+            deq_tail = NULL_NODE;
     }
 }
 

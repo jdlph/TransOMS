@@ -188,7 +188,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        std::string modes {"all"};
+        std::string modes {ALL_MODES};
         try
         {
             modes = line["allowed_uses"];
@@ -402,9 +402,6 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())
     {
-        if (cv.get_volume() <= 0)
-            continue;
-
         // oz_no, dz_no, dp_no, at_no
         auto oz_no = std::get<0>(k);
         auto dz_no = std::get<1>(k);

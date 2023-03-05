@@ -5,10 +5,8 @@
 
 #include <cmath>
 #include <cstddef>
-#include <forward_list>
 #include <limits>
 #include <map>
-#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -296,7 +294,7 @@ private:
     double choice_cost = 0;
     double toll = 0;
 
-    std::string allowed_modes {"all"};
+    std::string allowed_modes {ALL_MODES};
     std::string geo;
     std::vector<VDFPeriod> vdfps;
 };
@@ -385,13 +383,11 @@ public:
     void add_incoming_link(Link* p)
     {
         incoming_links.push_back(p);
-        // incoming_links.push_front(p);
     }
 
     void add_outgoing_link(Link* p)
     {
         outgoing_links.push_back(p);
-        // outgoing_links.push_front(p);
     }
 
     void setup_coordinate(double x_, double y_)
@@ -413,9 +409,6 @@ private:
 
     std::vector<const Link*> incoming_links;
     std::vector<const Link*> outgoing_links;
-    // for future performance comparison
-    // std::forward_list<const Link*> incoming_links;
-    // std::forward_list<const Link*> outgoing_links;
 };
 
 class Column {
@@ -437,8 +430,8 @@ public:
     {
     }
 
-    Column(size_type no_, double od_vol_, double dist_, std::vector<size_type>& links_, double gc_)
-        : no {no_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, gc {gc_}
+    Column(size_type no_, double od_vol_, double dist_, std::vector<size_type>& links_)
+        : no {no_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}
     {
     }
 
@@ -1143,9 +1136,7 @@ private:
     // static function?
     bool is_mode_compatible(const std::string& s1, const std::string& s2)
     {
-        static const std::string all_modes {"all"};
-
-        return s1.find(s2) != std::string::npos || s1.find(all_modes) != std::string::npos;
+        return s1.find(s2) != std::string::npos || s1.find(ALL_MODES) != std::string::npos;
     }
 
 private:
@@ -1161,8 +1152,8 @@ private:
     const Link** link_preds;
     /**
      * @brief deque
-     * 
-     * inconsistent with the type of node no but a network usually would not 
+     *
+     * inconsistent with the type of node no but a network usually would not
      * have more than2,147,483,647 nodes
      */
     long* next_nodes;
@@ -1170,9 +1161,6 @@ private:
     double* node_costs;
 
     std::vector<size_type> orig_nodes;
-
-    static constexpr long nullnode = -1;
-    static constexpr long pastnode = -3;
 };
 
 } // namespace opendta
