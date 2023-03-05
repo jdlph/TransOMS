@@ -158,7 +158,6 @@ void SPNetwork::initialize()
     node_costs = new double[n];
     next_nodes = new long[n];
     link_preds = new const Link*[n];
-    // node_preds = new long[n];
 
     for (size_type i = 0; i != m; ++i)
         link_costs[i] = 0;
@@ -217,40 +216,25 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
             continue;
 
         std::vector<size_type> link_path;
-        std::vector<size_type> node_path;
 
         double dist = 0;
-        // use long intensionally as node_preds is long*
-        // otherwise, size_type will be automatically deduced via auto.
-        // long cur_node = c->get_no();
-        // while (cur_node >= 0)
-        // {
-        //     node_path.push_back(cur_node);
-
-        //     auto cur_link = link_preds[cur_node];
-        //     if (cur_link >= 0)
-        //     {
-        //         link_path.push_back(cur_link);
-        //         dist += get_links()[cur_link]->get_length();
-        //     }
-
-        //     cur_node = node_preds[cur_node];
-        // }
-
         auto link = link_preds[c->get_no()];
+        
         while (link)
         {
-            link_path.push_back(link->get_no());
-            node_path.push_back(link->get_tail_node_no());
+            // the first and the last are connectors, use link->get_length() to eliminate them
+            if (link->get_length())
+                link_path.push_back(link->get_no());
+            
+            dist += link->get_length();
             link = link_preds[link->get_head_node_no()];
         }
 
-        // the first and the last are connectors
-        if (link_path.size() < 3)
+        if (link_path.empty())
             continue;
 
         // move temporary Column
-        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path, node_path, node_costs[c->get_no()]}, iter_no);
+        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path, node_costs[c->get_no()]}, iter_no);
     }
 }
 
@@ -274,7 +258,6 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                 {
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
-                    // node_preds[new_node] = link->get_head_node_no();
 
                     if (next_nodes[new_node] == pastnode)
                     {
@@ -311,11 +294,6 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
         if (deq_tail == cur_node)
             deq_tail = nullnode;
     }
-}
-
-void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
-{
-
 }
 
 void NetworkHandle::setup_spnetworks()

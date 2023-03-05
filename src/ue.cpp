@@ -53,14 +53,10 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         {
             double path_gradient_cost = 0;
             for (auto i : col.get_links())
-            {
-                if (!this->get_link(i).get_length())
-                    continue;
-
                 path_gradient_cost += this->get_link(i).get_generalized_cost(dp_no, vot);
-            }
 
             const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
+            
             if (path_gradient_cost < least_gradient_cost)
             {
                 least_gradient_cost = path_gradient_cost;
@@ -106,16 +102,21 @@ void NetworkHandle::update_column_attributes()
         {
             double tt = 0;
             double pt = 0;
+            
+            std::vector<size_type> node_path;
+            node_path.reserve(col.get_links().size() + 1);
+            
             for (auto i : col.get_links())
             {
                 const auto& link = this->get_link(i);
-                if (!link.get_length())
-                    continue;
-
                 tt += link.get_period_travel_time(dp_no);
                 pt += link.get_toll();
+                node_path.push_back(link.get_tail_node_no());
             }
+            auto j = col.get_links().back();
+            node_path.push_back(this->get_link(j).get_head_node_no());
 
+            const_cast<Column&>(col).set_node_path(std::move(node_path));
             const_cast<Column&>(col).set_travel_time(tt);
             const_cast<Column&>(col).set_toll(pt);
         }
@@ -149,9 +150,6 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
             for (auto i : col.get_links())
             {
                 auto& link = this->get_link(i); 
-                if (!link.get_length())
-                    continue;
-
                 link.increase_period_vol(dp_no, vol);
             }
 

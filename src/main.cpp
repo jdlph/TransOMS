@@ -27,7 +27,7 @@ int main()
 
     ts = high_resolution_clock::now();
 
-    // multithreading to handle I/O-bounded processes
+    // multithreading to handle I/O-bounded processes (not functioning yet!)
     // std::thread t1 (&NetworkHandle::output_columns, nh);
     // std::thread t2 (&NetworkHandle::output_link_performance, nh);
 

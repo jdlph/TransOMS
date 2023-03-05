@@ -437,13 +437,8 @@ public:
     {
     }
 
-    Column(size_type no_, double od_vol_, double dist_,
-          std::vector<size_type>& links_,
-          std::vector<size_type>& nodes_,
-          double tt_)
-        : no {no_}, od_vol {od_vol_}, dist {dist_},
-          links {std::move(links_)}, nodes {std::move(nodes_)},
-          tt {tt_}
+    Column(size_type no_, double od_vol_, double dist_, std::vector<size_type>& links_, double gc_)
+        : no {no_}, od_vol {od_vol_}, dist {dist_}, links {std::move(links_)}, gc {gc_}
     {
     }
 
@@ -594,6 +589,11 @@ public:
     std::size_t get_hash() const
     {
         return std::hash<int>()(get_link_num()) ^ std::hash<double>()(get_dist());
+    }
+
+    void set_node_path(std::vector<size_type>&& nodes_)
+    {
+        nodes = nodes_;
     }
 
 private:
@@ -1066,7 +1066,6 @@ public:
         delete[] node_costs;
         delete[] next_nodes;
         delete[] link_preds;
-        // delete[] node_preds;
     }
 
     size_type get_last_thru_node_no() const override
@@ -1159,12 +1158,13 @@ private:
     ColumnPool* cp;
     PhyNetwork* pn;
 
-    // inconsistent with the type of node no
-    // but a network usually would not have 2,147,483,647 nodes
-    // long* link_preds;
     const Link** link_preds;
-    // long* node_preds;
-    // deque
+    /**
+     * @brief deque
+     * 
+     * inconsistent with the type of node no but a network usually would not 
+     * have more than2,147,483,647 nodes
+     */
     long* next_nodes;
     double* link_costs;
     double* node_costs;

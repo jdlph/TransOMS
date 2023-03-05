@@ -427,29 +427,29 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             writer.append(col.get_travel_time());
             writer.append(col.get_dist());
 
-            for (auto j = col.get_link_num() - 2; j != 1; --j)
+            for (auto j = col.get_link_num() - 1; j != 0; --j)
             {
                 const auto& link = this->get_link(col.get_link_no(j));
                 writer.append(link.get_id(), ";");
             }
-            const auto& link = this->get_link(col.get_link_no(1));
+            const auto& link = this->get_link(col.get_link_no(0));
             writer.append(link.get_id(), ",");
 
-            for (auto j = col.get_node_num() - 2; j != 1; --j)
+            for (auto j = col.get_node_num() - 1; j != 0; --j)
             {
                 const auto& node = this->get_node(col.get_node_no(j));
                 writer.append(node.get_id(), ";");
             }
-            const auto& node = this->get_node(col.get_node_no(1));
+            const auto& node = this->get_node(col.get_node_no(0));
             writer.append(node.get_id(), ",");
 
             writer.append("\"LINESTRING (", "", false);
-            for (auto j = col.get_node_num() - 2; j != 1; --j)
+            for (auto j = col.get_node_num() - 1; j != 0; --j)
             {
                 const auto& node_ = this->get_node(col.get_node_no(j));
                 writer.append(node_.get_coordinate_str(), ", ");
             }
-            const auto& node_ = this->get_node(col.get_node_no(1));
+            const auto& node_ = this->get_node(col.get_node_no(0));
             writer.append(node_.get_coordinate_str(), ")\"", true);
         }
     }
