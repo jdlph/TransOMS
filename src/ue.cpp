@@ -54,10 +54,10 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
             double path_gradient_cost = 0;
             for (auto i : col.get_links())
             {
-                if (!net.get_links()[i]->get_length())
+                if (!this->get_link(i).get_length())
                     continue;
 
-                path_gradient_cost += net.get_links()[i]->get_generalized_cost(dp_no, vot);
+                path_gradient_cost += this->get_link(i).get_generalized_cost(dp_no, vot);
             }
 
             const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
@@ -108,12 +108,12 @@ void NetworkHandle::update_column_attributes()
             double pt = 0;
             for (auto i : col.get_links())
             {
-                auto link = net.get_links()[i];
-                if (!link->get_length())
+                const auto& link = this->get_link(i);
+                if (!link.get_length())
                     continue;
 
-                tt += link->get_period_travel_time(dp_no);
-                pt += link->get_toll();
+                tt += link.get_period_travel_time(dp_no);
+                pt += link.get_toll();
             }
 
             const_cast<Column&>(col).set_travel_time(tt);
@@ -128,7 +128,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         return;
 
     // reset link flow
-    for (auto link : net.get_links())
+    for (auto link : this->net.get_links())
     {
         if (!link->get_length())
             continue;
@@ -148,10 +148,11 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
             auto vol = col.get_volume() * pce;
             for (auto i : col.get_links())
             {
-                if (!net.get_links()[i]->get_length())
+                auto& link = this->get_link(i); 
+                if (!link.get_length())
                     continue;
 
-                net.get_links()[i]->increase_period_vol(dp_no, vol);
+                link.increase_period_vol(dp_no, vol);
             }
 
             if (reduce_path_vol && !cv.is_route_fixed())

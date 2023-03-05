@@ -395,8 +395,9 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
 
-    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type", "demand_period",
-                      "volume", "toll", "travel_time", "distance", "node_sequence", "link_sequence", "geometry"});
+    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type",
+                      "demand_period","volume", "toll", "travel_time", "distance",
+                      "link_sequence", "node_sequence", "geometry"});
 
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())
@@ -428,28 +429,28 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 
             for (auto j = col.get_link_num() - 2; j != 1; --j)
             {
-                auto link = this->net.get_links()[col.get_links()[j]];
-                writer.append(link->get_id(), ";");
+                const auto& link = this->get_link(col.get_link_no(j));
+                writer.append(link.get_id(), ";");
             }
-            auto link = this->net.get_links()[col.get_links()[1]];
-            writer.append(link->get_id(), ",");
+            const auto& link = this->get_link(col.get_link_no(1));
+            writer.append(link.get_id(), ",");
 
             for (auto j = col.get_node_num() - 2; j != 1; --j)
             {
-                auto node = this->net.get_nodes()[col.get_nodes()[j]];
-                writer.append(node->get_id(), ";");
+                const auto& node = this->get_node(col.get_node_no(j));
+                writer.append(node.get_id(), ";");
             }
-            auto node = this->net.get_nodes()[col.get_nodes()[1]];
-            writer.append(node->get_id(), ",");
+            const auto& node = this->get_node(col.get_node_no(1));
+            writer.append(node.get_id(), ",");
 
             writer.append("\"LINESTRING (", "", false);
             for (auto j = col.get_node_num() - 2; j != 1; --j)
             {
-                node = this->net.get_nodes()[col.get_nodes()[j]];
-                writer.append(node->get_coordinate_str(), ", ");
+                const auto& node_ = this->get_node(col.get_node_no(j));
+                writer.append(node_.get_coordinate_str(), ", ");
             }
-            node = this->net.get_nodes()[col.get_nodes()[1]];
-            writer.append(node->get_coordinate_str(), ")\"", true);
+            const auto& node_ = this->get_node(col.get_node_no(1));
+            writer.append(node_.get_coordinate_str(), ")\"", true);
         }
     }
 

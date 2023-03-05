@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <cstddef>
-// #include <forward_list>
+#include <forward_list>
 #include <limits>
 #include <map>
 #include <string>
@@ -350,32 +350,34 @@ public:
         return std::to_string(x) + ' ' + std::to_string(y);
     }
 
-    std::vector<const Link*>::size_type incoming_link_num() const
+    // useless
+    auto incoming_link_num() const
     {
         return incoming_links.size();
     }
 
-    std::vector<const Link*>::size_type outgoing_link_num() const
+    // useless
+    auto outgoing_link_num() const
     {
         return outgoing_links.size();
     }
 
-    std::vector<const Link*>& get_incoming_links()
+    auto& get_incoming_links()
     {
         return incoming_links;
     }
 
-    const std::vector<const Link*>& get_incoming_links() const
+    const auto& get_incoming_links() const
     {
         return incoming_links;
     }
 
-    std::vector<const Link*>& get_outgoing_links()
+    auto& get_outgoing_links()
     {
         return outgoing_links;
     }
 
-    const std::vector<const Link*>& get_outgoing_links() const
+    const auto& get_outgoing_links() const
     {
         return outgoing_links;
     }
@@ -383,11 +385,13 @@ public:
     void add_incoming_link(Link* p)
     {
         incoming_links.push_back(p);
+        // incoming_links.push_front(p);
     }
 
     void add_outgoing_link(Link* p)
     {
         outgoing_links.push_back(p);
+        // outgoing_links.push_front(p);
     }
 
     void setup_coordinate(double x_, double y_)
@@ -410,6 +414,7 @@ private:
     std::vector<const Link*> incoming_links;
     std::vector<const Link*> outgoing_links;
     // for future performance comparison
+    // std::forward_list<const Link*> incoming_links;
     // std::forward_list<const Link*> outgoing_links;
 };
 
@@ -510,6 +515,16 @@ public:
     const std::vector<size_type>& get_nodes() const
     {
         return nodes;
+    }
+
+    size_type get_link_no(size_type i) const
+    {
+        return links[i];
+    }
+
+    size_type get_node_no(size_type i) const
+    {
+        return nodes[i];
     }
 
     void increase_toll(double t)
@@ -1051,7 +1066,7 @@ public:
         delete[] node_costs;
         delete[] next_nodes;
         delete[] link_preds;
-        delete[] node_preds;
+        // delete[] node_preds;
     }
 
     size_type get_last_thru_node_no() const override
@@ -1123,6 +1138,7 @@ private:
 
     // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
     void single_source_shortest_path(size_type src_node_no);
+    void single_source_shortest_path_dijkstra(size_type src_node_no);
     void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no);
 
     // static function?
@@ -1145,8 +1161,9 @@ private:
 
     // inconsistent with the type of node no
     // but a network usually would not have 2,147,483,647 nodes
-    long* link_preds;
-    long* node_preds;
+    // long* link_preds;
+    const Link** link_preds;
+    // long* node_preds;
     // deque
     long* next_nodes;
     double* link_costs;

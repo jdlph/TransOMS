@@ -27,15 +27,15 @@ int main()
 
     ts = high_resolution_clock::now();
 
-    // std::string output_dir {"."};
-    // std::thread t1 (&NetworkHandle::output_columns, &nh, output_dir);
-    // std::thread t2 (&NetworkHandle::output_link_performance, &nh, output_dir);
+    // multithreading to handle I/O-bounded processes
+    // std::thread t1 (&NetworkHandle::output_columns, nh);
+    // std::thread t2 (&NetworkHandle::output_link_performance, nh);
 
     // t1.join();
     // t2.join();
 
-    nh.output_columns(".");
-    nh.output_link_performance(".");
+    nh.output_columns();
+    nh.output_link_performance();
 
     te = high_resolution_clock::now();
     std::cout << "openDTA outputs results in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
