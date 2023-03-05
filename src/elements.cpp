@@ -32,18 +32,6 @@ DemandPeriod::~DemandPeriod()
     delete se;
 }
 
-void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
-{
-    for (auto i = 0; i != vdfps.size(); ++i)
-    {
-        auto reduction_ratio = 1.0;
-        if (dps)
-            reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_no(), iter_no);
-
-        vdfps[i].run_bpr(reduction_ratio);
-    }
-}
-
 inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
 {
     if (!se)
@@ -132,6 +120,18 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
 
     c.increase_volume(v);
     add_new_column(c);
+}
+
+void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
+{
+    for (auto i = 0; i != vdfps.size(); ++i)
+    {
+        auto reduction_ratio = 1.0;
+        if (dps)
+            reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_no(), iter_no);
+
+        vdfps[i].run_bpr(reduction_ratio);
+    }
 }
 
 void SPNetwork::generate_columns(unsigned short iter_no)

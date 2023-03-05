@@ -157,8 +157,8 @@ public:
     AgentType(const AgentType&) = delete;
     AgentType& operator=(const AgentType&) = delete;
 
-    AgentType(AgentType&&) = default;
-    AgentType& operator=(AgentType&&) = default;
+    AgentType(AgentType&&) = delete;
+    AgentType& operator=(AgentType&&) = delete;
 
     ~AgentType() = default;
 
@@ -237,7 +237,7 @@ public:
     Demand& operator=(const Demand&) = delete;
 
     Demand(Demand&&) = default;
-    Demand& operator=(Demand&&) = default;
+    Demand& operator=(Demand&&) = delete;
 
     ~Demand() = default;
 

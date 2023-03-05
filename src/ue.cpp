@@ -113,7 +113,7 @@ void NetworkHandle::update_column_attributes()
                 pt += link.get_toll();
                 node_path.push_back(link.get_tail_node_no());
             }
-            auto j = col.get_links().back();
+            auto j = col.get_last_link_no();
             node_path.push_back(this->get_link(j).get_head_node_no());
 
             const_cast<Column&>(col).set_node_path(std::move(node_path));

@@ -26,7 +26,7 @@ public:
     SpecialEvent& operator=(const SpecialEvent&) = delete;
 
     SpecialEvent(SpecialEvent&&) = default;
-    SpecialEvent& operator=(SpecialEvent&&) = default;
+    SpecialEvent& operator=(SpecialEvent&&) = delete;
 
     ~SpecialEvent() = default;
 
@@ -166,14 +166,27 @@ public:
         return id;
     }
 
+    size_type get_no() const
+    {
+        return no;
+    }
+
     auto get_cap() const
     {
         return cap * lane_num;
     }
 
-    size_type get_no() const
+    double get_fftt() const
     {
-        return no;
+        return ffs > 0 ? len / ffs * MINUTES_IN_HOUR : INT_MAX;
+    }
+
+    double get_generalized_cost(unsigned short i, double vot) const
+    {
+        if (vot <= 0)
+            vot = std::numeric_limits<double>::epsilon();
+
+        return vdfps[i].get_travel_time() + choice_cost + toll / vot * MINUTES_IN_HOUR;
     }
 
     const std::string get_head_node_id() const
@@ -211,19 +224,6 @@ public:
         return toll;
     }
 
-    double get_fftt() const
-    {
-        return ffs > 0 ? len / ffs * MINUTES_IN_HOUR : INT_MAX;
-    }
-
-    double get_generalized_cost(unsigned short i, double vot) const
-    {
-        if (vot <= 0)
-            vot = std::numeric_limits<double>::epsilon();
-
-        return vdfps[i].get_travel_time() + choice_cost + toll / vot * MINUTES_IN_HOUR;
-    }
-
     double get_route_choice_cost() const
     {
         return choice_cost;
@@ -250,26 +250,20 @@ public:
         return vdfps[i].get_vol();
     }
 
+    void add_vdfperiod(VDFPeriod&& vdf)
+    {
+        vdfps.push_back(vdf);
+    }
+
     void increase_period_vol(unsigned short i, double v)
     {
         vdfps[i].increase_vol(v);
-    }
-
-    // useless
-    void reset_period_vol(unsigned short i)
-    {
-        vdfps[i].reset_vol();
     }
 
     void reset_period_vol()
     {
         for (auto& v : vdfps)
             v.reset_vol();
-    }
-
-    void add_vdfperiod(VDFPeriod&& vdf)
-    {
-        vdfps.push_back(vdf);
     }
 
     void update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no);
@@ -346,18 +340,6 @@ public:
     auto get_coordinate_str() const
     {
         return std::to_string(x) + ' ' + std::to_string(y);
-    }
-
-    // useless
-    auto incoming_link_num() const
-    {
-        return incoming_links.size();
-    }
-
-    // useless
-    auto outgoing_link_num() const
-    {
-        return outgoing_links.size();
     }
 
     auto& get_incoming_links()
@@ -443,11 +425,19 @@ public:
 
     ~Column() = default;
 
-    // the following functions can have unified names via traditional C++ practices.
-    // take get_dist for example, double distance() const and double& distance()
+    unsigned short get_no() const
+    {
+        return no;
+    }
+
     double get_dist() const
     {
         return dist;
+    }
+
+    double get_gap() const
+    {
+        return gc_ad * vol;
     }
 
     double get_gradient_cost() const
@@ -465,19 +455,9 @@ public:
         return gc_rd;
     }
 
-    unsigned short get_no() const
+    double get_sys_travel_time() const
     {
-        return no;
-    }
-
-    std::vector<size_type>::size_type get_link_num() const
-    {
-        return links.size();
-    }
-
-    std::vector<size_type>::size_type get_node_num() const
-    {
-        return nodes.size();
+        return gc * vol;
     }
 
     double get_travel_time() const
@@ -495,6 +475,32 @@ public:
         return vol;
     }
 
+    double shift_volume(unsigned short iter_no)
+    {
+        auto step_size = 1 / (iter_no + 2.0);
+        auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
+
+        auto prev_vol = vol;
+        vol = new_vol;
+
+        return prev_vol - vol;
+    }
+
+    std::size_t get_hash() const
+    {
+        return std::hash<int>()(get_link_num()) ^ std::hash<double>()(get_dist());
+    }
+
+    std::vector<size_type>::size_type get_link_num() const
+    {
+        return links.size();
+    }
+
+    std::vector<size_type>::size_type get_node_num() const
+    {
+        return nodes.size();
+    }
+
     const std::vector<size_type>& get_links() const
     {
         return links;
@@ -503,6 +509,11 @@ public:
     const std::vector<size_type>& get_nodes() const
     {
         return nodes;
+    }
+
+    size_type get_last_link_no() const
+    {
+        return links.back();
     }
 
     size_type get_link_no(size_type i) const
@@ -541,26 +552,9 @@ public:
         gc = c;
     }
 
-    void set_travel_time(double t)
+    void set_node_path(std::vector<size_type>&& nodes_)
     {
-        tt = t;
-    }
-
-    // optimized interfaces
-    void update_gradient_cost_diffs(double least_gc)
-    {
-        gc_ad = gc - least_gc;
-        gc_rd = least_gc > 0 ? gc_ad / least_gc : INT_MAX;
-    }
-
-    double get_gap() const
-    {
-        return gc_ad * vol;
-    }
-
-    double get_sys_travel_time() const
-    {
-        return gc * vol;
+        nodes = nodes_;
     }
 
     void set_toll(double t)
@@ -568,25 +562,15 @@ public:
         toll = t;
     }
 
-    double shift_volume(unsigned short iter_no)
+    void set_travel_time(double t)
     {
-        auto step_size = 1 / (iter_no + 2.0);
-        auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
-
-        auto prev_vol = vol;
-        vol = new_vol;
-
-        return prev_vol - vol;
+        tt = t;
     }
 
-    std::size_t get_hash() const
+    void update_gradient_cost_diffs(double least_gc)
     {
-        return std::hash<int>()(get_link_num()) ^ std::hash<double>()(get_dist());
-    }
-
-    void set_node_path(std::vector<size_type>&& nodes_)
-    {
-        nodes = nodes_;
+        gc_ad = gc - least_gc;
+        gc_rd = least_gc > 0 ? gc_ad / least_gc : INT_MAX;
     }
 
 private:
@@ -717,12 +701,6 @@ public:
         return cp.find(k) != cp.end();
     }
 
-    // useless?
-    void create_columnvec(const ColumnVecKey& cvk)
-    {
-        cp[cvk] = ColumnVec();
-    }
-
     void update(const ColumnVecKey& cvk, double vol)
     {
         if (!contains_key(cvk))
@@ -754,7 +732,7 @@ public:
     Zone& operator=(const Zone&) = delete;
 
     Zone(Zone&&) = default;
-    Zone& operator=(Zone&&) = default;
+    Zone& operator=(Zone&&) = delete;
 
     ~Zone() = default;
 
@@ -918,6 +896,11 @@ public:
             delete p;
     }
 
+    bool contains_zone(const std::string& zone_id) const
+    {
+        return zones.find(zone_id) != zones.end();
+    }
+
     size_type get_last_thru_node_no() const override
     {
         return last_thru_node_no;
@@ -931,6 +914,16 @@ public:
     size_type get_node_num() const override
     {
         return nodes.size();
+    }
+
+    size_type get_node_no(const std::string& node_id) const
+    {
+        return id_no_map.at(node_id);
+    }
+
+    size_type get_zone_no(const std::string& zone_id) const
+    {
+        return zones.at(zone_id)->get_no();
     }
 
     std::vector<Node*>& get_nodes() override
@@ -1001,21 +994,6 @@ public:
             if (z.second->get_centroid())
                 centroids.push_back(z.second->get_centroid());
         }
-    }
-
-    bool contains_zone(const std::string& zone_id) const
-    {
-        return zones.find(zone_id) != zones.end();
-    }
-
-    size_type get_node_no(const std::string& node_id) const
-    {
-        return id_no_map.at(node_id);
-    }
-
-    size_type get_zone_no(const std::string& zone_id) const
-    {
-        return zones.at(zone_id)->get_no();
     }
 
     void set_last_thru_node_no(size_type no)
