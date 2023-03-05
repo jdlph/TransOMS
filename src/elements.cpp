@@ -74,31 +74,6 @@ bool ColumnVec::has_column(const Column& c) const
     return false;
 }
 
-void ColumnVec::update(Column& c, unsigned short iter_no)
-{
-    // k_path_prob = 1 / (iter_no + 1)
-    auto v = vol / (iter_no + 1);
-
-    if (cols.find(c) != cols.end())
-    {
-        // a further link-by-link comparison
-        auto er = cols.equal_range(c);
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->get_links() == c.get_links())
-            {
-                v += it->get_volume();
-                // erase the existing one as it is a const iterator
-                cols.erase(it);
-                return;
-            }
-        }
-    }
-
-    c.increase_volume(v);
-    add_new_column(c);
-}
-
 void ColumnVec::update(Column&& c, unsigned short iter_no)
 {
     // k_path_prob = 1 / (iter_no + 1)
@@ -166,6 +141,7 @@ void SPNetwork::initialize()
     {
         node_costs[i] = std::numeric_limits<double>::max();
         next_nodes[i] = NULL_NODE;
+        link_preds[i] = nullptr;
     }
 }
 
@@ -338,25 +314,25 @@ void NetworkHandle::setup_spnetworks()
 
 void NetworkHandle::build_connectors()
 {
-    auto node_no = net.get_node_num();
-    auto link_no = net.get_link_num();
+    auto node_no = this->net.get_node_num();
+    auto link_no = this->net.get_link_num();
 
     this->net.set_last_thru_node_no(node_no);
 
-    for (auto& [k, z] : net.get_zones())
+    for (auto& [k, z] : this->net.get_zones())
     {
         auto [x, y] = z->get_coordinate();
         if (x == COORD_X || y == COORD_Y)
         {
             auto node_no_ = z->get_nodes()[0];
-            auto node = net.get_nodes()[node_no_];
+            auto node = this->net.get_nodes()[node_no_];
             x = node->get_coordinate().first;
             y = node->get_coordinate().second;
         }
 
         auto* node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
         z->set_centroid(node);
-        net.add_node(node);
+        this->net.add_node(node);
 
         // build connectors
         for (auto i : z->get_nodes())
