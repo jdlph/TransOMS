@@ -1,3 +1,12 @@
+/**
+ * @file handles.h, part of the project openDTA under GPL-3.0 license
+ * @author Peiheng Li (jdlph@hotmail.com)
+ * @brief Definitions of handle classes with user API
+ *
+ * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
+ *
+ */
+
 #ifndef GUARD_HANDLES_H
 #define GUARD_HANDLES_H
 

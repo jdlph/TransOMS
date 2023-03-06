@@ -1,3 +1,12 @@
+/**
+ * @file elements.cpp, part of the project openDTA under GPL-3.0 license
+ * @author Peiheng Li (jdlph@hotmail.com)
+ * @brief Implementations of member functions from demand and supply classes
+ *
+ * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
+ *
+ */
+
 #include <demand.h>
 #include <handles.h>
 #include <supply.h>
@@ -163,7 +172,7 @@ void SPNetwork::update_link_costs()
     for (auto p : get_links())
     {
         if (!p->get_length())
-            continue;
+            break;
 
         link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
     }
@@ -195,7 +204,6 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
 
         double dist = 0;
         auto link = link_preds[c->get_no()];
-
         while (link)
         {
             // the first and the last are connectors, use link->get_length() to eliminate them

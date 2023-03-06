@@ -1,3 +1,12 @@
+/**
+ * @file supply.h, part of the project openDTA under GPL-3.0 license
+ * @author Peiheng Li (jdlph@hotmail.com)
+ * @brief Definitions of classes related to supply
+ *
+ * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
+ *
+ */
+
 #ifndef GUARD_SUPPLY_H
 #define GUARD_SUPPLY_H
 
@@ -724,7 +733,8 @@ public:
     {
     }
 
-    Zone(size_type no_, const std::string& id_, unsigned short bin_id_) : no {no_}, id {id_}, bin_id {bin_id_}
+    Zone(size_type no_, const std::string& id_, unsigned short bin_id_) 
+        : no {no_}, id {id_}, bin_id {bin_id_}
     {
     }
 

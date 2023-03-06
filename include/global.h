@@ -1,3 +1,12 @@
+/**
+ * @file global.h, part of the project openDTA under GPL-3.0 license
+ * @author Peiheng Li (jdlph@hotmail.com)
+ * @brief Alias, constants, and forward declarations of some classes.
+ *
+ * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
+ *
+ */
+
 #ifndef GUARD_GLOBAL_H
 #define GUARD_GLOBAL_H
 

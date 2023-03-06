@@ -1,3 +1,12 @@
+/**
+ * @file main.cpp, part of the project openDTA under GPL-3.0 license
+ * @author Peiheng Li (jdlph@hotmail.com)
+ * @brief Entry point to openDTA
+ *
+ * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
+ *
+ */
+
 #include <handles.h>
 
 #include <iostream>
@@ -10,6 +19,8 @@ using namespace std::chrono;
 
 int main()
 {
+    std::ios_base::sync_with_stdio(false);
+
     auto ts = high_resolution_clock::now();
 
     NetworkHandle nh;

@@ -1,3 +1,12 @@
+/**
+ * @file utils.cpp, part of the project openDTA under GPL-3.0 license
+ * @author Peiheng Li (jdlph@hotmail.com)
+ * @brief Implementations of utilities
+ *
+ * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
+ *
+ */
+
 #include <handles.h>
 #include <stdcsv.h>
 
