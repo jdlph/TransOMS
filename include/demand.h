@@ -138,15 +138,14 @@ private:
 
     const Column* col;
 
-    // to do: float?
     double pce;
 
     // simulation
     size_type curr_link_no;
     double dep_time;
 
-    std::vector<unsigned> arr_intvls;
-    std::vector<unsigned> dep_intvls;
+    std::vector<size_type> arr_intvls;
+    std::vector<size_type> dep_intvls;
 };
 
 class AgentType {

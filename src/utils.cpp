@@ -63,7 +63,7 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        auto* node = new Node {node_no, std::move(node_id), cx, cy, zone_id, activity_node};
+        auto* node = new Node {node_no, std::move(node_id), cx, cy, activity_node};
         this->net.add_node(node);
 
         unsigned short bin_index = 0;
@@ -187,7 +187,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        double cap = 60;
+        double cap = 1999;
         try
         {
             cap = std::stoi(line["capacity"]);

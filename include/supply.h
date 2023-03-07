@@ -287,7 +287,6 @@ private:
     std::string tail_node_id;
     size_type tail_node_no;
 
-    // to do: use unsigned short?
     unsigned short lane_num = 1;
 
     double cap;
@@ -305,12 +304,6 @@ private:
 class Node {
 public:
     Node() = default;
-
-    Node(size_type no_, std::string&& id_,  double x_, double y_,
-         const std::string& z_id_, bool act_node_ = false)
-        : no {no_}, id {id_},  x {x_}, y {y_}, zone_id {z_id_}, act_node {act_node_}
-    {
-    }
 
     Node(size_type no_, std::string&& id_,  double x_, double y_,
          size_type z_no_, bool act_node_ = false)
@@ -394,6 +387,7 @@ private:
     double x = COORD_X;
     double y = COORD_Y;
 
+    // useless?
     std::string zone_id;
     size_type zone_no;
     bool act_node;
@@ -669,7 +663,6 @@ public:
 
     bool has_column(const Column& c) const;
 
-    void update(Column& c, unsigned short iter_no);
     // move Column c
     void update(Column&& c, unsigned short iter_no);
 
@@ -1116,7 +1109,6 @@ private:
     void reset();
     void update_link_costs();
 
-    // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
     void single_source_shortest_path(size_type src_node_no);
     void single_source_shortest_path_dijkstra(size_type src_node_no);
     void backtrace_shortest_path_tree(size_type src_node_no, unsigned short iter_no);

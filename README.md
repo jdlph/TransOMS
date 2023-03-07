@@ -7,7 +7,7 @@ Extensive efforts have been or will be in place to ensure its appearance and per
 ## Appearance
 ### High-Quality and Cross-Platform
 1. Follow the [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) and some other best coding practices.
-2. Prepare the source code in modern C++ following the new standards (up to C++20) and avoiding vendor-specific features.
+2. Prepare the source code in modern C++ of the new standards (up to C++20) and avoid vendor-specific features.
 3. Use CMake to define the building process.
 
 ### Modern Configuration and Data Interchange
@@ -18,8 +18,8 @@ Extensive efforts have been or will be in place to ensure its appearance and per
 ### Faster Path Engine
 1. Adopt [the most efficient deque implementation of the modified label correcting (MLC) algorithm](https://github.com/jdlph/Path4GMNS/blob/master/engine/path_engine.cpp) from Path4GMNS.
 2. Implement [heap-Dijkstra's algorithm](https://github.com/jdlph/shortest-path-algorithms/blob/release/src/spalgm.py) as an alternative.
-3. Maintain the link predecessor only rather than both link and node predecessors. Node predecessor can be easily inferred from link predecessor.
-4. Store columns between each OD pair in a hash table along with a customer hash function for column. This enables almost constant-time check whether a newly identified column / path is existing or not.
+3. Maintain the link predecessor only rather than both link and node predecessors as node predecessor can be easily inferred from link predecessor.
+4. Store columns between each OD pair in a hash table along with a customer hash function for column. This enables almost a constant-time check on whether a newly identified column / path is existing or not. The background information can be found [here](https://github.com/jdlph/Path4GMNS/tree/dev#more-on-the-column-generation-module).
 
 ### Better Memory Management
 1. Avoid unnecessary copying through the move semantics. 

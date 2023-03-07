@@ -222,6 +222,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
     }
 }
 
+// the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
 void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;

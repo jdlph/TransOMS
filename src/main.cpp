@@ -11,8 +11,6 @@
 
 #include <iostream>
 #include <string>
-#include <thread>
-#include <functional>
 
 using namespace opendta;
 using namespace std::chrono;
@@ -25,7 +23,7 @@ int main()
 
     NetworkHandle nh;
 
-    const std::string dir {"../data/"};
+    const std::string dir {"../data/Chicago_Regional/"};
     nh.read_network(dir);
     nh.read_demands(dir);
 
@@ -37,13 +35,6 @@ int main()
     std::cout << "openDTA finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 
     ts = high_resolution_clock::now();
-
-    // multithreading to handle I/O-bounded processes (not functioning yet!)
-    // std::thread t1 (&NetworkHandle::output_columns, nh);
-    // std::thread t2 (&NetworkHandle::output_link_performance, nh);
-
-    // t1.join();
-    // t2.join();
 
     nh.output_columns();
     nh.output_link_performance();
