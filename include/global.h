@@ -1,6 +1,6 @@
 /**
  * @file global.h, part of the project openDTA under GPL-3.0 license
- * @author Peiheng Li (jdlph@hotmail.com)
+ * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Alias, constants, and forward declarations of some classes.
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.

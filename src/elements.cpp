@@ -1,6 +1,6 @@
 /**
  * @file elements.cpp, part of the project openDTA under GPL-3.0 license
- * @author Peiheng Li (jdlph@hotmail.com)
+ * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Implementations of member functions from demand and supply classes
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.

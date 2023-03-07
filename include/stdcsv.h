@@ -1,6 +1,6 @@
 /**
  * @file stdcsv.cpp, part of the project MIOCSV under Apache License 2.0
- * @author Peiheng Li (jdlph@hotmail.com)
+ * @author jdlph (jdlph@hotmail.com)
  * @brief A suite of lightening-fast CSV parsers and writer built upon the C++ std facilities
  *
  * @copyright Copyright (c) 2022 - 2023 Peiheng Li, Ph.D.

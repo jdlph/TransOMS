@@ -1,6 +1,6 @@
 /**
  * @file handles.h, part of the project openDTA under GPL-3.0 license
- * @author Peiheng Li (jdlph@hotmail.com)
+ * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Definitions of handle classes with user API
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
