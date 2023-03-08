@@ -657,18 +657,6 @@ public:
             ost << t << sep << '\n';
     }
 
-    void append_records(Row&& r, bool last_one = false)
-    {
-        for (auto it = r.begin(), it_end = r.end() - 1; it != it_end; ++it)
-            ost << *it << delim;
-
-        // the last record
-        ost << r.back();
-
-        if (last_one)
-            ost << '\n';
-    }
-
 private:
     std::ofstream ost;
     const char delim;

@@ -61,7 +61,12 @@ public:
     void read_settings(const std::string& dir);
 
     void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
+    void output_columns_par(const std::string& dir = ".", const std::string& filename = "agents.csv");
     void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
+
+    std::string get_link_path_str(const Column& c);
+    std::string get_node_path_str(const Column& c);
+    std::string get_node_path_coordinates(const Column& c);
 
 private:
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);

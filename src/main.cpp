@@ -36,7 +36,7 @@ int main()
 
     ts = high_resolution_clock::now();
 
-    nh.output_columns();
+    nh.output_columns_par();
     nh.output_link_performance();
 
     te = high_resolution_clock::now();

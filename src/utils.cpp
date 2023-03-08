@@ -433,10 +433,6 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             writer.append(col.get_travel_time());
             writer.append(col.get_dist());
 
-            // writer.append_records({++i, oz_no, dz_no, col.get_no(), at_str, dp_str, 
-            //                        col.get_volume(), col.get_toll(), 
-            //                        col.get_travel_time(),col.get_dist()});
-
             for (auto j = col.get_link_num() - 1; j != 0; --j)
             {
                 const auto& link = this->get_link(col.get_link_no(j));
@@ -492,4 +488,102 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
     }
 
     std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
+}
+
+void NetworkHandle::output_columns_par(const std::string& dir, const std::string& filename)
+{
+    auto writer = miocsv::Writer(dir + '/' + filename);
+
+    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type",
+                      "demand_period","volume", "toll", "travel_time", "distance",
+                      "link_sequence", "node_sequence", "geometry"});
+
+    size_type i = 0;
+    for (auto& [k, cv] : cp.get_column_vecs())
+    {
+        // oz_no, dz_no, dp_no, at_no
+        auto oz_no = std::get<0>(k);
+        auto dz_no = std::get<1>(k);
+        auto dp_no = std::get<2>(k);
+        auto at_no = std::get<3>(k);
+
+        auto dp_str = dps[dp_no].get_period();
+        auto at_str = ats[at_no]->get_name();
+
+        for (const auto& col : cv.get_columns())
+        {
+            writer.append(++i);
+            writer.append(oz_no);
+            writer.append(dz_no);
+            writer.append(col.get_no());
+            writer.append(at_str);
+            writer.append(dp_str);
+            writer.append(col.get_volume());
+            writer.append(col.get_toll());
+            writer.append(col.get_travel_time());
+            writer.append(col.get_dist());
+
+            auto link_path = this->get_link_path_str(col);
+            auto node_path = this->get_link_path_str(col);
+            auto geo = this->get_node_path_coordinates(col);
+
+            writer.append(link_path);
+            writer.append(node_path);
+            writer.append(geo);
+        }
+    }
+
+    std::cout << "check " << filename << " in " << dir <<  " for UE results\n";
+}
+
+std::string NetworkHandle::get_link_path_str(const Column& c)
+{
+    std::string str;
+    for (auto j = c.get_link_num() - 1; j != 0; --j)
+    {
+        const auto& link = this->get_link(c.get_link_no(j));
+        str += link.get_id();
+        str += ';';
+    }
+    
+    const auto& link = this->get_link(c.get_link_no(0));
+    str += link.get_id();
+
+    // it will be moved
+    return str;
+}
+
+std::string NetworkHandle::get_node_path_str(const Column& c)
+{
+    std::string str;
+    for (auto j = c.get_node_num() - 1; j != 0; --j)
+    {
+        const auto& node = this->get_node(c.get_node_no(j));
+        str += node.get_id();
+        str += ';';
+    }
+    
+    const auto& node = this->get_node(c.get_node_no(0));
+    str += node.get_id();
+
+    // it will be moved
+    return str;
+}
+
+std::string NetworkHandle::get_node_path_coordinates(const Column& c)
+{
+    std::string str = {"\"LINESTRING ("};
+    for (auto j = c.get_node_num() - 1; j != 0; --j)
+    {
+        const auto& node = this->get_node(c.get_node_no(j));
+        str += node.get_coordinate_str();
+        str += ';';
+    }
+    
+    const auto& node = this->get_node(c.get_node_no(0));
+    str += node.get_coordinate_str();
+    str += ")\"\n";
+
+    // it will be moved
+    return str;
 }
