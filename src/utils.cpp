@@ -10,6 +10,8 @@
 #include <handles.h>
 #include <stdcsv.h>
 
+#include <future>
+
 using namespace opendta;
 
 void NetworkHandle::read_nodes(const std::string& dir, const std::string& filename)
@@ -411,9 +413,9 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())
     {
-        // oz_no, dz_no, dp_no, at_no
-        auto oz_no = std::get<0>(k);
-        auto dz_no = std::get<1>(k);
+        // oz_id, dz_no, dp_no, at_no
+        auto oz_id = std::get<0>(k);
+        auto dz_id = std::get<1>(k);
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
 
@@ -423,8 +425,8 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
         for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
-            writer.append(oz_no);
-            writer.append(dz_no);
+            writer.append(oz_id);
+            writer.append(dz_id);
             writer.append(col.get_no());
             writer.append(at_str);
             writer.append(dp_str);
@@ -501,9 +503,9 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())
     {
-        // oz_no, dz_no, dp_no, at_no
-        auto oz_no = std::get<0>(k);
-        auto dz_no = std::get<1>(k);
+        // oz_id, dz_no, dp_no, at_no
+        auto oz_id = std::get<0>(k);
+        auto dz_id = std::get<1>(k);
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
 
@@ -513,8 +515,8 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
         for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
-            writer.append(oz_no);
-            writer.append(dz_no);
+            writer.append(oz_id);
+            writer.append(dz_id);
             writer.append(col.get_no());
             writer.append(at_str);
             writer.append(dp_str);
@@ -524,12 +526,17 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
             writer.append(col.get_dist());
 
             auto link_path = this->get_link_path_str(col);
-            auto node_path = this->get_link_path_str(col);
+            auto node_path = this->get_node_path_str(col);
             auto geo = this->get_node_path_coordinates(col);
+
+            // the followings are not working yet!!
+            // auto link_path = std::async(&NetworkHandle::get_link_path_str, this, col);
+            // auto node_path = std::async(&NetworkHandle::get_node_path_str, this, col);
+            // auto geo = std::async(&NetworkHandle::get_node_path_coordinates, this, col);
 
             writer.append(link_path);
             writer.append(node_path);
-            writer.append(geo);
+            writer.append(geo, "\n");
         }
     }
 
@@ -545,7 +552,7 @@ std::string NetworkHandle::get_link_path_str(const Column& c)
         str += link.get_id();
         str += ';';
     }
-    
+
     const auto& link = this->get_link(c.get_link_no(0));
     str += link.get_id();
 
@@ -562,7 +569,7 @@ std::string NetworkHandle::get_node_path_str(const Column& c)
         str += node.get_id();
         str += ';';
     }
-    
+
     const auto& node = this->get_node(c.get_node_no(0));
     str += node.get_id();
 
@@ -579,10 +586,10 @@ std::string NetworkHandle::get_node_path_coordinates(const Column& c)
         str += node.get_coordinate_str();
         str += ';';
     }
-    
+
     const auto& node = this->get_node(c.get_node_no(0));
     str += node.get_coordinate_str();
-    str += ")\"\n";
+    str += ")\"";
 
     // it will be moved
     return str;
