@@ -433,6 +433,10 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             writer.append(col.get_travel_time());
             writer.append(col.get_dist());
 
+            // writer.append_records({++i, oz_no, dz_no, col.get_no(), at_str, dp_str, 
+            //                        col.get_volume(), col.get_toll(), 
+            //                        col.get_travel_time(),col.get_dist()});
+
             for (auto j = col.get_link_num() - 1; j != 0; --j)
             {
                 const auto& link = this->get_link(col.get_link_no(j));

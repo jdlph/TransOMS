@@ -23,7 +23,7 @@ int main()
 
     NetworkHandle nh;
 
-    const std::string dir {"../data/Chicago_Regional/"};
+    const std::string dir {"../data/Chicago_Sketch/"};
     nh.read_network(dir);
     nh.read_demands(dir);
 

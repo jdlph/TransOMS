@@ -657,6 +657,18 @@ public:
             ost << t << sep << '\n';
     }
 
+    void append_records(Row&& r, bool last_one = false)
+    {
+        for (auto it = r.begin(), it_end = r.end() - 1; it != it_end; ++it)
+            ost << *it << delim;
+
+        // the last record
+        ost << r.back();
+
+        if (last_one)
+            ost << '\n';
+    }
+
 private:
     std::ofstream ost;
     const char delim;
@@ -785,7 +797,8 @@ Row Reader::split2(const C& c) const
 #ifdef O3N_TIME_BOUND
 Row Reader::split3()
 {
-    static constexpr char lineter = '\n';
+    static constexpr char CR = '\r';
+    static constexpr char LF = '\n';
 
     Row r;
     std::string s;
@@ -798,9 +811,9 @@ Row Reader::split3()
         {
             s.push_back(*it++);
             quoted ^= true;
-            if (!quoted && *it != quote && *it != delim && *it != lineter)
+            if (!quoted && *it != quote && *it != delim && *it != LF)
             {
-                ++it = std::find(it, it_end, lineter);
+                ++it = std::find(it, it_end, LF);
                 throw Reader::InvalidRow{row_num, s};
             }
         }
@@ -810,10 +823,14 @@ Row Reader::split3()
             s.clear();
             ++it;
         }
-        else if (*it == lineter)
+        else if (*it == LF)
         {
             // last one
-            r.append(s);
+            if (s.back() != CR)
+                r.append(s);
+            else
+                r.append(std::string{s.begin(), --s.end()});
+
             ++it;
             return r;
         }
