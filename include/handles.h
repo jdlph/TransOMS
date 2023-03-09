@@ -84,6 +84,8 @@ private:
     void build_connectors();
     void setup_spnetworks();
 
+    void delete_spnetworks();
+
 private:
     ColumnPool cp;
 

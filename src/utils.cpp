@@ -563,15 +563,15 @@ std::string NetworkHandle::get_link_path_str(const Column& c)
 std::string NetworkHandle::get_node_path_str(const Column& c)
 {
     std::string str;
-    for (auto j = c.get_node_num() - 1; j != 0; --j)
+    for (auto j = c.get_link_num() - 1; j != 0; --j)
     {
-        const auto& node = this->get_node(c.get_node_no(j));
-        str += node.get_id();
+        const auto& link = this->get_link(c.get_link_no(j));
+        str += link.get_tail_node_id();
         str += ';';
     }
 
-    const auto& node = this->get_node(c.get_node_no(0));
-    str += node.get_id();
+    const auto& link = this->get_link(c.get_link_no(0));
+    str += link.get_head_node_id();
 
     // it will be moved
     return str;
@@ -580,14 +580,16 @@ std::string NetworkHandle::get_node_path_str(const Column& c)
 std::string NetworkHandle::get_node_path_coordinates(const Column& c)
 {
     std::string str = {"\"LINESTRING ("};
-    for (auto j = c.get_node_num() - 1; j != 0; --j)
+    for (auto j = c.get_link_num() - 1; j != 0; --j)
     {
-        const auto& node = this->get_node(c.get_node_no(j));
+        auto node_no = this->get_link(c.get_link_no(j)).get_tail_node_no();
+        const auto& node = this->get_node(node_no);
         str += node.get_coordinate_str();
         str += ';';
     }
 
-    const auto& node = this->get_node(c.get_node_no(0));
+    auto node_no = this->get_link(c.get_link_no(0)).get_head_node_no();
+    const auto& node = this->get_node(node_no);
     str += node.get_coordinate_str();
     str += ")\"";
 

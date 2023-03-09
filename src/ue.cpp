@@ -25,6 +25,8 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         for (auto spn : spns)
             spn->generate_columns(i);
     }
+    // release memory
+    delete_spnetworks();
 
     for (auto i = 0; i != column_opt_num; ++i)
     {
@@ -112,20 +114,13 @@ void NetworkHandle::update_column_attributes()
             double tt = 0;
             double pt = 0;
 
-            std::vector<size_type> node_path;
-            node_path.reserve(col.get_links().size() + 1);
-
             for (auto i : col.get_links())
             {
                 const auto& link = this->get_link(i);
                 tt += link.get_period_travel_time(dp_no);
                 pt += link.get_toll();
-                node_path.push_back(link.get_tail_node_no());
             }
-            auto j = col.get_last_link_no();
-            node_path.push_back(this->get_link(j).get_head_node_no());
 
-            const_cast<Column&>(col).set_node_path(std::move(node_path));
             const_cast<Column&>(col).set_travel_time(tt);
             const_cast<Column&>(col).set_toll(pt);
         }
@@ -170,7 +165,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 
 void NetworkHandle::update_link_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
 {
-    for (auto link : net.get_links())
+    for (auto link : this->net.get_links())
     {
         if (!link->get_length())
             break;

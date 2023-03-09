@@ -368,3 +368,11 @@ void NetworkHandle::build_connectors()
 
     this->net.collect_centroids();
 }
+
+void NetworkHandle::delete_spnetworks()
+{
+    for (auto spn : this->spns)
+        delete spn;
+
+    this->spns.clear();
+}

@@ -17,13 +17,14 @@ using namespace std::chrono;
 
 int main()
 {
-    std::ios_base::sync_with_stdio(false);
-
     auto ts = high_resolution_clock::now();
 
-    NetworkHandle nh;
+    std::ios_base::sync_with_stdio(false);
 
-    const std::string dir {"../data/Chicago_Sketch/"};
+    const std::string dir {"../data/Chicago_Regional/"};
+    // const std::string dir {"../data/Chicago_Sketch/"};
+
+    NetworkHandle nh;
     nh.read_network(dir);
     nh.read_demands(dir);
 
