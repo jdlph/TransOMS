@@ -134,14 +134,9 @@ void SPNetwork::generate_columns(unsigned short iter_no)
 }
 
 void SPNetwork::initialize()
-{   
+{
     const auto n = get_node_num();
     const auto m = get_link_num();
-
-    // link_costs = new double[m];
-    // node_costs = new double[n];
-    // next_nodes = new long[n];
-    // link_preds = new const Link*[n];
 
     link_costs = double_alloc.allocate(m);
     node_costs = double_alloc.allocate(n);
@@ -344,7 +339,7 @@ void NetworkHandle::build_connectors()
             y = node->get_coordinate().second;
         }
 
-        auto* node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
+        auto node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
         z->set_centroid(node);
         this->net.add_node(node);
 

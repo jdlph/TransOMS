@@ -727,7 +727,7 @@ public:
     {
     }
 
-    Zone(size_type no_, const std::string& id_, unsigned short bin_id_) 
+    Zone(size_type no_, const std::string& id_, unsigned short bin_id_)
         : no {no_}, id {id_}, bin_id {bin_id_}
     {
     }
@@ -1130,34 +1130,30 @@ private:
     ColumnPool* cp;
     PhyNetwork* pn;
 
-    const Link** link_preds;
+    std::vector<size_type> orig_nodes;
+
     /**
-     * @brief deque
+     * @brief arrays for shortest path calculation and construction
      *
-     * inconsistent with the type of node no but a network usually would not
-     * have more than2,147,483,647 nodes
+     * link_preds: link predecessor indices
+     * next_nodes: a special deque
+     * link_costs: array of each link's generalized cost
+     * node_costs: array of shortest path (in terms of generalized costs)
+     *
+     * note that next_nodes is inconsistent with the type of node_no but a network
+     * usually would not have more than2,147,483,647 nodes
      */
+    const Link** link_preds;
     long* next_nodes;
     double* link_costs;
     double* node_costs;
 
-    std::vector<size_type> orig_nodes;
-
+    /**
+     * @brief allocators to allocate dynamic memory in initialize() for the forgoing arrays
+     */
     std::allocator<double> double_alloc;
     std::allocator<long> long_alloc;
     std::allocator<const Link*> link_alloc;
-};
-
-template<typename T>
-class MyAllocator {
-public:
-    auto allocate(size_type n)
-    {
-        return alloc.allocate(n);
-    }
-
-private:
-    std::allocator<T> alloc;
 };
 
 } // namespace opendta

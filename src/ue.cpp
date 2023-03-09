@@ -62,7 +62,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         {
             double path_gradient_cost = 0;
             for (auto i : col.get_links())
-                path_gradient_cost += this->get_link(i).get_generalized_cost(dp_no, vot);
+                path_gradient_cost += this->get_link(i)->get_generalized_cost(dp_no, vot);
 
             const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
 
@@ -114,9 +114,9 @@ void NetworkHandle::update_column_attributes()
 
             for (auto i : col.get_links())
             {
-                const auto& link = this->get_link(i);
-                tt += link.get_period_travel_time(dp_no);
-                pt += link.get_toll();
+                const auto link = this->get_link(i);
+                tt += link->get_period_travel_time(dp_no);
+                pt += link->get_toll();
             }
 
             const_cast<Column&>(col).set_travel_time(tt);
@@ -151,8 +151,8 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
             auto vol = col.get_volume() * pce;
             for (auto i : col.get_links())
             {
-                auto& link = this->get_link(i);
-                link.increase_period_vol(dp_no, vol);
+                auto link = this->get_link(i);
+                link->increase_period_vol(dp_no, vol);
             }
 
             if (reduce_path_vol && !cv.is_route_fixed())

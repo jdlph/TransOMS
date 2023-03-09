@@ -36,24 +36,24 @@ public:
 
     void find_ue(unsigned short column_gen_num, unsigned short column_opt_num);
 
-    const Link& get_link(size_type link_no) const
+    const Link* get_link(size_type link_no) const
     {
-        return *net.get_links()[link_no];
+        return net.get_links()[link_no];
     }
 
-    Link& get_link(size_type link_no)
+    Link* get_link(size_type link_no)
     {
-        return *net.get_links()[link_no];
+        return net.get_links()[link_no];
     }
 
-    const Node& get_node(size_type node_no) const
+    const Node* get_node(size_type node_no) const
     {
-        return *net.get_nodes()[node_no];
+        return net.get_nodes()[node_no];
     }
 
-    Node& get_node(size_type node_no)
+    Node* get_node(size_type node_no)
     {
-        return *net.get_nodes()[node_no];
+        return net.get_nodes()[node_no];
     }
 
     void read_demands(const std::string& dir);
@@ -63,10 +63,6 @@ public:
     void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
     void output_columns_par(const std::string& dir = ".", const std::string& filename = "agents.csv");
     void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
-
-    std::string get_link_path_str(const Column& c);
-    std::string get_node_path_str(const Column& c);
-    std::string get_node_path_coordinates(const Column& c);
 
 private:
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
@@ -83,8 +79,11 @@ private:
 
     void build_connectors();
     void setup_spnetworks();
-
     void delete_spnetworks();
+
+    std::string get_link_path_str(const Column& c);
+    std::string get_node_path_str(const Column& c);
+    std::string get_node_path_coordinates(const Column& c);
 
 private:
     ColumnPool cp;
