@@ -21,8 +21,8 @@ int main()
 
     std::ios_base::sync_with_stdio(false);
 
-    const std::string dir {"../data/Chicago_Regional/"};
-    // const std::string dir {"../data/Chicago_Sketch/"};
+    // const std::string dir {"../data/Chicago_Regional/"};
+    const std::string dir {"../data/Chicago_Sketch/"};
 
     NetworkHandle nh;
     nh.read_network(dir);

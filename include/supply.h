@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <limits>
 #include <map>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
@@ -1141,6 +1142,22 @@ private:
     double* node_costs;
 
     std::vector<size_type> orig_nodes;
+
+    std::allocator<double> double_alloc;
+    std::allocator<long> long_alloc;
+    std::allocator<const Link*> link_alloc;
+};
+
+template<typename T>
+class MyAllocator {
+public:
+    auto allocate(size_type n)
+    {
+        return alloc.allocate(n);
+    }
+
+private:
+    std::allocator<T> alloc;
 };
 
 } // namespace opendta

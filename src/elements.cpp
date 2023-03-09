@@ -134,14 +134,19 @@ void SPNetwork::generate_columns(unsigned short iter_no)
 }
 
 void SPNetwork::initialize()
-{
+{   
     const auto n = get_node_num();
     const auto m = get_link_num();
 
-    link_costs = new double[m];
-    node_costs = new double[n];
-    next_nodes = new long[n];
-    link_preds = new const Link*[n];
+    // link_costs = new double[m];
+    // node_costs = new double[n];
+    // next_nodes = new long[n];
+    // link_preds = new const Link*[n];
+
+    link_costs = double_alloc.allocate(m);
+    node_costs = double_alloc.allocate(n);
+    next_nodes = long_alloc.allocate(n);
+    link_preds = link_alloc.allocate(n);
 
     for (size_type i = 0; i != m; ++i)
         link_costs[i] = 0;

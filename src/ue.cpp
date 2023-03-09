@@ -25,8 +25,6 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         for (auto spn : spns)
             spn->generate_columns(i);
     }
-    // release memory
-    delete_spnetworks();
 
     for (auto i = 0; i != column_opt_num; ++i)
     {
