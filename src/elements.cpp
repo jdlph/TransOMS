@@ -203,8 +203,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
         std::vector<size_type> link_path;
 
         double dist = 0;
-        auto link = link_preds[c->get_no()];
-        while (link)
+        for (auto link = link_preds[c->get_no()]; link;)
         {
             // the first and the last are connectors, use link->get_length() to eliminate them
             if (link->get_length())
@@ -286,7 +285,7 @@ void NetworkHandle::setup_spnetworks()
     using SPNKey = std::tuple<unsigned short, unsigned short, unsigned short>;
     std::map<SPNKey, size_type> spn_map;
 
-    this->build_connectors();
+    build_connectors();
 
     constexpr unsigned memory_blocks = 1;
 

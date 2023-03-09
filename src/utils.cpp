@@ -451,14 +451,14 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             const auto node = this->get_node(col.get_node_no(0));
             writer.append(node->get_id(), ",");
 
-            writer.append("\"LINESTRING (", "", false);
+            writer.append("\"LINESTRING (", "");
             for (auto j = col.get_node_num() - 1; j != 0; --j)
             {
                 const auto node_ = this->get_node(col.get_node_no(j));
                 writer.append(node_->get_coordinate_str(), ", ");
             }
             const auto node_ = this->get_node(col.get_node_no(0));
-            writer.append(node_->get_coordinate_str(), ")\"", true);
+            writer.append(node_->get_coordinate_str(), ")\"\n");
         }
     }
 

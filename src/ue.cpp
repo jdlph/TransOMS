@@ -21,8 +21,8 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
     {
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
-        update_link_travel_time(&dps, i);
-        for (auto spn : spns)
+        update_link_travel_time(&this->dps, i);
+        for (auto spn : this->spns)
             spn->generate_columns(i);
     }
 
@@ -48,7 +48,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_gap = 0;
     double total_sys_travel_time = 0;
 
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (auto& [k, cv] : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);
@@ -91,8 +91,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
         if (p)
         {
-            const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
             total_sys_travel_time += p->get_sys_travel_time();
+            const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
         }
     }
 
@@ -103,7 +103,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
 void NetworkHandle::update_column_attributes()
 {
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (auto& [k, cv] : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);
@@ -139,7 +139,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         link->reset_period_vol();
     }
 
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (auto& [k, cv] : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);

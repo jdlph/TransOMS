@@ -640,21 +640,15 @@ public:
     }
 
     template<typename T>
-    void append(T& t, const std::string& sep = ",", bool last_one = false)
+    void append(T& t, const std::string& sep = ",")
     {
-        if (!last_one)
-            ost << t << sep;
-        else if (last_one)
-            ost << t << sep << '\n';
+        ost << t << sep;
     }
 
     template<typename T>
-    void append(T&& t, const std::string& sep = ",", bool last_one = false)
+    void append(T&& t, const std::string& sep = ",")
     {
-        if (!last_one)
-            ost << t << sep;
-        else if (last_one)
-            ost << t << sep << '\n';
+        ost << t << sep;
     }
 
 private:
