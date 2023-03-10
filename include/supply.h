@@ -4,7 +4,6 @@
  * @brief Definitions of classes related to supply
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #ifndef GUARD_SUPPLY_H
@@ -479,15 +478,49 @@ public:
         return vol;
     }
 
+    // double shift_volume(unsigned short iter_no)
+    // {
+    //     auto step_size = 1 / (iter_no + 2.0);
+    //     auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
+
+    //     auto prev_vol = vol;
+    //     vol = new_vol;
+
+    //     return prev_vol - vol;
+    // }
+
+    /**
+     * @brief Shift volume from this non-least-cost column and reset its volume
+     *
+     * @param iter_no, current iteration number in column updating
+     * @return double, volume to be shift from this column
+     *
+     * @note This is an enhanced version over the original implementation in DTALite
+     * by imposing a tighter upper bound over delta, which could be the same as vol
+     * in the original implementation. It implies all the volume will be shifted
+     * out, which does not make sense! The original implementation is equivalent
+     * to the following.
+     *
+     * if (delta > vol)
+     *      delta == vol;
+     *
+     * Ideally, a line search shall be carried out to determine the optimal step
+     * size.
+     */
     double shift_volume(unsigned short iter_no)
     {
-        auto step_size = 1 / (iter_no + 2.0);
-        auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
+        auto scaling = 1 / (iter_no + 2.0);
+        auto delta = scaling * gc_rd * od_vol;
 
-        auto prev_vol = vol;
-        vol = new_vol;
+        if (delta >= vol)
+        {
+            auto p = std::min(0.618, 1 - vol / delta);
+            delta = p * vol;
+        }
 
-        return prev_vol - vol;
+        vol -= delta;
+
+        return delta;
     }
 
     std::size_t get_hash() const

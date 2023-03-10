@@ -4,7 +4,6 @@
  * @brief Implementations of utilities
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #include <handles.h>
@@ -313,7 +312,7 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
 {
     auto reader = miocsv::DictReader(dir);
 
-    size_type num = 0;
+    double total_vol = 0;
     for (const auto& line : reader)
     {
         std::string oz_id;
@@ -361,10 +360,10 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
         this->cp.update(cvk, vol);
 
-        num += std::ceil(vol);
+        total_vol += vol;
     }
 
-    std::cout << "the number of agents is " << num << '\n';
+    std::cout << "the total demand is " << total_vol << '\n';
 }
 
 void NetworkHandle::read_network(const std::string& dir)

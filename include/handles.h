@@ -4,7 +4,6 @@
  * @brief Definitions of handle classes with user API
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #ifndef GUARD_HANDLES_H

@@ -4,7 +4,6 @@
  * @brief Implementations of member functions from demand and supply classes
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #include <demand.h>

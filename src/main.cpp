@@ -4,7 +4,6 @@
  * @brief Entry point to openDTA
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #include <handles.h>
@@ -21,15 +20,15 @@ int main()
 
     std::ios_base::sync_with_stdio(false);
 
-    // const std::string dir {"../data/Chicago_Regional/"};
-    const std::string dir {"../data/Chicago_Sketch/"};
+    const std::string dir {"../data/Chicago_Regional/"};
+    // const std::string dir {"../data/Chicago_Sketch/"};
+
+    unsigned short column_gen_num = 20;
+    unsigned short column_opt_num = 20;
 
     NetworkHandle nh;
     nh.read_network(dir);
     nh.read_demands(dir);
-
-    unsigned short column_gen_num = 20;
-    unsigned short column_opt_num = 20;
     nh.find_ue(column_gen_num, column_opt_num);
 
     auto te = high_resolution_clock::now();

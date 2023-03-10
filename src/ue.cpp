@@ -4,7 +4,6 @@
  * @brief Implementations of Path-based Static User Equilibrium (UE)
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #include <handles.h>

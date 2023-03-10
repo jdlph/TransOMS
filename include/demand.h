@@ -4,7 +4,6 @@
  * @brief Definitions of classes related to demand
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #ifndef GUARD_DEMAND_H

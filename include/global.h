@@ -4,7 +4,6 @@
  * @brief Alias, constants, and forward declarations of some classes.
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
- *
  */
 
 #ifndef GUARD_GLOBAL_H
