@@ -347,13 +347,11 @@ void NetworkHandle::build_connectors()
             auto head_node = net.get_nodes()[node_no];
             auto tail_node = net.get_nodes()[i];
 
-            auto forward_link = new Link {std::string{"conn_" + std::to_string(link_no)}, link_no,
-                                          head_node->get_id(), head_node->get_no(),
-                                          tail_node->get_id(), tail_node->get_no()};
+            auto forward_link = new Link {std::string{"conn_" + std::to_string(link_no)},
+                                          link_no, head_node->get_no(), tail_node->get_no()};
 
-            auto backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)}, link_no + 1,
-                                           tail_node->get_id(), tail_node->get_no(),
-                                           head_node->get_id(), head_node->get_no()};
+            auto backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)},
+                                           link_no + 1, tail_node->get_no(), head_node->get_no()};
 
             this->net.add_link(forward_link);
             this->net.add_link(backward_link);

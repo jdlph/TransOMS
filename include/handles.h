@@ -55,6 +55,16 @@ public:
         return net.get_nodes()[node_no];
     }
 
+    const std::string& get_head_node_id(const Link* link) const
+    {
+        return get_node(link->get_head_node_no())->get_id();
+    }
+
+    const std::string& get_tail_node_id(const Link* link) const
+    {
+        return get_node(link->get_tail_node_no())->get_id();
+    }
+
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);

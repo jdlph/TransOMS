@@ -134,26 +134,18 @@ class Link {
 public:
     Link() = default;
 
-    Link(std::string&& id_, size_type no_,
-         std::string&& head_node_id_, size_type head_node_no_,
-         std::string&& tail_node_id_, size_type tail_node_no_,
+    Link(std::string&& id_, size_type no_, size_type head_node_no_, size_type tail_node_no_,
          unsigned short lane_num_, double cap_, double ffs_, double len_,
          std::string&& modes_, std::string&& geo_)
-         : id {id_}, no {no_},
-           head_node_id {head_node_id_}, head_node_no {head_node_no_},
-           tail_node_id {tail_node_id_}, tail_node_no {tail_node_no_},
+         : id {id_}, no {no_}, head_node_no {head_node_no_}, tail_node_no {tail_node_no_},
            lane_num {lane_num_}, cap {cap_}, ffs {ffs_}, len {len_},
            allowed_modes {modes_}, geo {geo_}
     {
     }
 
     // for connector only
-    Link(std::string&& id_, size_type no_,
-         const std::string& head_node_id_, size_type head_node_no_,
-         const std::string& tail_node_id_, size_type tail_node_no_)
-         : id {id_}, no {no_},
-           head_node_id {head_node_id_}, head_node_no {head_node_no_},
-           tail_node_id {tail_node_id_}, tail_node_no {tail_node_no_}
+    Link(std::string&& id_, size_type no_, size_type head_node_no_, size_type tail_node_no_)
+         : id {id_}, no {no_}, head_node_no {head_node_no_}, tail_node_no {tail_node_no_}
     {
     }
 
@@ -198,19 +190,9 @@ public:
         return vdfps[i].get_travel_time() + choice_cost + toll / vot * MINUTES_IN_HOUR;
     }
 
-    const std::string get_head_node_id() const
-    {
-        return head_node_id;
-    }
-
     size_type get_head_node_no() const
     {
         return head_node_no;
-    }
-
-    const std::string get_tail_node_id() const
-    {
-        return tail_node_id;
     }
 
     size_type get_tail_node_no() const
@@ -281,10 +263,7 @@ private:
     std::string id;
     size_type no;
 
-    std::string head_node_id;
     size_type head_node_no;
-
-    std::string tail_node_id;
     size_type tail_node_no;
 
     unsigned short lane_num = 1;

@@ -20,8 +20,8 @@ int main()
 
     std::ios_base::sync_with_stdio(false);
 
-    const std::string dir {"../data/Chicago_Regional/"};
-    // const std::string dir {"../data/Chicago_Sketch/"};
+    // const std::string dir {"../data/Chicago_Regional/"};
+    const std::string dir {"../data/Chicago_Sketch/"};
 
     unsigned short column_gen_num = 20;
     unsigned short column_opt_num = 20;

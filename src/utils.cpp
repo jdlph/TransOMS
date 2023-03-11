@@ -219,8 +219,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         }
 
         auto link = new Link {std::move(link_id), link_no,
-                              std::move(head_node_id), head_node_no,
-                              std::move(tail_node_id), tail_node_no,
+                              head_node_no, tail_node_no,
                               lane_num, cap, ffs, len,
                               std::move(modes), std::move(geo)};
 
@@ -482,7 +481,7 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
             auto tt = link->get_period_travel_time(dp_no);
             auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : INT_MAX;
 
-            writer.write_row({link->get_id(), link->get_head_node_id(), link->get_tail_node_id(),
+            writer.write_row({link->get_id(), this->get_head_node_id(link), this->get_tail_node_id(link),
                               dp.get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),
                               ' ', ' ', link->get_geometry()});
         }
@@ -565,12 +564,12 @@ std::string NetworkHandle::get_node_path_str(const Column& c)
     for (auto j = c.get_link_num() - 1; j != 0; --j)
     {
         const auto link = this->get_link(c.get_link_no(j));
-        str += link->get_tail_node_id();
+        str += this->get_tail_node_id(link);
         str += ';';
     }
 
     const auto link = this->get_link(c.get_link_no(0));
-    str += link->get_head_node_id();
+    str += this->get_head_node_id(link);
 
     // it will be moved
     return str;
