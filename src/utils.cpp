@@ -467,8 +467,8 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
 
-    writer.write_row({"link_id", "from_node_id", "to_node_id", "time_period", "volume",
-                      "travel_time", "speed", "VOC", "queue", "density", "geometry"});
+    writer.write_row_raw("link_id", "from_node_id", "to_node_id", "time_period", "volume",
+                         "travel_time", "speed", "VOC", "queue", "density", "geometry");
 
     for (const auto link : this->net.get_links())
     {
@@ -494,9 +494,9 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
 
-    writer.write_row({"agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type",
-                      "demand_period","volume", "toll", "travel_time", "distance",
-                      "link_sequence", "node_sequence", "geometry"});
+    writer.write_row_raw("agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type",
+                         "demand_period","volume", "toll", "travel_time", "distance",
+                         "link_sequence", "node_sequence", "geometry");
 
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())

@@ -639,7 +639,7 @@ public:
     }
 
     template<typename T>
-    void append(T& t, const std::string& sep = ",")
+    void append(const T& t, const std::string& sep = ",")
     {
         ost << t << sep;
     }
@@ -648,6 +648,34 @@ public:
     void append(T&& t, const std::string& sep = ",")
     {
         ost << t << sep;
+    }
+
+    template<typename T>
+    void write_row_raw(const T& t)
+    {
+        ost << t << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void write_row_raw(const T& t, const Args&... args)
+    {
+        ost << t;
+        append_(args...);
+        ost << '\n';
+    }
+
+private:
+    template<typename T>
+    void append_(const T& t)
+    {
+        ost << delim << t;
+    }
+
+    template<typename T, typename... Args>
+    void append_(const T& t, const Args&... args)
+    {
+        append_(t);
+        append_(args...);
     }
 
 private:
