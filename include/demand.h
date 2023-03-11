@@ -149,15 +149,15 @@ private:
 
 class AgentType {
 public:
-    AgentType() : no {0}, flow_type {0}, ffs {60}, pce {1},
-                  vot {10}, name {"auto"}, is_link_ffs {true}
+    AgentType() : no {0}, name {"auto"},flow_type {0}, pce {1},
+                  vot {10}, ffs {60}, is_link_ffs {true}
     {
     }
 
-    AgentType(unsigned short no_, unsigned short flow_type_, double ffs_, double pce_,
-              double vot_, std::string&& name_, bool use_link_ffs_)
-        : no {no_}, flow_type {flow_type_}, ffs {ffs_}, pce {pce_},
-          vot {vot_}, name {name_}, is_link_ffs {use_link_ffs_}
+    AgentType(unsigned short no_, std::string&& name_, unsigned short flow_type_,
+              double pce_, double vot_,  double ffs_, bool use_link_ffs_)
+        : no {no_}, name {name_}, flow_type {flow_type_}, pce {pce_},
+          vot {vot_}, ffs {ffs_}, is_link_ffs {use_link_ffs_}
     {
     }
 
@@ -219,12 +219,12 @@ private:
     unsigned short no;
     std::string name;
 
-    bool is_link_ffs;
     unsigned short flow_type;
-
-    double ffs;
     double pce;
     double vot;
+
+    double ffs;
+    bool is_link_ffs;
 };
 
 class Demand {
@@ -302,16 +302,6 @@ public:
 
     ~DemandPeriod();
 
-    void add_agent_type(const AgentType* at)
-    {
-        ats.push_back(at);
-    }
-
-    void attached_special_event(const SpecialEvent* s)
-    {
-        se = s;
-    }
-
     auto get_no() const
     {
         return no;
@@ -333,7 +323,7 @@ public:
     }
 
     bool contain_iter_no(unsigned short iter_no) const;
-    double get_cap_reduction_ratio(size_type link_no, unsigned short iter_no) const;
+    double get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const;
 
 private:
     unsigned short no;
@@ -341,10 +331,7 @@ private:
     std::string period;
     std::string time_period;
 
-    // useless?
-    std::vector<const AgentType*> ats;
     std::vector<Demand> ds;
-
     const SpecialEvent* se;
 };
 

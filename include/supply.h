@@ -49,14 +49,14 @@ public:
         return end_iter_no;
     }
 
-    double get_cap_reduction_ratio(size_type link_no) const
+    double get_cap_reduction_ratio(const std::string& link_id) const
     {
-        return ratios.at(link_no);
+        return ratios.at(link_id);
     }
 
-    void add_affected_link(size_type link_no, double r)
+    void add_affected_link(std::string& link_id, double r)
     {
-        ratios[link_no] = r;
+        ratios[link_id] = r;
     }
 
 private:
@@ -64,7 +64,7 @@ private:
     unsigned short end_iter_no;
 
     std::string name;
-    std::map<size_type, double> ratios;
+    std::map<std::string, double> ratios;
 };
 
 // PeriodVDF might be a better name

@@ -51,14 +51,14 @@ inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
     return true;
 }
 
-double DemandPeriod::get_cap_reduction_ratio(size_type link_no, unsigned short iter_no) const
+double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const
 {
     if (!contain_iter_no(iter_no))
         return 1;
 
     try
     {
-        return se->get_cap_reduction_ratio(link_no);
+        return se->get_cap_reduction_ratio(link_id);
     }
     catch (std::runtime_error& re)
     {
@@ -111,7 +111,7 @@ void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short
     {
         auto reduction_ratio = 1.0;
         if (dps)
-            reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_no(), iter_no);
+            reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_id(), iter_no);
 
         vdfps[i].run_bpr(reduction_ratio);
     }

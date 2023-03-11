@@ -3,16 +3,16 @@
 agents:
   - type: a
     name: auto
-    vot: 10
     flow_type: 0
     pce: 1
+    vot: 10
     free_speed: 60
     use_link_ffs: true
   - type: w
     name: walk
-    vot: 10
     flow_type: 0
     pce: 1
+    vot: 10
     free_speed: 10
     use_link_ffs: false
 
