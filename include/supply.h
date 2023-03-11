@@ -366,8 +366,6 @@ private:
     double x = COORD_X;
     double y = COORD_Y;
 
-    // useless?
-    std::string zone_id;
     size_type zone_no;
     bool act_node;
 
@@ -456,17 +454,6 @@ public:
     {
         return vol;
     }
-
-    // double shift_volume(unsigned short iter_no)
-    // {
-    //     auto step_size = 1 / (iter_no + 2.0);
-    //     auto new_vol = std::max(0.0, vol - step_size * gc_rd * od_vol);
-
-    //     auto prev_vol = vol;
-    //     vol = new_vol;
-
-    //     return prev_vol - vol;
-    // }
 
     /**
      * @brief Shift volume from this non-least-cost column and reset its volume

@@ -9,7 +9,10 @@
 #include <handles.h>
 #include <stdcsv.h>
 
+#include <fstream>
 #include <future>
+
+#include <yaml-cpp/yaml.h>
 
 using namespace opendta;
 
@@ -593,4 +596,13 @@ std::string NetworkHandle::get_node_path_coordinates(const Column& c)
 
     // it will be moved
     return str;
+}
+
+void NetworkHandle::read_settings_test(const std::string& dir)
+{
+    YAML::Node config = YAML::LoadFile(dir + '/' + "settings.yml");
+
+    const YAML::Node& agents = config["agents"];
+
+    std::cout << agents;
 }

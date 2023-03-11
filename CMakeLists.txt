@@ -12,3 +12,6 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 include_directories(include)
+
+find_library(YAML-CPP yaml-cpp lib)
+target_link_libraries(openDTA.gradient LINK_PUBLIC ${YAML-CPP})

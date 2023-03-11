@@ -73,6 +73,7 @@ public:
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
+    void read_settings_test(const std::string& dir);
 
     void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
     void output_columns_par(const std::string& dir = ".", const std::string& filename = "agents.csv");

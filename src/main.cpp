@@ -27,6 +27,7 @@ int main()
     unsigned short column_opt_num = 20;
 
     NetworkHandle nh;
+    nh.read_settings_test(dir);
     nh.read_network(dir);
     nh.read_demands(dir);
     nh.find_ue(column_gen_num, column_opt_num);
