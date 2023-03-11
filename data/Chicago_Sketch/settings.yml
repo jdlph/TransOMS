@@ -19,8 +19,9 @@ agents:
 demand_periods:
   - period: AM
     time_period: 0700_0800
-    file_name: demand.csv
-    agent_type: auto
+    demands:
+      - file_name: demand.csv
+        agent_type: auto
     special_event:
       name: work_zone
       enable: false

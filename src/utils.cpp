@@ -601,44 +601,104 @@ void NetworkHandle::read_settings_test(const std::string& dir)
 {
     YAML::Node config = YAML::LoadFile(dir + '/' + "settings.yml");
 
-    const YAML::Node& agents = config["agents"];
-
     unsigned short i = 0;
+    const YAML::Node& agents = config["agents"];
     for (const auto& agent : agents)
     {
-        // auto type_ = agent["type"];
-        auto name = agent["name"].as<std::string>();
-        auto vot = agent["vot"].as<double>();
-        auto flow_type = agent["flow_type"].as<unsigned short>();
-        auto pce = agent["pce"].as<double>();
-        auto ffs = agent["free_speed"].as<double>();
-        auto use_ffs = agent["use_link_ffs"].as<bool>();
-
-        // check possible duplication per Path4GMNS?
-        const auto at = new AgentType{i++, flow_type, ffs, pce, vot, std::move(name), use_ffs};
-        this->ats.push_back(at);
-    }
-
-    const YAML::Node& demand_periods = config["demand_periods"];
-
-    unsigned short j = 0;
-    for (const auto& dp : demand_periods)
-    {
-        auto period = dp["period"].as<std::string>();
-        auto time_period = dp["time_period"].as<std::string>();
-        auto file_name = dp["file_name"].as<std::string>();
-        auto at_name = dp["agent_type"].as<std::string>();
         try
         {
-            const auto at = this->get_agent_type(at_name);
-            DemandPeriod dp_ {Demand {at}};
-            this->dps.push_back(dp_);
+            // auto type_ = agent["type"];
+            auto name = agent["name"].as<std::string>();
+            auto vot = agent["vot"].as<double>();
+            auto flow_type = agent["flow_type"].as<unsigned short>();
+            auto pce = agent["pce"].as<double>();
+            auto ffs = agent["free_speed"].as<double>();
+            auto use_ffs = agent["use_link_ffs"].as<bool>();
+
+            // check possible duplication per Path4GMNS?
+            const auto at = new AgentType{i++, flow_type, ffs, pce, vot, std::move(name), use_ffs};
+            this->ats.push_back(at);
         }
         catch(const std::exception& e)
         {
-            std::cout << at_name << " is not existing in settings.yml\n";
             continue;
         }
+    }
+
+    // it is possible that no AgentType is set up
+    if (this->ats.empty())
+        this->ats.push_back(new AgentType());
+
+    unsigned short j = 0;
+    const YAML::Node& demand_periods = config["demand_periods"];
+    for (const auto& dp : demand_periods)
+    {
+        unsigned short k = 0;
+        auto period = dp["period"].as<std::string>();
+        auto time_period = dp["time_period"].as<std::string>();
+
+        const auto demands = dp["demands"];
+        for (const auto& d : demands)
+        {
+            auto file_name = d["file_name"].as<std::string>();
+            auto at_name = d["agent_type"].as<std::string>();
+
+            try
+            {
+                const auto at = this->get_agent_type(at_name);
+                // special event
+                SpecialEvent* s = nullptr;
+                try
+                {
+                    const auto& se = dp["special_event"];
+                    auto name = se["name"].as<std::string>();
+                    auto enable = se["enable"].as<bool>();
+                    auto beg_iter_no = se["beg_iteration"].as<unsigned short>();
+                    auto end_iter_no = se["end_iteration"].as<unsigned short>();
+
+                    s = new SpecialEvent{beg_iter_no, end_iter_no, std::move(name)};
+                    const auto& affected_links = se["affected_links"];
+
+                    for (const auto& link : affected_links)
+                    {
+                        auto link_id = link["link_id"].as<std::string>();
+                        auto rr = link["reduction_ratio"].as<double>();
+                        try
+                        {
+                            auto link_no = this->net.get_link_no(link_id);
+                            s->add_affected_link(link_no, rr);
+                        }
+                        catch(const std::exception& e)
+                        {
+                            std::cout << link_id << " is not existing in link.csv\n";
+                            continue;
+                        }
+                    }
+                }
+                catch(const std::exception& e)
+                {
+                    // early termination could happen after s is constructed.
+                    // release memory is necessary!
+                    // use unique_ptr?
+                    delete s;
+                    continue;
+                }
+
+                DemandPeriod dp_ {j++, std::move(at_name), std::move(period), std::move(time_period), Demand{k++, std::move(file_name), at}, s};
+                this->dps.push_back(dp_);
+            }
+            catch(const std::exception& e)
+            {
+                std::cout << at_name << " is not existing in settings.yml\n";
+                continue;
+            }
+        }
+    }
+
+    if (this->dps.empty())
+    {
+        const auto at = this->ats.front();
+        this->dps.push_back(DemandPeriod{Demand{at}});
     }
 
     const YAML::Node& simulation = config["simulation"];

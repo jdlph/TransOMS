@@ -218,7 +218,7 @@ public:
 private:
     unsigned short no;
     std::string name;
-    
+
     bool is_link_ffs;
     unsigned short flow_type;
 
@@ -281,15 +281,17 @@ public:
     {
     }
 
-    explicit DemandPeriod(Demand&& dp) : DemandPeriod()
+    explicit DemandPeriod(Demand&& dem) : DemandPeriod()
     {
-        ds.push_back(dp);
+        ds.push_back(dem);
     }
 
     DemandPeriod(unsigned short no_, std::string&& at_name_,
-                 std::string&& period_, std::string&& time_period_, const SpecialEvent* se_)
+                 std::string&& period_, std::string&& time_period_,
+                 Demand&& dem, const SpecialEvent* se_)
         : no {no_}, period {period_}, time_period {time_period_}, se {se_}
     {
+        ds.push_back(dem);
     }
 
     DemandPeriod(const DemandPeriod&) = default;
@@ -339,6 +341,7 @@ private:
     std::string period;
     std::string time_period;
 
+    // useless?
     std::vector<const AgentType*> ats;
     std::vector<Demand> ds;
 

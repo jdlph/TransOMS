@@ -54,6 +54,11 @@ public:
         return ratios.at(link_no);
     }
 
+    void add_affected_link(size_type link_no, double r)
+    {
+        ratios[link_no] = r;
+    }
+
 private:
     unsigned short beg_iter_no;
     unsigned short end_iter_no;
@@ -919,9 +924,14 @@ public:
         return nodes.size();
     }
 
+    size_type get_link_no(const std::string& link_id) const
+    {
+        return link_id_no_map.at(link_id);
+    }
+
     size_type get_node_no(const std::string& node_id) const
     {
-        return id_no_map.at(node_id);
+        return node_id_no_map.at(node_id);
     }
 
     size_type get_zone_no(const std::string& zone_id) const
@@ -977,13 +987,14 @@ public:
         head_node->add_outgoing_link(link);
         tail_node->add_incoming_link(link);
 
+        link_id_no_map[link->get_id()] = link->get_no();
         links.push_back(link);
     }
 
     // user is responsible for the uniqueness of node id
     void add_node(Node* n)
     {
-        id_no_map[n->get_id()] = n->get_no();
+        node_id_no_map[n->get_id()] = n->get_no();
 
         nodes.push_back(n);
     }
@@ -1015,7 +1026,9 @@ private:
 
     std::vector<Link*> links;
     std::vector<Node*> nodes;
-    std::map<std::string, size_type> id_no_map;
+
+    std::map<std::string, size_type> node_id_no_map;
+    std::map<std::string, size_type> link_id_no_map;
 
     std::vector<const Node*> centroids;
     std::vector<std::string> zone_ids;
