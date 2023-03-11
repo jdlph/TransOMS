@@ -217,14 +217,14 @@ public:
 
 private:
     unsigned short no;
+    std::string name;
+    
+    bool is_link_ffs;
     unsigned short flow_type;
 
     double ffs;
     double pce;
     double vot;
-
-    std::string name;
-    bool is_link_ffs;
 };
 
 class Demand {

@@ -9,7 +9,6 @@
 #include <handles.h>
 #include <stdcsv.h>
 
-#include <fstream>
 #include <future>
 
 #include <yaml-cpp/yaml.h>
@@ -370,7 +369,7 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
 
 void NetworkHandle::read_network(const std::string& dir)
 {
-    read_settings(dir);
+    // read_settings(dir);
     read_nodes(dir);
     read_links(dir);
 }
@@ -604,5 +603,45 @@ void NetworkHandle::read_settings_test(const std::string& dir)
 
     const YAML::Node& agents = config["agents"];
 
-    std::cout << agents;
+    unsigned short i = 0;
+    for (const auto& agent : agents)
+    {
+        // auto type_ = agent["type"];
+        auto name = agent["name"].as<std::string>();
+        auto vot = agent["vot"].as<double>();
+        auto flow_type = agent["flow_type"].as<unsigned short>();
+        auto pce = agent["pce"].as<double>();
+        auto ffs = agent["free_speed"].as<double>();
+        auto use_ffs = agent["use_link_ffs"].as<bool>();
+
+        // check possible duplication per Path4GMNS?
+        const auto at = new AgentType{i++, flow_type, ffs, pce, vot, std::move(name), use_ffs};
+        this->ats.push_back(at);
+    }
+
+    const YAML::Node& demand_periods = config["demand_periods"];
+
+    unsigned short j = 0;
+    for (const auto& dp : demand_periods)
+    {
+        auto period = dp["period"].as<std::string>();
+        auto time_period = dp["time_period"].as<std::string>();
+        auto file_name = dp["file_name"].as<std::string>();
+        auto at_name = dp["agent_type"].as<std::string>();
+        try
+        {
+            const auto at = this->get_agent_type(at_name);
+            DemandPeriod dp_ {Demand {at}};
+            this->dps.push_back(dp_);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << at_name << " is not existing in settings.yml\n";
+            continue;
+        }
+    }
+
+    const YAML::Node& simulation = config["simulation"];
+    auto period = simulation["period"].as<std::string>();
+    auto res = simulation["resolution"].as<unsigned short>();
 }

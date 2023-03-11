@@ -19,6 +19,8 @@ agents:
 demand_periods:
   - period: AM
     time_period: 0700_0800
+    file_name: demand.csv
+    agent_type: auto
     special_event:
       name: work_zone
       enable: false
@@ -34,12 +36,6 @@ demand_periods:
           reduction_ratio: 0.6
         - link_id: 4
           reduction_ratio: 0
-
-demand_files:
-  - file_name: demand.csv
-    format_type: column
-    period: AM
-    agent_type: a
 
 simulation:
   period: AM

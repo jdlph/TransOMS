@@ -70,6 +70,17 @@ public:
         return net.get_zone_id(zone_no);
     }
 
+    const auto get_agent_type(const std::string& at_name) const
+    {
+        for (const auto at : ats)
+        {
+            if (at->get_name() == at_name)
+                return at;
+        }
+
+        throw std::exception{};
+    }
+
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
