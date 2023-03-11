@@ -977,6 +977,11 @@ public:
         return centroids;
     }
 
+    const std::string& get_zone_id(size_type zone_no) const
+    {
+        return zone_ids[zone_no];
+    }
+
     void add_link(Link* link)
     {
         auto head_node = nodes[link->get_head_node_no()];
@@ -1000,6 +1005,7 @@ public:
     void add_zone(Zone* z)
     {
         zones[z->get_id()] = z;
+        zone_ids.push_back(z->get_id());
     }
 
     void collect_centroids()
@@ -1025,6 +1031,7 @@ private:
     std::map<std::string, size_type> id_no_map;
 
     std::vector<const Node*> centroids;
+    std::vector<std::string> zone_ids;
     std::map<std::string, Zone*> zones;
 
     std::vector<Agent> agents;

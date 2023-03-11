@@ -411,9 +411,9 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())
     {
-        // oz_id, dz_no, dp_no, at_no
-        auto oz_id = std::get<0>(k);
-        auto dz_id = std::get<1>(k);
+        // oz_no, dz_no, dp_no, at_no
+        auto oz_no = std::get<0>(k);
+        auto dz_no = std::get<1>(k);
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
 
@@ -423,8 +423,8 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
         for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
-            writer.append(oz_id);
-            writer.append(dz_id);
+            writer.append(this->get_zone_id(oz_no));
+            writer.append(this->get_zone_id(dz_no));
             writer.append(col.get_no());
             writer.append(at_str);
             writer.append(dp_str);
@@ -501,9 +501,9 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
     size_type i = 0;
     for (auto& [k, cv] : cp.get_column_vecs())
     {
-        // oz_id, dz_no, dp_no, at_no
-        auto oz_id = std::get<0>(k);
-        auto dz_id = std::get<1>(k);
+        // oz_no, dz_no, dp_no, at_no
+        auto oz_no = std::get<0>(k);
+        auto dz_no = std::get<1>(k);
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
 
@@ -513,8 +513,8 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
         for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
-            writer.append(oz_id);
-            writer.append(dz_id);
+            writer.append(this->get_zone_id(oz_no));
+            writer.append(this->get_zone_id(dz_no));
             writer.append(col.get_no());
             writer.append(at_str);
             writer.append(dp_str);

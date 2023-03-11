@@ -65,6 +65,11 @@ public:
         return get_node(link->get_tail_node_no())->get_id();
     }
 
+    const std::string& get_zone_id(size_type zone_no) const
+    {
+        return net.get_zone_id(zone_no);
+    }
+
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
