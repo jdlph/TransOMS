@@ -84,7 +84,6 @@ public:
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
-    void read_settings_test(const std::string& dir);
 
     void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
     void output_columns_par(const std::string& dir = ".", const std::string& filename = "agents.csv");
@@ -92,6 +91,7 @@ public:
 
 private:
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
+    void read_settings_yml(const std::string& file_path);
     void auto_setup();
 
     void read_links(const std::string& dir, const std::string& filename = "link.csv");
