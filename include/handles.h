@@ -84,6 +84,17 @@ public:
         throw std::exception{};
     }
 
+    bool contains_agent_name(const std::string& at_name) const
+    {
+        for (const auto at : ats)
+        {
+            if (at->get_name() == at_name)
+                return true;
+        }
+
+        return false;
+    }
+
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);

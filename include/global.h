@@ -26,9 +26,6 @@ constexpr unsigned short COORD_X = 91;
 constexpr unsigned short COORD_Y = 181;
 constexpr unsigned short MINUTES_IN_HOUR = 60;
 
-constexpr long NULL_NODE = -1;
-constexpr long PAST_NODE = -3;
-
 const std::string ALL_MODES {"all"};
 const std::string AT_DEFAULT_NAME {"passenger"};
 const std::string AT_LEGACY_NAME {"auto"};

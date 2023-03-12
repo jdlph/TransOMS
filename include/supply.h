@@ -1167,9 +1167,10 @@ private:
     double* link_costs;
     double* node_costs;
 
-    /**
-     * @brief allocators to allocate dynamic memory in initialize() for the forgoing arrays
-     */
+    const long null_node = -1;
+    const long past_node = -3;
+
+    // allocators to allocate dynamic memory in initialize() for the forgoing arrays
     std::allocator<double> double_alloc;
     std::allocator<long> long_alloc;
     std::allocator<const Link*> link_alloc;

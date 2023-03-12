@@ -11,6 +11,7 @@
 
 #include <filesystem>
 #include <future>
+#include <memory>
 
 #include <yaml-cpp/yaml.h>
 
@@ -388,13 +389,18 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
         {
             // auto type_ = a["type"];
             auto&& name = a["name"].as<std::string>();
+            if (this->contains_agent_name(name))
+            {
+                std::cout << "duplicate agent type found: " << name << '\n';
+                continue;
+            }
+
             auto flow_type = a["flow_type"].as<unsigned short>();
             auto pce = a["pce"].as<double>();
             auto vot = a["vot"].as<double>();
             auto ffs = a["free_speed"].as<double>();
             auto use_ffs = a["use_link_ffs"].as<bool>();
 
-            // check possible duplication per Path4GMNS?
             const auto at = new AgentType{i++, std::move(name), flow_type, pce, vot, ffs, use_ffs};
             this->ats.push_back(at);
         }
@@ -425,7 +431,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
             {
                 const auto at = this->get_agent_type(at_name);
                 // special event
-                SpecialEvent* se = nullptr;
+                std::unique_ptr<SpecialEvent> se = nullptr;
                 try
                 {
                     const auto& special_event = dp["special_event"];
@@ -437,7 +443,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                         auto beg_iter = special_event["beg_iteration"].as<unsigned short>();
                         auto end_iter = special_event["end_iteration"].as<unsigned short>();
 
-                        se = new SpecialEvent{beg_iter, end_iter, std::move(name)};
+                        se = std::make_unique<SpecialEvent>(beg_iter, end_iter, std::move(name));
 
                         const auto& affected_links = special_event["affected_links"];
                         for (const auto& link : affected_links)
@@ -450,10 +456,6 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                 }
                 catch(const std::exception& e)
                 {
-                    // early termination could happen after se is constructed.
-                    // release memory is necessary!
-                    // use unique_ptr?
-                    delete se;
                     continue;
                 }
 

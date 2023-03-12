@@ -12,6 +12,7 @@
 #include <global.h>
 
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace opendta
@@ -288,19 +289,19 @@ public:
 
     DemandPeriod(unsigned short no_, std::string&& at_name_,
                  std::string&& period_, std::string&& time_period_,
-                 Demand&& dem, const SpecialEvent* se_)
-        : no {no_}, period {period_}, time_period {time_period_}, se {se_}
+                 Demand&& dem, std::unique_ptr<SpecialEvent>& se_)
+        : no {no_}, period {period_}, time_period {time_period_}, se {std::move(se_)}
     {
         ds.push_back(dem);
     }
 
-    DemandPeriod(const DemandPeriod&) = default;
+    DemandPeriod(const DemandPeriod&) = delete;
     DemandPeriod& operator=(const DemandPeriod&) = delete;
 
-    DemandPeriod(DemandPeriod&&) = default;
+    DemandPeriod(DemandPeriod&&) = delete;
     DemandPeriod& operator=(DemandPeriod&&) = delete;
 
-    ~DemandPeriod();
+    ~DemandPeriod() = default;
 
     auto get_no() const
     {
@@ -332,7 +333,7 @@ private:
     std::string time_period;
 
     std::vector<Demand> ds;
-    const SpecialEvent* se;
+    const std::unique_ptr<SpecialEvent> se;
 };
 
 } // namespace opendta

@@ -35,11 +35,6 @@ void Agent::initialize_intervals()
     curr_link_no = n - 1;
 }
 
-DemandPeriod::~DemandPeriod()
-{
-    delete se;
-}
-
 inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
 {
     if (!se)
@@ -148,7 +143,7 @@ void SPNetwork::initialize()
     for (size_type i = 0; i != n; ++i)
     {
         node_costs[i] = std::numeric_limits<double>::max();
-        next_nodes[i] = NULL_NODE;
+        next_nodes[i] = null_node;
         link_preds[i] = nullptr;
     }
 }
@@ -158,7 +153,7 @@ inline void SPNetwork::reset()
     for (size_type i = 0, n = get_node_num(); i != n; ++i)
     {
         node_costs[i] = std::numeric_limits<double>::max();
-        next_nodes[i] = NULL_NODE;
+        next_nodes[i] = null_node;
         link_preds[i] = nullptr;
     }
 }
@@ -224,9 +219,9 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
 void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
-    next_nodes[src_node_no] = PAST_NODE;
+    next_nodes[src_node_no] = past_node;
 
-    for (long cur_node = src_node_no, deq_head = NULL_NODE, deq_tail = NULL_NODE;;)
+    for (long cur_node = src_node_no, deq_head = null_node, deq_tail = null_node;;)
     {
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
@@ -242,20 +237,20 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
 
-                    if (next_nodes[new_node] == PAST_NODE)
+                    if (next_nodes[new_node] == past_node)
                     {
                         next_nodes[new_node] = deq_head;
                         deq_head = new_node;
 
-                        if (deq_tail == NULL_NODE)
+                        if (deq_tail == null_node)
                             deq_tail = new_node;
                     }
-                    else if (next_nodes[new_node] == NULL_NODE && new_node != deq_tail)
+                    else if (next_nodes[new_node] == null_node && new_node != deq_tail)
                     {
-                        if (deq_tail == NULL_NODE)
+                        if (deq_tail == null_node)
                         {
                             deq_head = deq_tail = new_node;
-                            next_nodes[deq_tail] = NULL_NODE;
+                            next_nodes[deq_tail] = null_node;
                         }
                         else
                         {
@@ -272,10 +267,10 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
         cur_node = deq_head;
         deq_head = next_nodes[cur_node];
-        next_nodes[cur_node] = PAST_NODE;
+        next_nodes[cur_node] = past_node;
 
         if (deq_tail == cur_node)
-            deq_tail = NULL_NODE;
+            deq_tail = null_node;
     }
 }
 
