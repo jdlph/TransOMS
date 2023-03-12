@@ -73,7 +73,7 @@ public:
     VDFPeriod() = delete;
 
     VDFPeriod(unsigned short no_, double alpha_ = 0.15, double beta_ = 4,
-              double mu_ = 1000, double cap_ = 1999, double fftt_ = INT_MAX)
+              double mu_ = 1000, double cap_ = 1999, double fftt_ = std::numeric_limits<unsigned>::max())
         : no {no_}, alpha {alpha_}, beta {beta_}, mu {mu_}, cap {cap_}, fftt {fftt_}
     {
     }
@@ -116,7 +116,7 @@ public:
 
     void run_bpr(double reduction_ratio = 1)
     {
-        voc = cap > 0 ? vol / (cap * reduction_ratio) : INT_MAX;
+        voc = cap > 0 ? vol / (cap * reduction_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
     }
 
@@ -130,7 +130,7 @@ private:
     double cap;
     double fftt;
 
-    double tt = INT_MAX;
+    double tt = std::numeric_limits<unsigned>::max();
     double voc = 0;
     double vol = 0;
 };
@@ -184,7 +184,7 @@ public:
 
     double get_fftt() const
     {
-        return ffs > 0 ? len / ffs * MINUTES_IN_HOUR : INT_MAX;
+        return ffs > 0 ? len / ffs * MINUTES_IN_HOUR : std::numeric_limits<unsigned>::max();
     }
 
     double get_generalized_cost(unsigned short i, double vot) const
@@ -578,7 +578,7 @@ public:
     void update_gradient_cost_diffs(double least_gc)
     {
         gc_ad = gc - least_gc;
-        gc_rd = least_gc > 0 ? gc_ad / least_gc : INT_MAX;
+        gc_rd = least_gc > 0 ? gc_ad / least_gc : std::numeric_limits<unsigned>::max();
     }
 
 private:

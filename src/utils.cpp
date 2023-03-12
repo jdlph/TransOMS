@@ -9,14 +9,28 @@
 #include <handles.h>
 #include <stdcsv.h>
 
+#ifndef __GNUC__
 #include <filesystem>
+#elseif __GNUC_PREREQ(8,0)
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+#endif
+
 #include <future>
 #include <memory>
 
 #include <yaml-cpp/yaml.h>
 
 using namespace transoms;
+
+#ifndef __GNUC__
 using namespace std::filesystem;
+#elseif __GNUC_PREREQ(8,0)
+using namespace std::filesystem;
+#else
+using namespace std::experimental::filesystem;
+#endif
 
 void NetworkHandle::read_nodes(const std::string& dir, const std::string& filename)
 {
@@ -595,7 +609,7 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
         {
             auto dp_no = dp->get_no();
             auto tt = link->get_period_travel_time(dp_no);
-            auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : INT_MAX;
+            auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : std::numeric_limits<unsigned>::max();
 
             writer.write_row({link->get_id(), this->get_head_node_id(link), this->get_tail_node_id(link),
                               dp->get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),

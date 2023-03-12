@@ -13,5 +13,5 @@ include(CPack)
 
 include_directories(include)
 
-find_library(YAML-CPP yaml-cpp lib)
+find_library(YAML-CPP yaml-cpp libyaml-cpp_linux lib)
 target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML-CPP})
