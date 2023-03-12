@@ -29,6 +29,9 @@ public:
         for (auto at : ats)
             delete at;
 
+        for (auto dp : dps)
+            delete dp;
+
         for (auto spn : spns)
             delete spn;
     }
@@ -101,7 +104,7 @@ private:
     void update_column_gradient_and_flow(unsigned short iter_no);
     void update_link_and_column_volume(unsigned short iter_no, bool reduce_path_vol = true);
     // a little bit ugly
-    void update_link_travel_time(const std::vector<DemandPeriod>* dps = nullptr, short iter_no = -1);
+    void update_link_travel_time(const std::vector<const DemandPeriod*>* dps = nullptr, short iter_no = -1);
 
     void build_connectors();
     void setup_spnetworks();
@@ -118,7 +121,7 @@ private:
     std::vector<SPNetwork*> spns;
 
     std::vector<const AgentType*> ats;
-    std::vector<DemandPeriod> dps;
+    std::vector<const DemandPeriod*> dps;
 };
 
 } // namespace opendta

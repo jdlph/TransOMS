@@ -262,7 +262,7 @@ public:
             v.reset_vol();
     }
 
-    void update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no);
+    void update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no);
 
 private:
     std::string id;
@@ -1043,8 +1043,8 @@ class SPNetwork : public Network {
 public:
     SPNetwork() = delete;
 
-    SPNetwork(unsigned short no_, PhyNetwork& pn_, ColumnPool& cp_, DemandPeriod& dp_, const AgentType* at_)
-        : no {no_}, pn {&pn_}, cp {&cp_}, dp {&dp_}, at {at_}
+    SPNetwork(unsigned short no_, PhyNetwork& pn_, ColumnPool& cp_, const DemandPeriod* dp_, const AgentType* at_)
+        : no {no_}, pn {&pn_}, cp {&cp_}, dp {dp_}, at {at_}
     {
     }
 
@@ -1144,7 +1144,7 @@ private:
 
     // NetworkHandle is responsible to clean them up
     const AgentType* at;
-    DemandPeriod* dp;
+    const DemandPeriod* dp;
 
     ColumnPool* cp;
     PhyNetwork* pn;

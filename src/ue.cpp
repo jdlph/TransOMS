@@ -160,7 +160,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     }
 }
 
-void NetworkHandle::update_link_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
+void NetworkHandle::update_link_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
 {
     for (auto link : this->net.get_links())
     {

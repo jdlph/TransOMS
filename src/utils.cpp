@@ -432,30 +432,34 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
 
                     auto&& name = special_event["name"].as<std::string>();
                     auto enable = special_event["enable"].as<bool>();
-                    auto beg_iter = special_event["beg_iteration"].as<unsigned short>();
-                    auto end_iter = special_event["end_iteration"].as<unsigned short>();
-
-                    se = new SpecialEvent{beg_iter, end_iter, std::move(name)};
-
-                    const auto& affected_links = special_event["affected_links"];
-                    for (const auto& link : affected_links)
+                    if (enable)
                     {
-                        auto link_id = link["link_id"].as<std::string>();
-                        auto rr = link["reduction_ratio"].as<double>();
-                        se->add_affected_link(link_id, rr);
+                        auto beg_iter = special_event["beg_iteration"].as<unsigned short>();
+                        auto end_iter = special_event["end_iteration"].as<unsigned short>();
+
+                        se = new SpecialEvent{beg_iter, end_iter, std::move(name)};
+
+                        const auto& affected_links = special_event["affected_links"];
+                        for (const auto& link : affected_links)
+                        {
+                            auto link_id = link["link_id"].as<std::string>();
+                            auto rr = link["reduction_ratio"].as<double>();
+                            se->add_affected_link(link_id, rr);
+                        }
                     }
                 }
                 catch(const std::exception& e)
                 {
-                    // early termination could happen after s is constructed.
+                    // early termination could happen after se is constructed.
                     // release memory is necessary!
                     // use unique_ptr?
                     delete se;
                     continue;
                 }
 
-                DemandPeriod dp_ {j++, std::move(at_name), std::move(period), std::move(time_period),
-                                  Demand{k++, std::move(file_name), at}, se};
+                const auto dp_ = new DemandPeriod{j++, std::move(at_name), std::move(period),
+                                                  std::move(time_period),
+                                                  Demand{k++, std::move(file_name), at}, se};
                 this->dps.push_back(dp_);
             }
             catch(const std::exception& e)
@@ -469,7 +473,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     if (this->dps.empty())
     {
         const auto at = this->ats.front();
-        this->dps.push_back(DemandPeriod{Demand{at}});
+        this->dps.push_back(new DemandPeriod{Demand{at}});
     }
 
     // not in use as the simulation module is not implemented yet!
@@ -481,7 +485,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
 void NetworkHandle::auto_setup()
 {
     const auto at = new AgentType();
-    DemandPeriod dp {Demand {at}};
+    const auto dp = new DemandPeriod{Demand {at}};
 
     this->ats.push_back(at);
     this->dps.push_back(dp);
@@ -500,8 +504,8 @@ void NetworkHandle::read_demands(const std::string& dir)
 {
     for (auto& dp : this->dps)
     {
-        auto dp_no = dp.get_no();
-        for (auto& d : dp.get_demands())
+        auto dp_no = dp->get_no();
+        for (auto& d : dp->get_demands())
         {
             auto at_no = d.get_agent_type_no();
             auto file_path = dir + d.get_file_name();
@@ -527,7 +531,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
 
-        auto dp_str = dps[dp_no].get_period();
+        auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
 
         for (const auto& col : cv.get_columns())
@@ -587,12 +591,12 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
 
         for (const auto& dp : this->dps)
         {
-            auto dp_no = dp.get_no();
+            auto dp_no = dp->get_no();
             auto tt = link->get_period_travel_time(dp_no);
             auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : INT_MAX;
 
             writer.write_row({link->get_id(), this->get_head_node_id(link), this->get_tail_node_id(link),
-                              dp.get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),
+                              dp->get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),
                               ' ', ' ', link->get_geometry()});
         }
     }
@@ -617,7 +621,7 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
 
-        auto dp_str = dps[dp_no].get_period();
+        auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
 
         for (const auto& col : cv.get_columns())

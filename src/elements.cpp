@@ -60,7 +60,7 @@ double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigne
     {
         return se->get_cap_reduction_ratio(link_id);
     }
-    catch (std::runtime_error& re)
+    catch (std::out_of_range& re)
     {
         return 1;
     }
@@ -105,13 +105,13 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
     add_new_column(c);
 }
 
-void Link::update_period_travel_time(const std::vector<DemandPeriod>* dps, short iter_no)
+void Link::update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
 {
     for (auto i = 0; i != vdfps.size(); ++i)
     {
         auto reduction_ratio = 1.0;
         if (dps)
-            reduction_ratio = (*dps)[i].get_cap_reduction_ratio(this->get_id(), iter_no);
+            reduction_ratio = (*dps)[i]->get_cap_reduction_ratio(this->get_id(), iter_no);
 
         vdfps[i].run_bpr(reduction_ratio);
     }
@@ -293,14 +293,14 @@ void NetworkHandle::setup_spnetworks()
     {
         for (auto& dp : dps)
         {
-            for (auto& d : dp.get_demands())
+            for (auto& d : dp->get_demands())
             {
                 auto at_no = d.get_agent_type_no();
                 auto at = this->ats[at_no];
                 if (i < memory_blocks)
                 {
                     unsigned short no = spns.size();
-                    spn_map[{dp.get_no(), at_no, i}] = no;
+                    spn_map[{dp->get_no(), at_no, i}] = no;
                     auto sp = new SPNetwork {no, this->net, this->cp, dp, at};
                     sp->add_orig_nodes(z);
                     spns.push_back(sp);
@@ -308,7 +308,7 @@ void NetworkHandle::setup_spnetworks()
                 else
                 {
                     unsigned short m = i % memory_blocks;
-                    auto sp_no = spn_map[{dp.get_no(), at_no, m}];
+                    auto sp_no = spn_map[{dp->get_no(), at_no, m}];
                     auto sp = this->spns[sp_no];
                     sp->add_orig_nodes(z);
                 }
