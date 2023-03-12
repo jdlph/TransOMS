@@ -6,6 +6,10 @@
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
  */
 
+#ifdef _WIN32
+#define YAML_CPP_STATIC_DEFINE
+#endif
+
 #include <handles.h>
 #include <stdcsv.h>
 
