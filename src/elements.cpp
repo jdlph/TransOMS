@@ -10,6 +10,8 @@
 #include <handles.h>
 #include <supply.h>
 
+#include  <stdexcept>
+
 using namespace transoms;
 
 inline const std::vector<size_type>& Agent::get_link_path() const
