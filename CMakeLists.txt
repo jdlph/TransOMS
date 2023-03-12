@@ -12,6 +12,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 include_directories(include)
+include_directories(include/yaml-cpp)
 
 find_library(YAML-CPP yaml-cpp libyaml-cpp_linux lib)
 target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML-CPP})

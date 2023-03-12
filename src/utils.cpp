@@ -9,9 +9,7 @@
 #include <handles.h>
 #include <stdcsv.h>
 
-#ifndef __GNUC__
-#include <filesystem>
-#elseif __GNUC_PREREQ(8,0)
+#ifdef __cpp_lib_filesystem
 #include <filesystem>
 #else
 #include <experimental/filesystem>
@@ -24,9 +22,7 @@
 
 using namespace transoms;
 
-#ifndef __GNUC__
-using namespace std::filesystem;
-#elseif __GNUC_PREREQ(8,0)
+#ifdef __cpp_lib_filesystem
 using namespace std::filesystem;
 #else
 using namespace std::experimental::filesystem;
