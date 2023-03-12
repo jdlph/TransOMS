@@ -1,5 +1,5 @@
 /**
- * @file global.h, part of the project openDTA under GPL-3.0 license
+ * @file global.h, part of the project TransOMS under GPL-3.0 license
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Alias, constants, and forward declarations of some classes.
  *
@@ -12,7 +12,7 @@
 #include <string>
 #include <tuple>
 
-namespace opendta
+namespace transoms
 {
 using size_type = unsigned long;
 
@@ -39,6 +39,6 @@ class Agent;
 class AgentType;
 class DemandPeriod;
 
-} // namespace opendta
+} // namespace transoms
 
 #endif

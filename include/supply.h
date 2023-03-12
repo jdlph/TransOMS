@@ -1,5 +1,5 @@
 /**
- * @file supply.h, part of the project openDTA under GPL-3.0 license
+ * @file supply.h, part of the project TransOMS under GPL-3.0 license
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Definitions of classes related to supply
  *
@@ -19,7 +19,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace opendta
+namespace transoms
 {
 // move ratio_reduction to each individual VDFPeriod?
 class SpecialEvent {
@@ -1176,6 +1176,6 @@ private:
     std::allocator<const Link*> link_alloc;
 };
 
-} // namespace opendta
+} // namespace transoms
 
 #endif

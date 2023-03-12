@@ -1,7 +1,7 @@
 /**
- * @file main.cpp, part of the project openDTA under GPL-3.0 license
+ * @file main.cpp, part of the project TransOMS under GPL-3.0 license
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
- * @brief Entry point to openDTA
+ * @brief Entry point to TransOMS
  *
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
  */
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <string>
 
-using namespace opendta;
+using namespace transoms;
 using namespace std::chrono;
 
 int main()
@@ -33,7 +33,7 @@ int main()
     nh.find_ue(column_gen_num, column_opt_num);
 
     auto te = high_resolution_clock::now();
-    std::cout << "openDTA finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+    std::cout << "TransOMS finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 
     ts = high_resolution_clock::now();
 
@@ -41,5 +41,5 @@ int main()
     nh.output_link_performance();
 
     te = high_resolution_clock::now();
-    std::cout << "openDTA outputs results in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+    std::cout << "TransOMS outputs results in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 }

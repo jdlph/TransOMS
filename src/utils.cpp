@@ -1,5 +1,5 @@
 /**
- * @file utils.cpp, part of the project openDTA under GPL-3.0 license
+ * @file utils.cpp, part of the project TransOMS under GPL-3.0 license
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Implementations of utilities
  *
@@ -15,7 +15,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-using namespace opendta;
+using namespace transoms;
 using namespace std::filesystem;
 
 void NetworkHandle::read_nodes(const std::string& dir, const std::string& filename)

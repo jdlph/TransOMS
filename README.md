@@ -33,7 +33,7 @@ One of its major components is a *modern*, *across platforms*, and *lightning-fa
 3. Use multithreading to boost the I/O-bounded processes.
 
 ### Others
-The ongoing development can be tracked through [Projects](https://github.com/users/jdlph/projects/2). Other potential improvements are documented in [Refactoring](https://github.com/jdlph/DTALite#refactoring).
+The **ongoing development** can be tracked through [Projects](https://github.com/users/jdlph/projects/2). Other potential enhancements are documented in [Refactoring](https://github.com/jdlph/DTALite#refactoring).
 
 ## Benchmark
 

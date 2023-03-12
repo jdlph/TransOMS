@@ -1,5 +1,5 @@
 /**
- * @file ue.cpp, part of the project openDTA under GPL-3.0 license
+ * @file ue.cpp, part of the project TransOMS under GPL-3.0 license
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Implementations of Path-based Static User Equilibrium (UE)
  *
@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-using namespace opendta;
+using namespace transoms;
 
 void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column_opt_num)
 {

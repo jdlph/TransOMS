@@ -1,5 +1,5 @@
 /**
- * @file elements.cpp, part of the project openDTA under GPL-3.0 license
+ * @file elements.cpp, part of the project TransOMS under GPL-3.0 license
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Implementations of member functions from demand and supply classes
  *
@@ -10,7 +10,7 @@
 #include <handles.h>
 #include <supply.h>
 
-using namespace opendta;
+using namespace transoms;
 
 inline const std::vector<size_type>& Agent::get_link_path() const
 {
