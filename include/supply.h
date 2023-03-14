@@ -381,13 +381,11 @@ private:
 class Column {
     friend bool operator==(const Column& c1, const Column& c2)
     {
-        if (c1.get_dist() != c2.get_dist())
-            return false;
+        // a further link-by-link comparison
+        if (c1.get_links() == c2.get_links())
+            return true;
 
-        if (c1.get_links() != c2.get_links())
-            return false;
-
-        return true;
+        return false;
     }
 
 public:

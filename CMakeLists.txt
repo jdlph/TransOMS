@@ -12,12 +12,11 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 include_directories(include)
-include_directories(include/yaml-cpp)
 
 find_library(YAML-CPP yaml-cpp yaml-cpp_linux lib)
 target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML-CPP})
 
-# it is for std::experimental::filesystem from g++ in utils.cpp
+# it is for std::experimental::filesystem in utils.cpp if g++ happens to be the compiler
 if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
     target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC stdc++fs)
 endif()

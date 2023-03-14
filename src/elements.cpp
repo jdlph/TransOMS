@@ -84,22 +84,14 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
     // k_path_prob = 1 / (iter_no + 1)
     auto v = vol / (iter_no + 1);
 
-    if (cols.find(c) != cols.end())
+    auto it = cols.find(c);
+    if (it != cols.end())
+        const_cast<Column&>(*it).increase_volume(v);
+    else
     {
-        // a further link-by-link comparison
-        auto er = cols.equal_range(c);
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->get_links() == c.get_links())
-            {
-                const_cast<Column&>(*it).increase_volume(v);
-                return;
-            }
-        }
+        c.increase_volume(v);
+        add_new_column(c);
     }
-
-    c.increase_volume(v);
-    add_new_column(c);
 }
 
 void Link::update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
