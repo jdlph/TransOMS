@@ -1,5 +1,5 @@
 /**
- * @file elements.cpp, part of the project TransOMS under GPL-3.0 license
+ * @file elements.cpp, part of the project TransOMS under Apache License 2.0
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Implementations of member functions from demand and supply classes
  *

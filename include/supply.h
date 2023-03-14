@@ -1,5 +1,5 @@
 /**
- * @file supply.h, part of the project TransOMS under GPL-3.0 license
+ * @file supply.h, part of the project TransOMS under Apache License 2.0
  * @author jdlph (jdlph@hotmail.com) and xzhou99 (xzhou74@asu.edu)
  * @brief Definitions of classes related to supply
  *
