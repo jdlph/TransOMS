@@ -530,6 +530,60 @@ void NetworkHandle::read_demands(const std::string& dir)
     }
 }
 
+std::string NetworkHandle::get_link_path_str(const Column& c)
+{
+    std::string str;
+    for (auto j = c.get_link_num() - 1; j != 0; --j)
+    {
+        const auto link = this->get_link(c.get_link_no(j));
+        str += link->get_id();
+        str += ';';
+    }
+
+    const auto link = this->get_link(c.get_link_no(0));
+    str += link->get_id();
+
+    // it will be moved
+    return str;
+}
+
+std::string NetworkHandle::get_node_path_str(const Column& c)
+{
+    std::string str;
+    for (auto j = c.get_link_num() - 1; j != 0; --j)
+    {
+        const auto link = this->get_link(c.get_link_no(j));
+        str += this->get_tail_node_id(link);
+        str += ';';
+    }
+
+    const auto link = this->get_link(c.get_link_no(0));
+    str += this->get_head_node_id(link);
+
+    // it will be moved
+    return str;
+}
+
+std::string NetworkHandle::get_node_path_coordinates(const Column& c)
+{
+    std::string str = {"\"LINESTRING ("};
+    for (auto j = c.get_link_num() - 1; j != 0; --j)
+    {
+        auto node_no = this->get_link(c.get_link_no(j))->get_tail_node_no();
+        const auto node = this->get_node(node_no);
+        str += node->get_coordinate_str();
+        str += ';';
+    }
+
+    auto node_no = this->get_link(c.get_link_no(0))->get_head_node_no();
+    const auto node = this->get_node(node_no);
+    str += node->get_coordinate_str();
+    str += ")\"";
+
+    // it will be moved
+    return str;
+}
+
 void NetworkHandle::output_columns(const std::string& dir, const std::string& filename)
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
@@ -669,58 +723,4 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
     }
 
     std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
-}
-
-std::string NetworkHandle::get_link_path_str(const Column& c)
-{
-    std::string str;
-    for (auto j = c.get_link_num() - 1; j != 0; --j)
-    {
-        const auto link = this->get_link(c.get_link_no(j));
-        str += link->get_id();
-        str += ';';
-    }
-
-    const auto link = this->get_link(c.get_link_no(0));
-    str += link->get_id();
-
-    // it will be moved
-    return str;
-}
-
-std::string NetworkHandle::get_node_path_str(const Column& c)
-{
-    std::string str;
-    for (auto j = c.get_link_num() - 1; j != 0; --j)
-    {
-        const auto link = this->get_link(c.get_link_no(j));
-        str += this->get_tail_node_id(link);
-        str += ';';
-    }
-
-    const auto link = this->get_link(c.get_link_no(0));
-    str += this->get_head_node_id(link);
-
-    // it will be moved
-    return str;
-}
-
-std::string NetworkHandle::get_node_path_coordinates(const Column& c)
-{
-    std::string str = {"\"LINESTRING ("};
-    for (auto j = c.get_link_num() - 1; j != 0; --j)
-    {
-        auto node_no = this->get_link(c.get_link_no(j))->get_tail_node_no();
-        const auto node = this->get_node(node_no);
-        str += node->get_coordinate_str();
-        str += ';';
-    }
-
-    auto node_no = this->get_link(c.get_link_no(0))->get_head_node_no();
-    const auto node = this->get_node(node_no);
-    str += node->get_coordinate_str();
-    str += ")\"";
-
-    // it will be moved
-    return str;
 }

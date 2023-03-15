@@ -42,7 +42,7 @@ The **ongoing development** can be tracked through [Projects](https://github.com
 
 TransOMS is built on [C++17](https://en.cppreference.com/w/cpp/17) with [yaml-cpp](https://github.com/jbeder/yaml-cpp) parsing configuration file[^1] and [OpenMP](https://www.openmp.org/about/openmp-faq/#WhatIs) managing parallelization[^2].
 
-yaml-cpp is precompiled as a static library and embedded in [lib](lib/). OpenMP requires the installation of its runtime library. Detailed instructions on different platforms are summarized [here](https://path4gmns.readthedocs.io/en/latest/usecases.html#target-to-paragraph).
+yaml-cpp is precompiled as a static library and embedded in [lib](lib/). OpenMP requires an additional runtime library. Its detailed installation instruction is summarized [here](https://path4gmns.readthedocs.io/en/latest/usecases.html#target-to-paragraph).
 
 The build process is defined in [CMakeLists.txt](CMakeLists.txt) along with the above dependency specifications. You will need [CMake](https://cmake.org/download/) (3.0.0 or higher) to build the executable by running the following commands.
 
@@ -61,5 +61,5 @@ coming soon!
 
 ## Reference
 
-[^1]: We only includes the static library for x86 Mac under the current development. Support for Windows (x86), Linux (x86), and Apple Silicon is coming soon.
+[^1]: TransOMS now supports Windows (x86), Linux (x86), and Mac (x86). Support for Apple Silicon is coming soon.
 [^2]: Not implemented yet. It will be available when the project is stabilized.

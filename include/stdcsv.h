@@ -590,6 +590,18 @@ public:
 
     ~Writer() = default;
 
+    template<typename T>
+    void append(const T& t, const std::string& sep = ",")
+    {
+        ost << t << sep;
+    }
+
+    template<typename T>
+    void append(T&& t, const std::string& sep = ",")
+    {
+        ost << t << sep;
+    }
+
     /**
      * @brief write a row of records into the file
      *
@@ -639,18 +651,6 @@ public:
     }
 
     template<typename T>
-    void append(const T& t, const std::string& sep = ",")
-    {
-        ost << t << sep;
-    }
-
-    template<typename T>
-    void append(T&& t, const std::string& sep = ",")
-    {
-        ost << t << sep;
-    }
-
-    template<typename T>
     void write_row_raw(const T& t)
     {
         ost << t << '\n';
@@ -660,22 +660,22 @@ public:
     void write_row_raw(const T& t, const Args&... args)
     {
         ost << t;
-        append_(args...);
+        append_cell(args...);
         ost << '\n';
     }
 
 private:
     template<typename T>
-    void append_(const T& t)
+    void append_cell(const T& t)
     {
         ost << delim << t;
     }
 
     template<typename T, typename... Args>
-    void append_(const T& t, const Args&... args)
+    void append_cell(const T& t, const Args&... args)
     {
-        append_(t);
-        append_(args...);
+        append_cell(t);
+        append_cell(args...);
     }
 
 private:

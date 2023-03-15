@@ -66,15 +66,7 @@ double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigne
 bool ColumnVec::has_column(const Column& c) const
 {
     if (cols.find(c) != cols.end())
-    {
-        // a further link-by-link comparison
-        auto er = cols.equal_range(c);
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->get_links() == c.get_links())
-                return true;
-        }
-    }
+        return true;
 
     return false;
 }
