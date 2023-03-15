@@ -18,7 +18,6 @@ using namespace std::chrono;
 int main()
 {
     auto ts = high_resolution_clock::now();
-    std::ios_base::sync_with_stdio(false);
 
     // const std::string dir {"../data/Chicago_Regional/"};
     const std::string dir {"../data/Chicago_Sketch/"};

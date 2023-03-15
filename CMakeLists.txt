@@ -15,8 +15,21 @@ include(CPack)
 
 include_directories(include)
 
-find_library(YAML-CPP yaml-cpp NAMES yaml-cpp_mac-x86 yaml-cpp_mac-arm yaml-cpp_linux PATHS lib)
-target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML-CPP})
+# default name for Windows
+set(YAML_CPP_LIB_NAME yaml-cpp)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+        set(YAML_CPP_LIB_NAME yaml-cpp_mac-arm)
+    elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(YAML_CPP_LIB_NAME yaml-cpp_mac-x86)
+    endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(YAML_CPP_LIB_NAME yaml-cpp_linux)
+endif()
+
+find_library(YAML_CPP ${YAML_CPP_LIB_NAME} PATHS lib)
+target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML_CPP})
 
 # it is for std::experimental::filesystem in utils.cpp if g++ happens to be the compiler
 if (CMAKE_COMPILER_IS_GNUCXX)
