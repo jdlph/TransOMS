@@ -209,6 +209,7 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
     for (long cur_node = src_node_no, deq_head = null_node, deq_tail = null_node;;)
     {
+        // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
             for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
@@ -223,6 +224,13 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
 
+                    /**
+                     * three cases
+                     *
+                     * case i: new_node was in deque before, add it to the begin of deque
+                     * case ii: new_node is not in deque, and wasn't there before, add it to the end of deque
+                     * case iii: new_node is in deque, do nothing
+                     */
                     if (next_nodes[new_node] == past_node)
                     {
                         next_nodes[new_node] = deq_head;
