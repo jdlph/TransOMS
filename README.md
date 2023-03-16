@@ -22,7 +22,7 @@ Extensive efforts have been or will be in place to ensure its appearance and per
 1. Adopt *[the most efficient deque implementation of the modified label correcting (MLC) algorithm](https://github.com/jdlph/Path4GMNS/blob/master/engine/path_engine.cpp)* from Path4GMNS.
 2. Implement [heap-Dijkstra's algorithm](https://github.com/jdlph/shortest-path-algorithms/blob/release/src/spalgm.py) as an alternative path engine (for speed comparison).
 3. Maintain the link predecessor only rather than both link and node predecessors as node predecessor can be easily inferred from link predecessor.
-4. Store columns between each OD pair in a hash table along with a customer hash function for column. This enables almost a constant-time check on whether a newly identified column / path is existing or not. Its background information can be found [here](https://github.com/jdlph/Path4GMNS/tree/dev#more-on-the-column-generation-module).
+4. Store columns between each OD pair in a hash table along with a customer hash function for column. This enables a constant-time check on whether a newly identified column / path is existing or not. Its background information can be found [here](https://github.com/jdlph/Path4GMNS/tree/dev#more-on-the-column-generation-module).
 
 #### Better Memory Management
 1. Avoid unnecessary copying through the move semantics.
@@ -54,12 +54,12 @@ $ cmake ..
 $ cmake --build .
 ```
 
-Major modern IDEs or text editors (e.g., VS Code) support CMake as an alterative build system, which offers an integrated experience of building, debugging, and testing a CMake project (without command lines). If you want to take this advantage, a step-by-step tutorial on VS Code is listed [here](https://code.visualstudio.com/docs/cpp/cmake-linux#_create-a-cmake-hello-world-project). The comprehensive documentation can be retrieved on [GitHub](https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md).
+Many modern IDEs or text editors (e.g., [VS Code](https://code.visualstudio.com/)) support CMake as an alterative build system, which offers an integrated experience of building, debugging, and testing a CMake project (without command lines). If you want to take this advantage, a step-by-step tutorial on VS Code is listed [here](https://code.visualstudio.com/docs/cpp/cmake-linux#_create-a-cmake-hello-world-project). The comprehensive documentation can be retrieved on [GitHub](https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md).
 ## Benchmark
 
 coming soon!
 
 ## Reference
 
-[^1]: TransOMS now supports Windows (x86), Linux (x86), macOS (x86), and Apple Silicon. Make sure you use **Clang** as the complier for **macOS**. Using g++ will lead to incompatibility issue with yaml-cpp, which is built using Clang.
+[^1]: TransOMS now supports Windows (x86), Linux (x86), macOS (x86), and Apple Silicon. Make sure you use **Clang** as the complier for **macOS**. Using g++ will lead to **compatibility issue** with yaml-cpp, which is built using Clang.
 [^2]: Not implemented yet. It will be available when the project is stabilized.
