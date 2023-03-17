@@ -38,6 +38,22 @@ class Agent;
 class AgentType;
 class DemandPeriod;
 
+struct HeapNode {
+    HeapNode(size_type no, double cost) : node_no {no}, cost {cost}
+    {
+    }
+
+    size_type node_no;
+    double cost;
+};
+
+struct HeapNodeLess {
+    bool operator()(const HeapNode& h1, const HeapNode& h2)
+    {
+        return h1.cost > h2.cost;
+    }
+};
+
 } // namespace transoms
 
 #endif

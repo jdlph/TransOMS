@@ -287,41 +287,61 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 }
 
 #else
-// heap-Dijkstra
+// heap-Dijkstra adopted from https://github.com/jdlph/shortest-path-algorithms
 void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
-    heapq.emplace(src_node_no, 0);
+    min_heap.emplace(src_node_no, 0);
 
     do
     {
-        auto& min_node = heapq.top();
+        auto& min_node = min_heap.top();
         auto cur_node = min_node.node_no;
-        auto cost = min_node.c;
+        auto cur_cost = min_node.cost;
 
-        heapq.pop();
-
+        /**
+         * @brief this is not an O(logn) time operation with std::priority_queue!
+         *
+         * it takes O(logn) time to sort heap and an additional O(n) time from
+         * its underlying std::vector to perform pop_front(), where n is the number
+         * of elements in min_heap at runtime. Therefore, its time bound is
+         * O(logn) + O(n) = O(n), which is linear rather than logarithmic!
+         *
+         * pop_front() from std::deque takes O(logn) time. Replacing the underlying
+         * container of std::priority_queue with std::deque will literally make
+         * the time bound as O(logn) (i.e., O(logn) + O(logn) = O(logn)). However,
+         * the performance is subject to OS and complier with respect to the choice
+         * of block size in deque's implementation. The running time may be better
+         * or WORSE than that using std::vector. See the following link for more
+         * discussions.
+         *
+         * A special implementation of min-heap which guarantees logarithmic time
+         * pop() will be introduced later.
+         *
+         * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
+         */
+        min_heap.pop();
         if (marked[cur_node])
             continue;
 
         marked[cur_node] = true;
-
+        // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
             for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
             {
-                size_type new_node = link->get_tail_node_no();
-                double new_cost = cost + link_costs[link->get_no()];
+                auto new_node = link->get_tail_node_no();
+                auto new_cost = cur_cost + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
                 {
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
-                    heapq.emplace(new_node, new_cost);
+                    min_heap.emplace(new_node, new_cost);
                 }
             }
         }
     }
-    while (!heapq.empty());
+    while (!min_heap.empty());
 }
 #endif
 

@@ -719,22 +719,6 @@ private:
     std::map<ColumnVecKey, ColumnVec> cp;
 };
 
-struct HeapNode {
-    HeapNode(size_type no, double cost) : node_no {no}, c {cost}
-    {
-    }
-
-    size_type node_no;
-    double c;
-};
-
-struct HeapNodeLess {
-    bool operator()(const HeapNode& h1, const HeapNode& h2)
-    {
-        return h1.c > h2.c;
-    }
-};
-
 class Zone {
 public:
     using Vertex = std::pair<double, double>;
@@ -1191,7 +1175,7 @@ private:
     std::allocator<const Link*> link_alloc;
 
 #ifdef HEAP_DIJKSTRA
-    std::priority_queue<HeapNode, std::vector<HeapNode>, HeapNodeLess> heapq;
+    std::priority_queue<HeapNode, std::vector<HeapNode>, HeapNodeLess> min_heap;
     std::allocator<bool> bool_alloc;
     bool* marked;
 #else
