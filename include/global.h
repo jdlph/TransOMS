@@ -9,17 +9,16 @@
 #ifndef GUARD_GLOBAL_H
 #define GUARD_GLOBAL_H
 
+#define HEAP_DIJKSTRA
+
 #include <string>
 #include <tuple>
 
 namespace transoms
 {
 using size_type = unsigned long;
-
 // origin zone no, destination zone no, demand period no, agent type no
 using ColumnVecKey = std::tuple<size_type, size_type, unsigned short, unsigned short>;
-// distance, node_no. reserved for heap Dijkstra's algorithm
-// using HeapNode = std::pair<double, size_type>;
 
 // some constants
 constexpr unsigned short COORD_X = 91;

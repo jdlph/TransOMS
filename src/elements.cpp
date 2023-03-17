@@ -107,8 +107,11 @@ void SPNetwork::generate_columns(unsigned short iter_no)
 
     for (auto s : get_orig_nodes())
     {
-        // single_source_shortest_path(s);
+#ifdef HEAP_DIJKSTRA
         single_source_shortest_path_dijkstra(s);
+#else
+        single_source_shortest_path(s);
+#endif
         backtrace_shortest_path_tree(s, iter_no);
         reset();
     }
@@ -121,9 +124,13 @@ void SPNetwork::initialize()
 
     link_costs = double_alloc.allocate(m);
     node_costs = double_alloc.allocate(n);
-    next_nodes = long_alloc.allocate(n);
     link_preds = link_alloc.allocate(n);
-    marked = new bool[n];
+
+#ifdef HEAP_DIJKSTRA
+    marked = bool_alloc.allocate(n);
+#else
+    next_nodes = long_alloc.allocate(n);
+#endif
 
     for (size_type i = 0; i != m; ++i)
         link_costs[i] = 0;
@@ -131,9 +138,12 @@ void SPNetwork::initialize()
     for (size_type i = 0; i != n; ++i)
     {
         node_costs[i] = std::numeric_limits<double>::max();
-        next_nodes[i] = null_node;
         link_preds[i] = nullptr;
+#ifdef HEAP_DIJKSTRA
         marked[i] = false;
+#else
+        next_nodes[i] = null_node;
+#endif
     }
 }
 
@@ -142,9 +152,12 @@ inline void SPNetwork::reset()
     for (size_type i = 0, n = get_node_num(); i != n; ++i)
     {
         node_costs[i] = std::numeric_limits<double>::max();
-        next_nodes[i] = null_node;
         link_preds[i] = nullptr;
+#ifdef HEAP_DIJKSTRA
         marked[i] = false;
+#else
+        next_nodes[i] = null_node;
+#endif
     }
 }
 
@@ -205,6 +218,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
     }
 }
 
+#ifndef HEAP_DIJKSTRA
 // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
 void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
@@ -272,16 +286,19 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
     }
 }
 
+#else
+// heap-Dijkstra
 void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
     heapq.emplace(src_node_no, 0);
-    while (!heapq.empty())
+
+    do
     {
         auto& min_node = heapq.top();
         auto cur_node = min_node.node_no;
         auto cost = min_node.c;
-        
+
         heapq.pop();
 
         if (marked[cur_node])
@@ -304,7 +321,9 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
             }
         }
     }
+    while (!heapq.empty());
 }
+#endif
 
 void NetworkHandle::setup_spnetworks()
 {

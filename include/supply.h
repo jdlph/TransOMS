@@ -1073,9 +1073,12 @@ public:
     {
         delete[] link_costs;
         delete[] node_costs;
-        delete[] next_nodes;
         delete[] link_preds;
+#ifdef HEAP_DIJKSTRA
         delete[] marked;
+#else
+        delete[] next_nodes;
+#endif
     }
 
     size_type get_last_thru_node_no() const override
@@ -1179,20 +1182,23 @@ private:
      * usually would not have more than2,147,483,647 nodes
      */
     const Link** link_preds;
-    long* next_nodes;
     double* link_costs;
     double* node_costs;
-
-    const long null_node = -1;
-    const long past_node = -3;
 
     // allocators to allocate dynamic memory in initialize() for the forgoing arrays
     std::allocator<double> double_alloc;
     std::allocator<long> long_alloc;
     std::allocator<const Link*> link_alloc;
 
+#ifdef HEAP_DIJKSTRA
     std::priority_queue<HeapNode, std::vector<HeapNode>, HeapNodeLess> heapq;
+    std::allocator<bool> bool_alloc;
     bool* marked;
+#else
+    long* next_nodes;
+    const long null_node = -1;
+    const long past_node = -3;
+#endif
 };
 
 } // namespace transoms
