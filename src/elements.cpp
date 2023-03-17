@@ -107,10 +107,10 @@ void SPNetwork::generate_columns(unsigned short iter_no)
 
     for (auto s : get_orig_nodes())
     {
-#ifdef HEAP_DIJKSTRA
-        single_source_shortest_path_dijkstra(s);
-#else
+#ifdef MLC_DEQUE
         single_source_shortest_path(s);
+#else
+        single_source_shortest_path_dijkstra(s);
 #endif
         backtrace_shortest_path_tree(s, iter_no);
         reset();
@@ -126,10 +126,10 @@ void SPNetwork::initialize()
     node_costs = double_alloc.allocate(n);
     link_preds = link_alloc.allocate(n);
 
-#ifdef HEAP_DIJKSTRA
-    marked = bool_alloc.allocate(n);
-#else
+#ifdef MLC_DEQUE
     next_nodes = long_alloc.allocate(n);
+#else
+    marked = bool_alloc.allocate(n);
 #endif
 
     for (size_type i = 0; i != m; ++i)
@@ -139,10 +139,10 @@ void SPNetwork::initialize()
     {
         node_costs[i] = std::numeric_limits<double>::max();
         link_preds[i] = nullptr;
-#ifdef HEAP_DIJKSTRA
-        marked[i] = false;
-#else
+#ifdef MLC_DEQUE
         next_nodes[i] = null_node;
+#else
+        marked[i] = false;
 #endif
     }
 }
@@ -153,10 +153,10 @@ inline void SPNetwork::reset()
     {
         node_costs[i] = std::numeric_limits<double>::max();
         link_preds[i] = nullptr;
-#ifdef HEAP_DIJKSTRA
-        marked[i] = false;
-#else
+#ifdef MLC_DEQUE
         next_nodes[i] = null_node;
+#else
+        marked[i] = false;
 #endif
     }
 }
@@ -218,7 +218,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
     }
 }
 
-#ifndef HEAP_DIJKSTRA
+#ifdef MLC_DEQUE
 // the most efficient deque implementation of the MLC algorithm adopted from Path4GMNS
 void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
@@ -312,11 +312,11 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
          * the time bound as O(logn) (i.e., O(logn) + O(logn) = O(logn)). However,
          * the performance is subject to OS and complier with respect to the choice
          * of block size in deque's implementation. The running time may be better
-         * or WORSE than that using std::vector. See the following link for more
+         * or WORSE than that of using std::vector. See the following link for more
          * discussions.
          *
-         * A special implementation of min-heap which guarantees logarithmic time
-         * pop() will be introduced later.
+         * A special min-heap, which guarantees logarithmic time pop(), will be
+         * introduced later.
          *
          * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
          */

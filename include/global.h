@@ -9,7 +9,7 @@
 #ifndef GUARD_GLOBAL_H
 #define GUARD_GLOBAL_H
 
-#define HEAP_DIJKSTRA
+#define MLC_DEQUE
 
 #include <string>
 #include <tuple>
@@ -38,21 +38,22 @@ class Agent;
 class AgentType;
 class DemandPeriod;
 
+#ifndef MLC_DEQUE
+// a struct for heap-Dijkstra's algorithm
 struct HeapNode {
-    HeapNode(size_type no, double cost) : node_no {no}, cost {cost}
+    HeapNode(size_type node_no_, double cost_) : node_no {node_no_}, cost {cost_}
     {
+    }
+
+    friend bool operator<(const HeapNode& h1, const HeapNode& h2)
+    {
+        return h1.cost > h2.cost;
     }
 
     size_type node_no;
     double cost;
 };
-
-struct HeapNodeLess {
-    bool operator()(const HeapNode& h1, const HeapNode& h2)
-    {
-        return h1.cost > h2.cost;
-    }
-};
+#endif
 
 } // namespace transoms
 

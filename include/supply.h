@@ -1058,10 +1058,10 @@ public:
         delete[] link_costs;
         delete[] node_costs;
         delete[] link_preds;
-#ifdef HEAP_DIJKSTRA
-        delete[] marked;
-#else
+#ifdef MLC_DEQUE
         delete[] next_nodes;
+#else
+        delete[] marked;
 #endif
     }
 
@@ -1169,20 +1169,21 @@ private:
     double* link_costs;
     double* node_costs;
 
-    // allocators to allocate dynamic memory in initialize() for the forgoing arrays
-    std::allocator<double> double_alloc;
-    std::allocator<long> long_alloc;
-    std::allocator<const Link*> link_alloc;
-
-#ifdef HEAP_DIJKSTRA
-    std::priority_queue<HeapNode, std::vector<HeapNode>, HeapNodeLess> min_heap;
-    std::allocator<bool> bool_alloc;
-    bool* marked;
-#else
+#ifdef MLC_DEQUE
     long* next_nodes;
     const long null_node = -1;
     const long past_node = -3;
+#else
+    std::priority_queue<HeapNode> min_heap;
+    std::allocator<bool> bool_alloc;
+    bool* marked;
 #endif
+
+    // allocators to allocate dynamic memory in initialize() for the forgoing arrays
+    // simply use new for intrinsic / built-in types??
+    std::allocator<double> double_alloc;
+    std::allocator<long> long_alloc;
+    std::allocator<const Link*> link_alloc;
 };
 
 } // namespace transoms
