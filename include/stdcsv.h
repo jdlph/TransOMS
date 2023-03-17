@@ -71,16 +71,18 @@ public:
 
     std::string to_string() const
     {
-        if (back() != CR)
-            return std::string{head, tail};
+        return std::string{head, tail};
+    }
 
+    // in case that the last char is '\r'
+    std::string to_string_cr() const
+    {
         return std::string{head, tail - 1};
     }
 
 private:
     InputIter head;
     InputIter tail;
-    const char CR = '\r';
 };
 
 class Row {
@@ -321,11 +323,13 @@ public:
     }
 
 protected:
-    const char CR = '\r';
     const char quote;
-
     size_type row_num;
+
     Row row;
+
+    const char CR = '\r';
+    const char LF = '\n';
 
     struct InvalidRow : public std::runtime_error {
         // do we need it?
@@ -512,8 +516,6 @@ private:
 #ifdef O3N_TIME_BOUND
     std::istreambuf_iterator<char> it;
     std::istreambuf_iterator<char> it_end;
-
-    const char LF = '\n';
 #endif
 
     // for benchmark only
@@ -818,7 +820,11 @@ Row Reader::split2(const C& c) const
         else if (i == e)
         {
             // last one
-            r.append(sr.to_string());
+            if (sr.back() != CR)
+                r.append(sr.to_string());
+            else
+                r.append(sr.to_string_cr());
+
             return r;
         }
         else
