@@ -16,6 +16,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <queue>
 #include <unordered_set>
 #include <vector>
 
@@ -718,6 +719,22 @@ private:
     std::map<ColumnVecKey, ColumnVec> cp;
 };
 
+struct HeapNode {
+    HeapNode(size_type no, double cost) : node_no {no}, c {cost}
+    {
+    }
+
+    size_type node_no;
+    double c;
+};
+
+struct HeapNodeLess {
+    bool operator()(const HeapNode& h1, const HeapNode& h2)
+    {
+        return h1.c > h2.c;
+    }
+};
+
 class Zone {
 public:
     using Vertex = std::pair<double, double>;
@@ -1058,6 +1075,7 @@ public:
         delete[] node_costs;
         delete[] next_nodes;
         delete[] link_preds;
+        delete[] marked;
     }
 
     size_type get_last_thru_node_no() const override
@@ -1172,6 +1190,9 @@ private:
     std::allocator<double> double_alloc;
     std::allocator<long> long_alloc;
     std::allocator<const Link*> link_alloc;
+
+    std::priority_queue<HeapNode, std::vector<HeapNode>, HeapNodeLess> heapq;
+    bool* marked;
 };
 
 } // namespace transoms

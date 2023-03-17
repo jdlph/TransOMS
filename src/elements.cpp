@@ -107,7 +107,8 @@ void SPNetwork::generate_columns(unsigned short iter_no)
 
     for (auto s : get_orig_nodes())
     {
-        single_source_shortest_path(s);
+        // single_source_shortest_path(s);
+        single_source_shortest_path_dijkstra(s);
         backtrace_shortest_path_tree(s, iter_no);
         reset();
     }
@@ -122,6 +123,7 @@ void SPNetwork::initialize()
     node_costs = double_alloc.allocate(n);
     next_nodes = long_alloc.allocate(n);
     link_preds = link_alloc.allocate(n);
+    marked = new bool[n];
 
     for (size_type i = 0; i != m; ++i)
         link_costs[i] = 0;
@@ -131,6 +133,7 @@ void SPNetwork::initialize()
         node_costs[i] = std::numeric_limits<double>::max();
         next_nodes[i] = null_node;
         link_preds[i] = nullptr;
+        marked[i] = false;
     }
 }
 
@@ -141,6 +144,7 @@ inline void SPNetwork::reset()
         node_costs[i] = std::numeric_limits<double>::max();
         next_nodes[i] = null_node;
         link_preds[i] = nullptr;
+        marked[i] = false;
     }
 }
 
@@ -265,6 +269,40 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 
         if (deq_tail == cur_node)
             deq_tail = null_node;
+    }
+}
+
+void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
+{
+    node_costs[src_node_no] = 0;
+    heapq.emplace(src_node_no, 0);
+    while (!heapq.empty())
+    {
+        auto& min_node = heapq.top();
+        auto cur_node = min_node.node_no;
+        auto cost = min_node.c;
+        
+        heapq.pop();
+
+        if (marked[cur_node])
+            continue;
+
+        marked[cur_node] = true;
+
+        if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
+        {
+            for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
+            {
+                size_type new_node = link->get_tail_node_no();
+                double new_cost = cost + link_costs[link->get_no()];
+                if (new_cost < node_costs[new_node])
+                {
+                    node_costs[new_node] = new_cost;
+                    link_preds[new_node] = link;
+                    heapq.emplace(new_node, new_cost);
+                }
+            }
+        }
     }
 }
 
