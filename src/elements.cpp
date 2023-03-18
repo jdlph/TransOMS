@@ -224,7 +224,7 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
     next_nodes[src_node_no] = past_node;
-
+    // use long intentionally
     for (long cur_node = src_node_no, deq_head = null_node, deq_tail = null_node;;)
     {
         // no centroid traversing
@@ -235,8 +235,8 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                 if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
                     continue;
 
-                size_type new_node = link->get_tail_node_no();
-                double new_cost = node_costs[cur_node] + link_costs[link->get_no()];
+                auto new_node = link->get_tail_node_no();
+                auto new_cost = node_costs[cur_node] + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
                 {
                     node_costs[new_node] = new_cost;
@@ -321,10 +321,13 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
          * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
          */
         min_heap.pop();
+
+        // cur_node has been scanned / labeled
         if (marked[cur_node])
             continue;
 
         marked[cur_node] = true;
+
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
