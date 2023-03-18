@@ -33,8 +33,8 @@ public:
     ~MinHeap()
     {
         delete[] keys;
-        delete[] posns;
         delete[] nodes;
+        delete[] posns;
     }
 
     bool empty() const
@@ -75,9 +75,9 @@ public:
         // no need to reset keys and posns?
         for (auto i = 0; i != sz; ++i)
         {
-            posns[i] = 0;
-            nodes[i] = 0;
             keys[i] = 0;
+            nodes[i] = 0;
+            posns[i] = 0;
         }
     }
 
@@ -87,6 +87,12 @@ public:
     }
 
 private:
+
+    bool is_leaf(size_type i) const
+    {
+        return (posns[i] - 1) * d + 3 >= num;
+    }
+
     size_type pred(size_type i) const
     {
         if (posns[i] <= 0)
@@ -104,19 +110,13 @@ private:
         return std::make_pair(s, e);
     }
 
-    bool is_leaf(size_type i) const
-    {
-        return (posns[i] - 1) * d + 3 >= num;
-    }
-
     auto minchild(size_type i) const
     {
         auto r = succ(i);
-
-        auto pos = r.first;
         auto pos_ = r.first;
-        auto v = keys[nodes[pos++]];
-        for (; pos <= r.second; ++pos)
+        auto v = keys[nodes[pos_]];
+    
+        for (auto pos = ++r.first; pos <= r.second; ++pos)
         {
             if (keys[nodes[pos]] < v)
             {
@@ -126,17 +126,6 @@ private:
         }
 
         return nodes[pos_];
-    }
-
-    void swap(size_type i, size_type j)
-    {
-        auto temp = posns[i];
-        posns[i] = posns[j];
-        posns[j] = temp;
-
-        temp = nodes[posns[i]];
-        nodes[posns[i]] = nodes[posns[j]];
-        nodes[posns[j]] = temp;
     }
 
     void shiftdown(size_type i)
@@ -151,12 +140,23 @@ private:
             swap(i, pred(i));
     }
 
+    void swap(size_type i, size_type j)
+    {
+        auto temp = posns[i];
+        posns[i] = posns[j];
+        posns[j] = temp;
+
+        temp = nodes[posns[i]];
+        nodes[posns[i]] = nodes[posns[j]];
+        nodes[posns[j]] = temp;
+    }
+
 private:
     double* keys;
-    // node_no to pos
-    size_type* posns;
     // pos to node_no
     size_type* nodes;
+    // node_no to pos
+    size_type* posns;
 
     unsigned short d;
     size_type num;
