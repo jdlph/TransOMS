@@ -25,7 +25,7 @@ public:
     }
 
     MinHeap(size_type n, unsigned short d_)
-        : keys {new double[n]}, posns {new long[n]}, d {d_}
+        : keys {new double[n]}, posns {new size_type[n]}, d {d_}
     {
     }
 
@@ -48,14 +48,22 @@ public:
 
     auto top() const
     {
-        return std::make_pair(keys[min_node], min_node);
+        return std::make_pair(keys[nodes[0]], nodes[0]);
     }
 
     void emplace(size_type i, double v)
     {
+        if (i == 552)
+            int debug = 1;
+        
         keys[i] = v;
-        posns[i] = num;
-        nodes[num++] = i;
+        if (!marked[i])
+        {
+            posns[i] = num;
+            nodes[num++] = i;
+            marked[i] = true;
+        }
+
         // if (!num)
         //     posns[i] = num++;
         // else
@@ -65,21 +73,35 @@ public:
 
     void pop()
     {
+        auto j = nodes[--num];
+        swap(nodes[0], j);
         // --num;
-        shiftup(nodes[--num]);
+        shiftdown(j);
     }
 
     void reset()
     {
         num = min_node = last = 0;
         // no need to reset keys and posns?
+        for (auto i = 0; i != sz; ++i)
+        {
+            posns[i] = 0;
+            nodes[i] = 0;
+            keys[i] = 0;
+            marked[i] = false;
+        }
     }
 
-    void reserve(size_type sz)
+    void reserve(size_type sz_)
     {
-        keys = new double[sz];
-        posns = new long[sz];
-        nodes = new long[sz];
+        sz = sz_;
+        keys = new double[sz_];
+        posns = new size_type[sz_];
+        nodes = new size_type[sz_];
+        marked = new bool[sz_];
+
+        for (auto i = 0; i != sz; ++i)
+            marked[i] = false;
     }
 
 private:
@@ -87,9 +109,41 @@ private:
     {
         if (posns[i] <= 0)
             return i;
-        
-        size_type pos = std::ceil((posns[i] - 1.0) / d);
+
+        size_type pos = std::ceil((posns[i]) / d);
         return nodes[pos];
+    }
+
+    auto succ(size_type i) const
+    {
+        auto s = (posns[i] - 1) * d + 3;
+        auto e = std::min(num - 1, posns[i] * d + 2);
+
+        return std::make_pair(s, e);
+    }
+
+    bool is_leaf(size_type i) const
+    {
+        return (posns[i] - 1) * d + 2 >= num;
+    }
+
+    auto minchild(size_type i) const
+    {
+        auto r = succ(i);
+
+        auto pos = r.first;
+        auto pos_ = r.first;
+        auto v = keys[nodes[pos++]];
+        for (; pos <= r.second; ++pos)
+        {
+            if (keys[nodes[pos]] < v)
+            {
+                v = keys[nodes[pos]];
+                pos_ = pos;
+            }
+        }
+
+        return nodes[pos_];
     }
 
     void swap(size_type i, size_type j)
@@ -97,6 +151,18 @@ private:
         auto temp = posns[i];
         posns[i] = posns[j];
         posns[j] = temp;
+
+        temp = nodes[posns[i]];
+        nodes[posns[i]] = nodes[posns[j]];
+        nodes[posns[j]] = temp;
+    }
+
+    void shiftdown(size_type i)
+    {
+        while (!is_leaf(i) && keys[i] > keys[minchild(i)])
+        {
+            swap(i, minchild(i));
+        }
     }
 
     void shiftup(size_type i)
@@ -113,15 +179,17 @@ private:
 private:
     double* keys;
     // node_no to pos
-    long* posns;
+    size_type* posns;
     // pos to node_no
-    long* nodes;
+    size_type* nodes;
+    bool* marked;
 
     unsigned short d;
     size_type num = 0;
     size_type min_node = 0;
     size_type last = 0;
     size_type last_pos = 0;
+    size_type sz;
 };
 
 } // namespace transoms

@@ -160,7 +160,7 @@ inline void SPNetwork::reset()
         next_nodes[i] = null_node;
 #else
         marked[i] = false;
-
+        min_heap.reset();
 #endif
     }
 }
@@ -296,8 +296,8 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
     min_heap.emplace(src_node_no, 0);
-
-    do
+    // std::cout << src_node_no << '\n';
+    while (!min_heap.empty())
     {
         // auto& min_node = min_heap.top();
         // auto cur_node = min_node.node_no;
@@ -333,8 +333,9 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
 
         marked[cur_node] = true;
 
-        std::cout << cur_node << "; " << cur_cost << '\n';
-        if (cur_node == 546)
+        std::cout << src_node_no << "; " << cur_node << "; " << cur_cost << '\n';
+        
+        if (cur_node == 31 && src_node_no == 936)
             std::cout << "check\n";
 
         // no centroid traversing
@@ -346,6 +347,8 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
                 auto new_cost = cur_cost + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
                 {
+                    if (src_node_no == 936 && new_node == 506)
+                        int kk = 1;                    
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
                     min_heap.emplace(new_node, new_cost);
@@ -353,7 +356,6 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
             }
         }
     }
-    while (!min_heap.empty());
 }
 #endif
 
