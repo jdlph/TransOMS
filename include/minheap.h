@@ -24,11 +24,6 @@ public:
     {
     }
 
-    MinHeap(size_type n, unsigned short d_)
-        : keys {new double[n]}, posns {new size_type[n]}, d {d_}
-    {
-    }
-
     MinHeap(const MinHeap&) = delete;
     MinHeap& operator=(const MinHeap&) = delete;
 
@@ -39,6 +34,7 @@ public:
     {
         delete[] keys;
         delete[] posns;
+        delete[] nodes;
     }
 
     bool empty() const
@@ -46,28 +42,15 @@ public:
         return num == 0;
     }
 
-    auto top() const
-    {
-        return std::make_pair(keys[nodes[0]], nodes[0]);
-    }
-
     void emplace(size_type i, double v)
     {
-        if (i == 552)
-            int debug = 1;
-        
         keys[i] = v;
-        if (!marked[i])
+        if (nodes[posns[i]] != i)
         {
             posns[i] = num;
             nodes[num++] = i;
-            marked[i] = true;
         }
 
-        // if (!num)
-        //     posns[i] = num++;
-        // else
-        //     posns[i] = ++num;
         shiftup(i);
     }
 
@@ -75,21 +58,7 @@ public:
     {
         auto j = nodes[--num];
         swap(nodes[0], j);
-        // --num;
         shiftdown(j);
-    }
-
-    void reset()
-    {
-        num = min_node = last = 0;
-        // no need to reset keys and posns?
-        for (auto i = 0; i != sz; ++i)
-        {
-            posns[i] = 0;
-            nodes[i] = 0;
-            keys[i] = 0;
-            marked[i] = false;
-        }
     }
 
     void reserve(size_type sz_)
@@ -98,10 +67,23 @@ public:
         keys = new double[sz_];
         posns = new size_type[sz_];
         nodes = new size_type[sz_];
-        marked = new bool[sz_];
+    }
 
+    void reset()
+    {
+        num = 0;
+        // no need to reset keys and posns?
         for (auto i = 0; i != sz; ++i)
-            marked[i] = false;
+        {
+            posns[i] = 0;
+            nodes[i] = 0;
+            keys[i] = 0;
+        }
+    }
+
+    auto top() const
+    {
+        return std::make_pair(keys[nodes[0]], nodes[0]);
     }
 
 private:
@@ -160,20 +142,13 @@ private:
     void shiftdown(size_type i)
     {
         while (!is_leaf(i) && keys[i] > keys[minchild(i)])
-        {
             swap(i, minchild(i));
-        }
     }
 
     void shiftup(size_type i)
     {
         while (posns[i] && keys[i] < keys[pred(i)])
-        {
             swap(i, pred(i));
-        }
-
-        if (posns[i] == 0)
-            min_node = i;
     }
 
 private:
@@ -182,13 +157,9 @@ private:
     size_type* posns;
     // pos to node_no
     size_type* nodes;
-    bool* marked;
 
     unsigned short d;
     size_type num = 0;
-    size_type min_node = 0;
-    size_type last = 0;
-    size_type last_pos = 0;
     size_type sz;
 };
 

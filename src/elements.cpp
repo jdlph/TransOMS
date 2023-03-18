@@ -333,10 +333,10 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
 
         marked[cur_node] = true;
 
-        std::cout << src_node_no << "; " << cur_node << "; " << cur_cost << '\n';
-        
-        if (cur_node == 31 && src_node_no == 936)
-            std::cout << "check\n";
+        // std::cout << src_node_no << "; " << cur_node << "; " << cur_cost << '\n';
+
+        // if (cur_node == 31 && src_node_no == 936)
+        //     std::cout << "check\n";
 
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
@@ -347,8 +347,8 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
                 auto new_cost = cur_cost + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
                 {
-                    if (src_node_no == 936 && new_node == 506)
-                        int kk = 1;                    
+                    if (src_node_no == 936 && new_node == 523)
+                        int kk = 1;
                     node_costs[new_node] = new_cost;
                     link_preds[new_node] = link;
                     min_heap.emplace(new_node, new_cost);
