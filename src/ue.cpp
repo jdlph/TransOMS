@@ -9,6 +9,7 @@
 #include <handles.h>
 
 #include <iostream>
+#include <omp.h>
 
 using namespace transoms;
 
@@ -21,6 +22,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
         update_link_travel_time(&this->dps, i);
+#pragma omp parallel for
         for (auto spn : this->spns)
             spn->generate_columns(i);
     }
@@ -47,6 +49,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_gap = 0;
     double total_sys_travel_time = 0;
 
+#pragma opm parallel for shared(total_gap, total_sys_travel_time)
     for (auto& [k, cv] : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
@@ -130,10 +133,11 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         return;
 
     // reset link flow
+#pragma omp parallel for
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
-            break;
+            continue;
 
         link->reset_period_vol();
     }
@@ -162,10 +166,11 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 
 void NetworkHandle::update_link_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
 {
+#pragma omp parallel for
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
-            break;
+            continue;;
 
         link->update_period_travel_time(dps, iter_no);
     }

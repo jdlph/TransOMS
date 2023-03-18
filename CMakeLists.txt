@@ -19,6 +19,7 @@ include_directories(include)
 set(YAML_CPP_LIB_NAME yaml-cpp)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_CXX_FLAGS "-Xpreprocessor -fopenmp-version=50 -fpic")
     if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
         set(YAML_CPP_LIB_NAME yaml-cpp_mac-arm)
     elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
@@ -28,8 +29,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(YAML_CPP_LIB_NAME yaml-cpp_linux)
 endif()
 
+find_package(OpenMP REQUIRED)
 find_library(YAML_CPP ${YAML_CPP_LIB_NAME} PATHS lib)
 target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML_CPP})
+target_link_libraries(${PROJECT_NAME}.gradient PRIVATE OpenMP::OpenMP_CXX)
 
 # it is for std::experimental::filesystem in utils.cpp if g++ happens to be the compiler
 if (CMAKE_COMPILER_IS_GNUCXX)

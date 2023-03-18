@@ -352,7 +352,7 @@ void NetworkHandle::setup_spnetworks()
 
     build_connectors();
 
-    constexpr unsigned memory_blocks = 1;
+    constexpr unsigned memory_blocks = 4;
 
     size_type i = 0;
     for (auto& [k, z] : this->net.get_zones())
