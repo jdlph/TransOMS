@@ -20,7 +20,7 @@ class MinHeap {
 public:
     MinHeap() = delete;
 
-    explicit MinHeap(unsigned short d_) : d {d_}
+    explicit MinHeap(unsigned short d_) : d {d_}, num {0}
     {
     }
 
@@ -106,7 +106,7 @@ private:
 
     bool is_leaf(size_type i) const
     {
-        return (posns[i] - 1) * d + 2 >= num;
+        return (posns[i] - 1) * d + 3 >= num;
     }
 
     auto minchild(size_type i) const
@@ -159,7 +159,7 @@ private:
     size_type* nodes;
 
     unsigned short d;
-    size_type num = 0;
+    size_type num;
     size_type sz;
 };
 
