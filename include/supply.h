@@ -10,6 +10,7 @@
 #define GUARD_SUPPLY_H
 
 #include <global.h>
+#include <minheap.h>
 
 #include <cmath>
 #include <cstddef>
@@ -1174,7 +1175,8 @@ private:
     const long null_node = -1;
     const long past_node = -3;
 #else
-    std::priority_queue<HeapNode> min_heap;
+    // std::priority_queue<HeapNode> min_heap;
+    MinHeap min_heap{2};
     std::allocator<bool> bool_alloc;
     bool* marked;
 #endif

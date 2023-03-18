@@ -10,7 +10,8 @@
 #include <handles.h>
 #include <supply.h>
 
-#include  <stdexcept>
+#include <stdexcept>
+#include <iostream>
 
 using namespace transoms;
 
@@ -130,6 +131,7 @@ void SPNetwork::initialize()
     next_nodes = long_alloc.allocate(n);
 #else
     marked = bool_alloc.allocate(n);
+    min_heap.reserve(n);
 #endif
 
     for (size_type i = 0; i != m; ++i)
@@ -143,6 +145,7 @@ void SPNetwork::initialize()
         next_nodes[i] = null_node;
 #else
         marked[i] = false;
+        min_heap.reset();
 #endif
     }
 }
@@ -157,6 +160,7 @@ inline void SPNetwork::reset()
         next_nodes[i] = null_node;
 #else
         marked[i] = false;
+
 #endif
     }
 }
@@ -295,9 +299,10 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
 
     do
     {
-        auto& min_node = min_heap.top();
-        auto cur_node = min_node.node_no;
-        auto cur_cost = min_node.cost;
+        // auto& min_node = min_heap.top();
+        // auto cur_node = min_node.node_no;
+        // auto cur_cost = min_node.cost;
+        auto [cur_cost, cur_node] = min_heap.top();
 
         /**
          * @brief this is not an O(logn) time operation with std::priority_queue!
@@ -327,6 +332,10 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
             continue;
 
         marked[cur_node] = true;
+
+        std::cout << cur_node << "; " << cur_cost << '\n';
+        if (cur_node == 546)
+            std::cout << "check\n";
 
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
