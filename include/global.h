@@ -9,7 +9,7 @@
 #ifndef GUARD_GLOBAL_H
 #define GUARD_GLOBAL_H
 
-// #define MLC_DEQUE
+#define MLC_DEQUE
 
 #include <string>
 #include <tuple>

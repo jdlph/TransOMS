@@ -8,24 +8,32 @@
 
 #include <handles.h>
 
+#include <chrono>
 #include <iostream>
 #include <omp.h>
 
 using namespace transoms;
+using namespace std::chrono;
 
 void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column_opt_num)
 {
+    auto ts = high_resolution_clock::now();
     setup_spnetworks();
+
+    // omp_set_num_threads(8);
 
     for (auto i = 0; i != column_gen_num; ++i)
     {
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
         update_link_travel_time(&this->dps, i);
-#pragma omp parallel for
+#pragma omp parallel for schedule (dynamic)
         for (auto spn : this->spns)
             spn->generate_columns(i);
     }
+
+    auto te = high_resolution_clock::now();
+    std::cout << "TransOMS completes column generation in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 
     for (auto i = 0; i != column_opt_num; ++i)
     {
@@ -105,6 +113,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
 void NetworkHandle::update_column_attributes()
 {
+#pragma opm parallel for shared()
     for (auto& [k, cv] : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no

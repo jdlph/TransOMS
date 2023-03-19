@@ -5,7 +5,7 @@ include(CTest)
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Release)
 
 add_executable(${PROJECT_NAME}.gradient src/main.cpp src/elements.cpp src/ue.cpp src/utils.cpp)
 
@@ -19,14 +19,15 @@ include_directories(include)
 set(YAML_CPP_LIB_NAME yaml-cpp)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_CXX_FLAGS "-Xpreprocessor -fopenmp-version=50 -fpic")
     if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
         set(YAML_CPP_LIB_NAME yaml-cpp_mac-arm)
     elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
         set(YAML_CPP_LIB_NAME yaml-cpp_mac-x86)
     endif()
+    set(CMAKE_CXX_FLAGS "-Xpreprocessor -fopenmp-version=50 -fpic")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(YAML_CPP_LIB_NAME yaml-cpp_linux)
+    set(CMAKE_CXX_FLAGS "-fopenmp -fpic")
 endif()
 
 find_package(OpenMP REQUIRED)

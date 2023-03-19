@@ -12,6 +12,8 @@
 
 #include  <stdexcept>
 
+#include <omp.h>
+
 using namespace transoms;
 
 inline const std::vector<size_type>& Agent::get_link_path() const
@@ -91,8 +93,8 @@ void Link::update_period_travel_time(const std::vector<const DemandPeriod*>* dps
     for (auto i = 0; i != vdfps.size(); ++i)
     {
         auto reduction_ratio = 1.0;
-        if (dps)
-            reduction_ratio = (*dps)[i]->get_cap_reduction_ratio(this->get_id(), iter_no);
+        // if (dps)
+        //     reduction_ratio = (*dps)[i]->get_cap_reduction_ratio(this->get_id(), iter_no);
 
         vdfps[i].run_bpr(reduction_ratio);
     }
@@ -166,10 +168,11 @@ void SPNetwork::update_link_costs()
     auto dp_no = dp->get_no();
     auto vot = at->get_vot();
 
+#pragma omp parallel for
     for (auto p : get_links())
     {
         if (!p->get_length())
-            break;
+            continue;;
 
         link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
     }
