@@ -37,9 +37,9 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 
     for (auto i = 0; i != column_opt_num; ++i)
     {
-        update_link_and_column_volume(i, false);
-        update_link_travel_time();
         update_column_gradient_and_flow(i);
+        update_link_and_column_volume(i + 1, false);
+        update_link_travel_time();
     }
 
     /**
@@ -47,8 +47,6 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
      *
      * path flow will keep constant any more after the last iteration.
      */
-    update_link_and_column_volume(column_gen_num, false);
-    update_link_travel_time();
     update_column_attributes();
 }
 
@@ -102,7 +100,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         if (p)
         {
             total_sys_travel_time += p->get_sys_travel_time();
-            const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
+            if (total_switched_out_vol)
+                const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
         }
     }
 
@@ -179,7 +178,7 @@ void NetworkHandle::update_link_travel_time()
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
-            continue;;
+            continue;
 
         link->update_period_travel_time();
     }

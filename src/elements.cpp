@@ -39,6 +39,7 @@ void Agent::initialize_intervals()
     curr_link_no = n - 1;
 }
 
+// deprecated
 inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
 {
     if (!se)
@@ -50,6 +51,7 @@ inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
     return true;
 }
 
+// deprecated
 double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const
 {
     if (!contain_iter_no(iter_no))
