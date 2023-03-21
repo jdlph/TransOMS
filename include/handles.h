@@ -48,6 +48,16 @@ public:
         return net.get_links()[link_no];
     }
 
+    const Link* get_link(std::string& link_id) const
+    {
+        return net.get_link(link_id);
+    }
+
+    Link* get_link(std::string& link_id)
+    {
+        return net.get_link(link_id);
+    }
+
     const Node* get_node(size_type node_no) const
     {
         return net.get_nodes()[node_no];
@@ -114,8 +124,7 @@ private:
     void update_column_attributes();
     void update_column_gradient_and_flow(unsigned short iter_no);
     void update_link_and_column_volume(unsigned short iter_no, bool reduce_path_vol = true);
-    // a little bit ugly
-    void update_link_travel_time(const std::vector<const DemandPeriod*>* dps = nullptr, short iter_no = -1);
+    void update_link_travel_time();
 
     void build_connectors();
     void setup_spnetworks();

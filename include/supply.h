@@ -115,10 +115,15 @@ public:
         vol = 0;
     }
 
-    void run_bpr(double reduction_ratio = 1)
+    void run_bpr()
     {
         voc = cap > 0 ? vol / (cap * reduction_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
+    }
+
+    void set_reduction_ratio(double r)
+    {
+        reduction_ratio = r;
     }
 
 private:
@@ -134,6 +139,8 @@ private:
     double tt = std::numeric_limits<unsigned>::max();
     double voc = 0;
     double vol = 0;
+
+    double reduction_ratio = 1;
 };
 
 class Link {
@@ -263,7 +270,16 @@ public:
             v.reset_vol();
     }
 
-    void update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no);
+    void set_reduction_ratio(unsigned short i, double r)
+    {
+        vdfps[i].set_reduction_ratio(r);
+    }
+
+    void update_period_travel_time()
+    {
+        for (auto& vdf : vdfps)
+            vdf.run_bpr();
+    }
 
 private:
     std::string id;
@@ -946,6 +962,16 @@ public:
     const std::vector<Node*>& get_nodes() const override
     {
         return nodes;
+    }
+
+    Link* get_link(const std::string& link_id)
+    {
+        return links[get_link_no(link_id)];
+    }
+
+    const Link* get_link(const std::string& link_id) const
+    {
+        return links[get_link_no(link_id)];
     }
 
     std::vector<Link*>& get_links() override

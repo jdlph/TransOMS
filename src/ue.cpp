@@ -26,7 +26,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
     {
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
-        update_link_travel_time(&this->dps, i);
+        update_link_travel_time();
 #pragma omp parallel for schedule (dynamic)
         for (auto spn : this->spns)
             spn->generate_columns(i);
@@ -173,7 +173,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     }
 }
 
-void NetworkHandle::update_link_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
+void NetworkHandle::update_link_travel_time()
 {
 #pragma omp parallel for
     for (auto link : this->net.get_links())
@@ -181,6 +181,6 @@ void NetworkHandle::update_link_travel_time(const std::vector<const DemandPeriod
         if (!link->get_length())
             continue;;
 
-        link->update_period_travel_time(dps, iter_no);
+        link->update_period_travel_time();
     }
 }

@@ -465,6 +465,9 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                             auto link_id = link["link_id"].as<std::string>();
                             auto rr = link["reduction_ratio"].as<double>();
                             se->add_affected_link(link_id, rr);
+                            // to do: wrap them into a single function?
+                            auto link_ptr = this->get_link(link_id);
+                            link_ptr->set_reduction_ratio(j, rr);
                         }
                     }
                 }

@@ -88,18 +88,6 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
     }
 }
 
-void Link::update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
-{
-    for (auto i = 0; i != vdfps.size(); ++i)
-    {
-        auto reduction_ratio = 1.0;
-        // if (dps)
-        //     reduction_ratio = (*dps)[i]->get_cap_reduction_ratio(this->get_id(), iter_no);
-
-        vdfps[i].run_bpr(reduction_ratio);
-    }
-}
-
 void SPNetwork::generate_columns(unsigned short iter_no)
 {
     if (!iter_no)
