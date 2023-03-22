@@ -27,8 +27,7 @@ class SpecialEvent {
 public:
     SpecialEvent() = delete;
 
-    SpecialEvent(unsigned short beg_iter_no_, unsigned short end_iter_no_, std::string&& name_)
-        : beg_iter_no {beg_iter_no_}, end_iter_no {end_iter_no_}, name {name_}
+    SpecialEvent(std::string&& name_) : name {name_}
     {
     }
 

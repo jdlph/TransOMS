@@ -396,7 +396,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     YAML::Node settings = YAML::LoadFile(file_path);
 
     unsigned short i = 0;
-    const auto& agents = settings["agents"];
+    const auto& agents = settings["agent_type"];
     for (const auto& a : agents)
     {
         try
@@ -429,14 +429,14 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
         this->ats.push_back(new AgentType());
 
     unsigned short j = 0;
-    const auto& demand_periods = settings["demand_periods"];
+    const auto& demand_periods = settings["demand_period"];
     for (const auto& dp : demand_periods)
     {
         unsigned short k = 0;
         auto&& period = dp["period"].as<std::string>();
         auto&& time_period = dp["time_period"].as<std::string>();
 
-        const auto& demands = dp["demands"];
+        const auto& demands = dp["demand"];
         for (const auto& d : demands)
         {
             auto&& file_name = d["file_name"].as<std::string>();
@@ -454,12 +454,9 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                     auto enable = special_event["enable"].as<bool>();
                     if (enable)
                     {
-                        auto beg_iter = special_event["beg_iteration"].as<unsigned short>();
-                        auto end_iter = special_event["end_iteration"].as<unsigned short>();
+                        se = std::make_unique<SpecialEvent>(std::move(name));
 
-                        se = std::make_unique<SpecialEvent>(beg_iter, end_iter, std::move(name));
-
-                        const auto& affected_links = special_event["affected_links"];
+                        const auto& affected_links = special_event["affected_link"];
                         for (const auto& link : affected_links)
                         {
                             auto link_id = link["link_id"].as<std::string>();

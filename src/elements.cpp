@@ -314,13 +314,19 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
          * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
          */
         min_heap.pop();
+
+        // the node has been scanned / labeled. skip it.
         if (marked[cur_node])
             continue;
 
         marked[cur_node] = true;
+
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
+            if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
+                continue;
+
             for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
             {
                 auto new_node = link->get_tail_node_no();
@@ -345,8 +351,6 @@ void NetworkHandle::setup_spnetworks()
 
     build_connectors();
 
-    constexpr unsigned memory_blocks = 4;
-
     size_type i = 0;
     for (auto& [k, z] : this->net.get_zones())
     {
@@ -356,7 +360,7 @@ void NetworkHandle::setup_spnetworks()
             {
                 auto at_no = d.get_agent_type_no();
                 auto at = this->ats[at_no];
-                if (i < memory_blocks)
+                if (i < thread_nums)
                 {
                     unsigned short no = spns.size();
                     spn_map[{dp->get_no(), at_no, i}] = no;
@@ -366,7 +370,7 @@ void NetworkHandle::setup_spnetworks()
                 }
                 else
                 {
-                    unsigned short m = i % memory_blocks;
+                    unsigned short m = i % thread_nums;
                     auto sp_no = spn_map[{dp->get_no(), at_no, m}];
                     auto sp = this->spns[sp_no];
                     sp->add_orig_nodes(z);

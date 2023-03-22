@@ -142,6 +142,8 @@ private:
 
     std::vector<const AgentType*> ats;
     std::vector<const DemandPeriod*> dps;
+
+    unsigned short thread_nums = 4;
 };
 
 } // namespace transoms
