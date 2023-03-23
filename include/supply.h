@@ -404,6 +404,18 @@ class Column {
         return false;
     }
 
+    friend bool operator<(const Column& c1, const Column& c2)
+    {
+        // a further link-by-link comparison
+        if (c1.get_hash() < c2.get_hash())
+            return true;
+
+        if (c1.get_links() != c2.get_links())
+            return true;
+
+        return false;
+    }
+
 public:
     Column() = delete;
 
@@ -644,16 +656,23 @@ public:
         return cols.size();
     }
 
-    std::unordered_multiset<Column, ColumnHash>& get_columns()
+    auto& get_columns()
     {
         return cols;
+        // if (vec.empty())
+        // {
+        //     for (const auto& c : cols)
+        //         vec.push_back(c);
+        // }
+
+        // return vec;
     }
 
     // it might be useless according to Path4GMNS
-    const std::unordered_multiset<Column, ColumnHash>& get_columns() const
-    {
-        return cols;
-    }
+    // const auto& get_columns() const
+    // {
+    //     return cols;
+    // }
 
     double get_volume() const
     {
@@ -663,11 +682,13 @@ public:
     void add_new_column(Column& c)
     {
         cols.emplace(c);
+        // vec.push_back(c);
     }
 
     void add_new_column(Column&& c)
     {
         cols.insert(c);
+        // vec.push_back(c);
     }
 
     void increase_volume(double v)
@@ -690,6 +711,7 @@ private:
     bool route_fixed;
 
     std::unordered_multiset<Column, ColumnHash> cols;
+    std::vector<Column> vec;
 };
 
 class ColumnPool {

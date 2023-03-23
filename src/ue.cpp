@@ -35,10 +35,10 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
     auto te = high_resolution_clock::now();
     std::cout << "TransOMS completes column generation in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 
-    for (auto i = 0; i != column_opt_num; ++i)
+    for (auto i = 0; i != column_opt_num;)
     {
         update_column_gradient_and_flow(i);
-        update_link_and_column_volume(i + 1, false);
+        update_link_and_column_volume(++i, false);
         update_link_travel_time();
     }
 
@@ -152,6 +152,9 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 
     for (auto& [k, cv] : this->cp.get_column_vecs())
     {
+        if (!cv.get_column_num())
+            continue;
+        
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);

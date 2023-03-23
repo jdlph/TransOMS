@@ -584,7 +584,7 @@ std::string NetworkHandle::get_node_path_coordinates(const Column& c)
     return str;
 }
 
-void NetworkHandle::output_columns(const std::string& dir, const std::string& filename)
+void NetworkHandle::output_columns_seq(const std::string& dir, const std::string& filename)
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
 
