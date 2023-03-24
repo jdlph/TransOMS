@@ -54,25 +54,32 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 {
     double total_gap = 0;
     double total_sys_travel_time = 0;
+    int col_num = 0;
 
-#pragma opm parallel for shared(total_gap, total_sys_travel_time)
+#pragma opm parallel for shared(total_gap, total_sys_travel_time, col_num)
     for (auto& [k, cv] : this->cp.get_column_vecs())
     {
+        if (!cv.get_column_num())
+            continue;
+
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
         auto vot = ats[at_no]->get_vot();
 
-        const Column* p = nullptr;
+        if (!iter_no)
+            col_num += cv.get_column_num();
+
+        Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
 
-        for (auto& col : cv.get_columns())
+        for (auto& [hash_, col] : cv.get_columns())
         {
             double path_gradient_cost = 0;
             for (auto i : col.get_links())
                 path_gradient_cost += this->get_link(i)->get_generalized_cost(dp_no, vot);
 
-            const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
+            col.set_gradient_cost(path_gradient_cost);
 
             if (path_gradient_cost < least_gradient_cost)
             {
@@ -84,16 +91,16 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         double total_switched_out_vol = 0;
         if (cv.get_column_num() >= 2)
         {
-            for (auto& col : cv.get_columns())
+            for (auto& [hash_, col] : cv.get_columns())
             {
                 if (&col == p)
                     continue;
 
-                const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
+                col.update_gradient_cost_diffs(least_gradient_cost);
 
                 total_gap += col.get_gap();
                 total_sys_travel_time += col.get_sys_travel_time();
-                total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
+                total_switched_out_vol += col.shift_volume(iter_no);
             }
         }
 
@@ -101,9 +108,12 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         {
             total_sys_travel_time += p->get_sys_travel_time();
             if (total_switched_out_vol)
-                const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
+                p->increase_volume(total_switched_out_vol);
         }
     }
+
+    if (!iter_no)
+        std::cout << "column number " << col_num << '\n';
 
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
     std::cout << "column updating: " << iter_no
@@ -117,7 +127,7 @@ void NetworkHandle::update_column_attributes()
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);
-        for (auto& col : cv.get_columns())
+        for (auto& [hash_, col] : cv.get_columns())
         {
             double tt = 0;
             double pt = 0;
@@ -129,8 +139,8 @@ void NetworkHandle::update_column_attributes()
                 pt += link->get_toll();
             }
 
-            const_cast<Column&>(col).set_travel_time(tt);
-            const_cast<Column&>(col).set_toll(pt);
+            col.set_travel_time(tt);
+            col.set_toll(pt);
         }
     }
 }
@@ -154,13 +164,13 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     {
         if (!cv.get_column_num())
             continue;
-        
+
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(k);
         auto at_no = std::get<3>(k);
         auto pce = ats[at_no]->get_pce();
         // col is const
-        for (auto& col : cv.get_columns())
+        for (auto& [hash_, col] : cv.get_columns())
         {
             auto vol = col.get_volume() * pce;
             for (auto i : col.get_links())
@@ -170,7 +180,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
             }
 
             if (reduce_path_vol && !cv.is_route_fixed())
-                const_cast<Column&>(col).reduce_volume(iter_no);
+                col.reduce_volume(iter_no);
         }
     }
 }

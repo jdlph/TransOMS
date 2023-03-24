@@ -69,10 +69,19 @@ double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigne
 
 bool ColumnVec::has_column(const Column& c) const
 {
-    if (cols.find(c) != cols.end())
-        return true;
+    auto er = cols.equal_range(c.get_hash());
+    if (er.first == cols.end())
+        return false;
+    else
+    {
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->second.get_links() == c.get_links())
+                return true;
+        }
 
-    return false;
+        return false;
+    }
 }
 
 void ColumnVec::update(Column&& c, unsigned short iter_no)
@@ -80,11 +89,23 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
     // k_path_prob = 1 / (iter_no + 1)
     auto v = vol / (iter_no + 1);
 
-    auto it = cols.find(c);
-    if (it != cols.end())
-        const_cast<Column&>(*it).increase_volume(v);
+    auto er = cols.equal_range(c.get_hash());
+    if (er.first == cols.end())
+    {
+        c.increase_volume(v);
+        add_new_column(c);
+    }
     else
     {
+        for (auto it = er.first; it != er.second; ++it)
+        {
+            if (it->second.get_links() == c.get_links())
+            {
+                it->second.increase_volume(v);
+                return;
+            }
+        }
+
         c.increase_volume(v);
         add_new_column(c);
     }

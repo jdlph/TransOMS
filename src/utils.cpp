@@ -604,7 +604,7 @@ void NetworkHandle::output_columns_seq(const std::string& dir, const std::string
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
 
-        for (const auto& col : cv.get_columns())
+        for (const auto& [hash_, col] : cv.get_columns())
         {
             writer.append(++i);
             writer.append(this->get_zone_id(oz_no));
@@ -667,7 +667,7 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
 
-        for (const auto& col : cv.get_columns())
+        for (const auto& [hash_, col] : cv.get_columns())
         {
             writer.append(++i);
             writer.append(this->get_zone_id(oz_no));
