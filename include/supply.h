@@ -1223,16 +1223,16 @@ private:
      * node_costs: array of shortest path (in terms of generalized costs)
      *
      * note that next_nodes is inconsistent with the type of node_no but a network
-     * usually would not have more than2,147,483,647 nodes
+     * usually would not have more than 2,147,483,647 nodes
      */
     const Link** link_preds;
     double* link_costs;
     double* node_costs;
 
 #ifdef MLC_DEQUE
-    long* next_nodes;
-    const long null_node = -1;
-    const long past_node = -3;
+    int* next_nodes;
+    const int null_node = -1;
+    const int past_node = -3;
 #else
     std::priority_queue<HeapNode> min_heap;
     std::allocator<bool> bool_alloc;
@@ -1242,7 +1242,7 @@ private:
     // allocators to allocate dynamic memory in initialize() for the forgoing arrays
     // simply use new for intrinsic / built-in types??
     std::allocator<double> double_alloc;
-    std::allocator<long> long_alloc;
+    std::allocator<int> int_alloc;
     std::allocator<const Link*> link_alloc;
 };
 

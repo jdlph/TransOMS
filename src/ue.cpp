@@ -56,13 +56,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_gap = 0;
     double total_sys_travel_time = 0;
 
-#ifdef _OPENMP
-    const auto n1 = omp_get_num_threads();
-    const auto n2 = this->cp.get_column_vecs().size();
-    const int chunk = std::min(static_cast<int>((n2 / n1) * 0.5 + 1), n1);
-#endif
-
-    #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, chunk)
+    #pragma omp parallel for schedule(dynamic, CHUNK)
     for (auto& cv : this->cp.get_column_vecs())
     {
         if (!cv.get_column_num())
@@ -133,26 +127,18 @@ void NetworkHandle::update_column_attributes()
     double total_gap = 0;
     double total_sys_travel_time = 0;
 
-#ifdef _OPENMP
-    const auto n1 = omp_get_num_threads();
-    const auto n2 = this->cp.get_column_vecs().size();
-    const int chunk = std::min(static_cast<int>((n2 / n1) * 0.5 + 1), n1);
-#endif
-
-    #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, chunk)
+    #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, CHUNK)
     for (auto& cv : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(cv.get_key());
         for (auto& col : cv.get_columns())
         {
-            // #pragma omp critical
-            {
-                #pragma omp atomic
-                total_gap += col.get_gap();
-                #pragma omp atomic
-                total_sys_travel_time += col.get_sys_travel_time();
-            }
+            // avoid data racing
+            #pragma omp atomic
+            total_gap += col.get_gap();
+            #pragma omp atomic
+            total_sys_travel_time += col.get_sys_travel_time();
 
             double tt = 0;
             double pt = 0;
