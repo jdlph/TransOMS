@@ -137,7 +137,7 @@ void SPNetwork::initialize()
 #ifdef MLC_DEQUE
         next_nodes[i] = null_node;
 #else
-        marked[i] = false;
+        // marked[i] = false;
         min_heap.reset();
 #endif
     }
@@ -164,7 +164,7 @@ inline void SPNetwork::reset()
 #ifdef MLC_DEQUE
         next_nodes[i] = null_node;
 #else
-        marked[i] = false;
+        // marked[i] = false;
         min_heap.reset();
 #endif
     }

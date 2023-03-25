@@ -13,6 +13,7 @@
 
 #include <cmath>
 #include <utility>
+#include <vector>
 
 namespace transoms
 {
@@ -72,10 +73,8 @@ public:
     void reset()
     {
         num = 0;
-        // no need to reset keys and posns?
         for (auto i = 0; i != sz; ++i)
         {
-            keys[i] = 0;
             nodes[i] = 0;
             posns[i] = 0;
         }
@@ -95,7 +94,7 @@ private:
 
     size_type pred(size_type i) const
     {
-        if (posns[i] <= 0)
+        if (!posns[i])
             return i;
 
         size_type pos = std::ceil((posns[i]) / d);
@@ -105,7 +104,7 @@ private:
     auto succ(size_type i) const
     {
         auto s = (posns[i] - 1) * d + 3;
-        auto e = std::min(num - 1, posns[i] * d + 2);
+        auto e = std::min(num - 1, s + d - 1);
 
         return std::make_pair(s, e);
     }
@@ -113,7 +112,7 @@ private:
     auto minchild(size_type i) const
     {
         auto r = succ(i);
-        auto pos_ = r.first;
+        auto pos_ = r.first;        
         auto v = keys[nodes[pos_]];
     
         for (auto pos = ++r.first; pos <= r.second; ++pos)
@@ -140,6 +139,7 @@ private:
             swap(i, pred(i));
     }
 
+    // bottleneck??
     void swap(size_type i, size_type j)
     {
         auto temp = posns[i];
@@ -152,11 +152,15 @@ private:
     }
 
 private:
+    // node_no to key
     double* keys;
     // pos to node_no
     size_type* nodes;
     // node_no to pos
     size_type* posns;
+
+    // node_no, key
+    std::vector<std::pair<size_type, double>> dheap;
 
     unsigned short d;
     size_type num;
