@@ -67,56 +67,27 @@ double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigne
     }
 }
 
-// bool ColumnVec::has_column(const Column& c) const
-// {
-//     auto er = cols.equal_range(c.get_hash());
-//     if (er.first != cols.end())
-//     {
-//         for (auto it = er.first; it != er.second; ++it)
-//         {
-//             if (it->second.get_links() == c.get_links())
-//                 return true;
-//         }
-//     }
-
-//     return false;
-// }
-
-bool ColumnVec::has_column(const Column* c) const
+bool ColumnVec::has_column(const Column& c) const
 {
-    auto er = cols_.equal_range(c->get_hash());
-    if (er.first != cols_.end())
-    {
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->second->get_links() == c->get_links())
-                return true;
-        }
-    }
+    if (cols.find(c) != cols.end())
+        return true;
 
     return false;
 }
 
-void ColumnVec::update(Column* c, unsigned short iter_no)
+void ColumnVec::update(Column&& c, unsigned short iter_no)
 {
     // k_path_prob = 1 / (iter_no + 1)
     auto v = vol / (iter_no + 1);
 
-    auto er = cols_.equal_range(c->get_hash());
-    if (er.first != cols_.end())
+    auto it = cols.find(c);
+    if (it != cols.end())
+        const_cast<Column&>(*it).increase_volume(v);
+    else
     {
-        for (auto it = er.first; it != er.second; ++it)
-        {
-            if (it->second->get_links() == c->get_links())
-            {
-                it->second->increase_volume(v);
-                return;
-            }
-        }
+        c.increase_volume(v);
+        add_new_column(c);
     }
-
-    c->increase_volume(v);
-    add_new_column(c);
 }
 
 void SPNetwork::generate_columns(unsigned short iter_no)
@@ -236,8 +207,7 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
             continue;
 
         // move temporary Column. note that link_path will be moved as well!
-        // cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
-        cv.update(new Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
+        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
     }
 }
 

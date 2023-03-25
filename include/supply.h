@@ -645,21 +645,18 @@ public:
 
     size_type get_column_num() const
     {
-        // return cols.size();
-        return vec.size();
+        return cols.size();
     }
 
     auto& get_columns()
     {
-        // return cols;
-        return vec;
+        return cols;
     }
 
     // it might be useless according to Path4GMNS
     const auto& get_columns() const
     {
-        // return cols;
-        return vec;
+        return cols;
     }
 
     const auto& get_key() const
@@ -672,20 +669,14 @@ public:
         return vol;
     }
 
-    // void add_new_column(Column& c)
-    // {
-    //     cols.emplace(c.get_hash(), std::move(c));
-    // }
-
-    // void add_new_column(Column&& c)
-    // {
-    //     cols.emplace(c.get_hash(), c);
-    // }
-
-    void add_new_column(Column* c)
+    void add_new_column(Column& c)
     {
-        cols_.emplace(c->get_hash(), c);
-        vec.push_back(c);
+        cols.emplace(std::move(c));
+    }
+
+    void add_new_column(Column&& c)
+    {
+        cols.emplace(c);
     }
 
     void increase_volume(double v)
@@ -699,20 +690,15 @@ public:
     }
 
     bool has_column(const Column& c) const;
-    bool has_column(const Column* c) const;
 
     // move Column c
     void update(Column&& c, unsigned short iter_no);
-    void update(Column* c, unsigned short iter_no);
 
 private:
     double vol;
     bool route_fixed;
 
-    // std::unordered_multiset<Column, ColumnHash> cols;
-    // std::multimap<std::size_t, Column> cols;
-    std::multimap<std::size_t, Column*> cols_;
-    std::vector<Column*> vec;
+    std::unordered_multiset<Column, ColumnHash> cols;
     ColumnVecKey cvk;
 };
 
@@ -774,7 +760,6 @@ public:
     }
 
 private:
-    // std::map<ColumnVecKey, ColumnVec> cp;
     std::map<ColumnVecKey, size_type> pos;
     std::vector<ColumnVec> cp;
 };
