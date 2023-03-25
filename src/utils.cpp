@@ -593,13 +593,13 @@ void NetworkHandle::output_columns_seq(const std::string& dir, const std::string
                       "link_sequence", "node_sequence", "geometry"});
 
     size_type i = 0;
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (const auto& cv : cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
-        auto oz_no = std::get<0>(k);
-        auto dz_no = std::get<1>(k);
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto oz_no = std::get<0>(cv.get_key());
+        auto dz_no = std::get<1>(cv.get_key());
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
 
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
@@ -656,13 +656,13 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
                          "link_sequence", "node_sequence", "geometry");
 
     size_type i = 0;
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (const auto& cv : cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
-        auto oz_no = std::get<0>(k);
-        auto dz_no = std::get<1>(k);
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto oz_no = std::get<0>(cv.get_key());
+        auto dz_no = std::get<1>(cv.get_key());
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
 
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();

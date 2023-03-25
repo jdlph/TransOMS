@@ -416,10 +416,7 @@ public:
     {
     }
 
-    Column(const Column&)
-    {
-        int ii = 1;
-    }
+    Column(const Column&) = default;
     Column& operator=(const Column&) = delete;
 
     Column(Column&&) = default;
@@ -628,11 +625,15 @@ public:
     {
     }
 
+    explicit ColumnVec(const ColumnVecKey& cvk_) : cvk {cvk_}, vol {0}, route_fixed {false}
+    {
+    }
+
     ColumnVec(const ColumnVec&) = delete;
     ColumnVec& operator=(const ColumnVec&) = delete;
 
-    ColumnVec(ColumnVec&&) = delete;
-    ColumnVec& operator=(ColumnVec&&) = default;
+    ColumnVec(ColumnVec&&) = default;
+    ColumnVec& operator=(ColumnVec&&) = delete;
 
     ~ColumnVec() = default;
 
@@ -656,6 +657,11 @@ public:
     const auto& get_columns() const
     {
         return cols;
+    }
+
+    const auto& get_key() const
+    {
+        return cvk;
     }
 
     double get_volume() const
@@ -694,6 +700,7 @@ private:
 
     // std::unordered_multiset<Column, ColumnHash> cols;
     std::multimap<std::size_t, Column> cols;
+    ColumnVecKey cvk;
 };
 
 class ColumnPool {
@@ -708,34 +715,39 @@ public:
 
     ColumnVec& get_column_vec(const ColumnVecKey& k)
     {
-        return cp.at(k);
+        return cp[pos.at(k)];
     }
 
     const ColumnVec& get_column_vec(const ColumnVecKey& k) const
     {
-        return cp.at(k);
+        return cp[pos.at(k)];
     }
 
-    std::map<ColumnVecKey, ColumnVec>& get_column_vecs()
+    auto& get_column_vecs()
     {
         return cp;
     }
 
     bool contains_key(const ColumnVecKey& k) const
     {
-        return cp.find(k) != cp.end();
+        return pos.find(k) != pos.end();
     }
 
     void update(const ColumnVecKey& cvk, double vol)
     {
         if (!contains_key(cvk))
-            cp[cvk] = ColumnVec();
+        {
+            pos[cvk] = pos.size();
+            cp.push_back(ColumnVec(cvk));
+        }
 
-        cp[cvk].increase_volume(vol);
+        cp[pos[cvk]].increase_volume(vol);
     }
 
 private:
-    std::map<ColumnVecKey, ColumnVec> cp;
+    // std::map<ColumnVecKey, ColumnVec> cp;
+    std::map<ColumnVecKey, size_type> pos;
+    std::vector<ColumnVec> cp;
 };
 
 class Zone {

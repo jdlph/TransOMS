@@ -60,7 +60,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 #pragma omp parallel shared(total_gap, total_sys_travel_time, col_num)
     {
         #pragma omp single
-        for (auto& [k, cv] : this->cp.get_column_vecs())
+        for (auto& cv : this->cp.get_column_vecs())
         {
             // #pragma omp task private(cv) untied
             {
@@ -68,8 +68,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
                     continue;
 
                 // oz_no, dz_no, dp_no, at_no
-                auto dp_no = std::get<2>(k);
-                auto at_no = std::get<3>(k);
+                auto dp_no = std::get<2>(cv.get_key());
+                auto at_no = std::get<3>(cv.get_key());
                 auto vot = ats[at_no]->get_vot();
 
                 if (!iter_no)
@@ -129,10 +129,10 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
 void NetworkHandle::update_column_attributes()
 {
-    for (auto& [k, cv] : this->cp.get_column_vecs())
+    for (auto& cv : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(k);
+        auto dp_no = std::get<2>(cv.get_key());
         for (auto& [hash_, col] : cv.get_columns())
         {
             double tt = 0;
@@ -166,14 +166,14 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         link->reset_period_vol();
     }
 
-    for (auto& [k, cv] : this->cp.get_column_vecs())
+    for (auto& cv : this->cp.get_column_vecs())
     {
         if (!cv.get_column_num())
             continue;
 
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
         auto pce = ats[at_no]->get_pce();
         // col is const
         for (auto& [hash_, col] : cv.get_columns())
