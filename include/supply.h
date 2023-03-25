@@ -28,8 +28,7 @@ class SpecialEvent {
 public:
     SpecialEvent() = delete;
 
-    SpecialEvent(unsigned short beg_iter_no_, unsigned short end_iter_no_, std::string&& name_)
-        : beg_iter_no {beg_iter_no_}, end_iter_no {end_iter_no_}, name {name_}
+    SpecialEvent(std::string&& name_) : name {name_}
     {
     }
 
@@ -54,6 +53,11 @@ public:
     double get_cap_reduction_ratio(const std::string& link_id) const
     {
         return ratios.at(link_id);
+    }
+
+    const auto& get_capaicty_ratios() const
+    {
+        return ratios;
     }
 
     void add_affected_link(std::string& link_id, double r)
@@ -116,10 +120,15 @@ public:
         vol = 0;
     }
 
-    void run_bpr(double reduction_ratio = 1)
+    void run_bpr()
     {
         voc = cap > 0 ? vol / (cap * reduction_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
+    }
+
+    void set_reduction_ratio(double r)
+    {
+        reduction_ratio = r;
     }
 
 private:
@@ -135,6 +144,8 @@ private:
     double tt = std::numeric_limits<unsigned>::max();
     double voc = 0;
     double vol = 0;
+
+    double reduction_ratio = 1;
 };
 
 class Link {
@@ -264,7 +275,16 @@ public:
             v.reset_vol();
     }
 
-    void update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no);
+    void set_reduction_ratio(unsigned short i, double r)
+    {
+        vdfps[i].set_reduction_ratio(r);
+    }
+
+    void update_period_travel_time()
+    {
+        for (auto& vdf : vdfps)
+            vdf.run_bpr();
+    }
 
 private:
     std::string id;
@@ -550,6 +570,11 @@ public:
         vol *= iter_no / (iter_no + 1.0);
     }
 
+    void reset_gradient_diffs()
+    {
+        gc_ad = gc_rd = 0;
+    }
+
     void set_geometry(std::string&& s)
     {
         geo = s;
@@ -611,11 +636,15 @@ public:
     {
     }
 
+    explicit ColumnVec(const ColumnVecKey& cvk_) : cvk {cvk_}, vol {0}, route_fixed {false}
+    {
+    }
+
     ColumnVec(const ColumnVec&) = delete;
     ColumnVec& operator=(const ColumnVec&) = delete;
 
-    ColumnVec(ColumnVec&&) = delete;
-    ColumnVec& operator=(ColumnVec&&) = default;
+    ColumnVec(ColumnVec&&) = default;
+    ColumnVec& operator=(ColumnVec&&) = delete;
 
     ~ColumnVec() = default;
 
@@ -630,15 +659,20 @@ public:
         return cols.size();
     }
 
-    std::unordered_multiset<Column, ColumnHash>& get_columns()
+    auto& get_columns()
     {
         return cols;
     }
 
     // it might be useless according to Path4GMNS
-    const std::unordered_multiset<Column, ColumnHash>& get_columns() const
+    const auto& get_columns() const
     {
         return cols;
+    }
+
+    const auto& get_key() const
+    {
+        return cvk;
     }
 
     double get_volume() const
@@ -648,12 +682,12 @@ public:
 
     void add_new_column(Column& c)
     {
-        cols.emplace(c);
+        cols.emplace(std::move(c));
     }
 
     void add_new_column(Column&& c)
     {
-        cols.insert(c);
+        cols.emplace(c);
     }
 
     void increase_volume(double v)
@@ -676,6 +710,7 @@ private:
     bool route_fixed;
 
     std::unordered_multiset<Column, ColumnHash> cols;
+    ColumnVecKey cvk;
 };
 
 class ColumnPool {
@@ -690,34 +725,54 @@ public:
 
     ColumnVec& get_column_vec(const ColumnVecKey& k)
     {
-        return cp.at(k);
+        return cp[pos.at(k)];
     }
 
     const ColumnVec& get_column_vec(const ColumnVecKey& k) const
     {
-        return cp.at(k);
+        return cp[pos.at(k)];
     }
 
-    std::map<ColumnVecKey, ColumnVec>& get_column_vecs()
+    auto& get_column_vecs()
     {
         return cp;
     }
 
     bool contains_key(const ColumnVecKey& k) const
     {
-        return cp.find(k) != cp.end();
+        return pos.find(k) != pos.end();
+    }
+
+    bool contains_key(ColumnVecKey&& k) const
+    {
+        return pos.find(k) != pos.end();
     }
 
     void update(const ColumnVecKey& cvk, double vol)
     {
         if (!contains_key(cvk))
-            cp[cvk] = ColumnVec();
+        {
+            pos[cvk] = pos.size();
+            cp.push_back(ColumnVec(cvk));
+        }
 
-        cp[cvk].increase_volume(vol);
+        cp[pos[cvk]].increase_volume(vol);
+    }
+
+    void update(ColumnVecKey&& cvk, double vol)
+    {
+        if (!contains_key(cvk))
+        {
+            pos.emplace(cvk, pos.size());
+            cp.push_back(ColumnVec(cvk));
+        }
+
+        cp[pos[cvk]].increase_volume(vol);
     }
 
 private:
-    std::map<ColumnVecKey, ColumnVec> cp;
+    std::map<ColumnVecKey, size_type> pos;
+    std::vector<ColumnVec> cp;
 };
 
 class Zone {
@@ -949,6 +1004,16 @@ public:
         return nodes;
     }
 
+    Link* get_link(const std::string& link_id)
+    {
+        return links[get_link_no(link_id)];
+    }
+
+    const Link* get_link(const std::string& link_id) const
+    {
+        return links[get_link_no(link_id)];
+    }
+
     std::vector<Link*>& get_links() override
     {
         return links;
@@ -1126,6 +1191,16 @@ public:
         orig_nodes.push_back(z->get_centroid()->get_no());
     }
 
+    std::vector<const Link*>& get_outgoing_links(size_type node_no)
+    {
+        return outgoing_links[node_no];
+    }
+
+    const std::vector<const Link*>& get_outgoing_links(size_type node_no) const
+    {
+        return outgoing_links[node_no];
+    }
+
     void generate_columns(unsigned short iter_no);
 
 private:
@@ -1154,6 +1229,8 @@ private:
     PhyNetwork* pn;
 
     std::vector<size_type> orig_nodes;
+    // outgoing links of each node which are compatible with AgentType at
+    std::vector<std::vector<const Link*>> outgoing_links;
 
     /**
      * @brief arrays for shortest path calculation and construction
@@ -1164,16 +1241,16 @@ private:
      * node_costs: array of shortest path (in terms of generalized costs)
      *
      * note that next_nodes is inconsistent with the type of node_no but a network
-     * usually would not have more than2,147,483,647 nodes
+     * usually would not have more than 2,147,483,647 nodes
      */
     const Link** link_preds;
     double* link_costs;
     double* node_costs;
 
 #ifdef MLC_DEQUE
-    long* next_nodes;
-    const long null_node = -1;
-    const long past_node = -3;
+    int* next_nodes;
+    const int null_node = -1;
+    const int past_node = -3;
 #else
     // std::priority_queue<HeapNode> min_heap;
     MinHeap min_heap{2};
@@ -1184,7 +1261,7 @@ private:
     // allocators to allocate dynamic memory in initialize() for the forgoing arrays
     // simply use new for intrinsic / built-in types??
     std::allocator<double> double_alloc;
-    std::allocator<long> long_alloc;
+    std::allocator<int> int_alloc;
     std::allocator<const Link*> link_alloc;
 };
 

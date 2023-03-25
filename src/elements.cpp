@@ -11,7 +11,10 @@
 #include <supply.h>
 
 #include <stdexcept>
-#include <iostream>
+
+#ifdef MULTIPROCESSING
+#include <omp.h>
+#endif
 
 using namespace transoms;
 
@@ -38,6 +41,7 @@ void Agent::initialize_intervals()
     curr_link_no = n - 1;
 }
 
+// deprecated
 inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
 {
     if (!se)
@@ -49,6 +53,7 @@ inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
     return true;
 }
 
+// deprecated
 double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const
 {
     if (!contain_iter_no(iter_no))
@@ -87,18 +92,6 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
     }
 }
 
-void Link::update_period_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
-{
-    for (auto i = 0; i != vdfps.size(); ++i)
-    {
-        auto reduction_ratio = 1.0;
-        if (dps)
-            reduction_ratio = (*dps)[i]->get_cap_reduction_ratio(this->get_id(), iter_no);
-
-        vdfps[i].run_bpr(reduction_ratio);
-    }
-}
-
 void SPNetwork::generate_columns(unsigned short iter_no)
 {
     if (!iter_no)
@@ -128,7 +121,7 @@ void SPNetwork::initialize()
     link_preds = link_alloc.allocate(n);
 
 #ifdef MLC_DEQUE
-    next_nodes = long_alloc.allocate(n);
+    next_nodes = int_alloc.allocate(n);
 #else
     marked = bool_alloc.allocate(n);
     min_heap.reserve(n);
@@ -147,6 +140,18 @@ void SPNetwork::initialize()
         marked[i] = false;
         min_heap.reset();
 #endif
+    }
+
+    outgoing_links.reserve(n);
+    for (const auto node : get_nodes())
+    {
+        for (const auto link : node->get_outgoing_links())
+        {
+            if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
+                continue;
+
+            outgoing_links[node->get_no()].push_back(link);
+        }
     }
 }
 
@@ -170,10 +175,15 @@ void SPNetwork::update_link_costs()
     auto dp_no = dp->get_no();
     auto vot = at->get_vot();
 
+    #pragma omp parallel for
     for (auto p : get_links())
     {
         if (!p->get_length())
+#ifdef _OPENMP
+            continue;
+#else
             break;
+#endif
 
         link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
     }
@@ -228,19 +238,19 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
 {
     node_costs[src_node_no] = 0;
     next_nodes[src_node_no] = past_node;
-    // use long intentionally
+
     for (long cur_node = src_node_no, deq_head = null_node, deq_tail = null_node;;)
     {
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
-            for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
+            for (const auto link : get_outgoing_links(cur_node))
             {
                 if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
                     continue;
 
-                auto new_node = link->get_tail_node_no();
-                auto new_cost = node_costs[cur_node] + link_costs[link->get_no()];
+                size_type new_node = link->get_tail_node_no();
+                double new_cost = node_costs[cur_node] + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
                 {
                     node_costs[new_node] = new_cost;
@@ -320,23 +330,20 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
          * or WORSE than that of using std::vector. See the following link for more
          * discussions.
          *
+         * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
+         *
          * A special min-heap, which guarantees logarithmic time pop(), will be
          * introduced later.
-         *
-         * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
          */
         min_heap.pop();
+        if (marked[cur_node])
+            continue;
 
-        // cur_node has been scanned / labeled
-        // if (marked[cur_node])
-        //     continue;
-
-        // marked[cur_node] = true;
-
+        marked[cur_node] = true;
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
-            for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
+            for (const auto link : get_outgoing_links(cur_node))
             {
                 auto new_node = link->get_tail_node_no();
                 auto new_cost = cur_cost + link_costs[link->get_no()];
@@ -359,8 +366,6 @@ void NetworkHandle::setup_spnetworks()
 
     build_connectors();
 
-    constexpr unsigned memory_blocks = 1;
-
     size_type i = 0;
     for (auto& [k, z] : this->net.get_zones())
     {
@@ -370,7 +375,7 @@ void NetworkHandle::setup_spnetworks()
             {
                 auto at_no = d.get_agent_type_no();
                 auto at = this->ats[at_no];
-                if (i < memory_blocks)
+                if (i < thread_nums)
                 {
                     unsigned short no = spns.size();
                     spn_map[{dp->get_no(), at_no, i}] = no;
@@ -380,7 +385,7 @@ void NetworkHandle::setup_spnetworks()
                 }
                 else
                 {
-                    unsigned short m = i % memory_blocks;
+                    unsigned short m = i % thread_nums;
                     auto sp_no = spn_map[{dp->get_no(), at_no, m}];
                     auto sp = this->spns[sp_no];
                     sp->add_orig_nodes(z);

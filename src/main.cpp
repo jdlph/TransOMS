@@ -29,9 +29,14 @@ int main()
     nh.read_settings(dir);
     nh.read_network(dir);
     nh.read_demands(dir);
-    nh.find_ue(column_gen_num, column_opt_num);
 
     auto te = high_resolution_clock::now();
+    std::cout << "TransOMS loads input in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+
+    nh.find_ue(column_gen_num, column_opt_num);
+
+    // auto te = high_resolution_clock::now();
+    te = high_resolution_clock::now();
     std::cout << "TransOMS finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 
     ts = high_resolution_clock::now();

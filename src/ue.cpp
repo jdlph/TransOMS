@@ -8,28 +8,41 @@
 
 #include <handles.h>
 
+#include <chrono>
+#include <cmath>
 #include <iostream>
 
+#ifdef MULTIPROCESSING
+#include <omp.h>
+#endif
+
 using namespace transoms;
+using namespace std::chrono;
 
 void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column_opt_num)
 {
+    auto ts = high_resolution_clock::now();
     setup_spnetworks();
 
     for (auto i = 0; i != column_gen_num; ++i)
     {
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
-        update_link_travel_time(&this->dps, i);
+        update_link_travel_time();
+
+        #pragma omp parallel for
         for (auto spn : this->spns)
             spn->generate_columns(i);
     }
 
-    for (auto i = 0; i != column_opt_num; ++i)
+    auto te = high_resolution_clock::now();
+    std::cout << "TransOMS completes column generation in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+
+    for (auto i = 0; i != column_opt_num;)
     {
-        update_link_and_column_volume(i, false);
-        update_link_travel_time();
         update_column_gradient_and_flow(i);
+        update_link_and_column_volume(++i, false);
+        update_link_travel_time();
     }
 
     /**
@@ -37,26 +50,30 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
      *
      * path flow will keep constant any more after the last iteration.
      */
-    update_link_and_column_volume(column_gen_num, false);
-    update_link_travel_time();
     update_column_attributes();
 }
 
 void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 {
+#ifndef _OPENMP
     double total_gap = 0;
     double total_sys_travel_time = 0;
+#endif
 
-    for (auto& [k, cv] : this->cp.get_column_vecs())
+    #pragma omp parallel for schedule(dynamic, CHUNK)
+    for (auto& cv : this->cp.get_column_vecs())
     {
+        if (!cv.get_column_num())
+            continue;
+
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
         auto vot = ats[at_no]->get_vot();
 
         const Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
-
+        // col is const
         for (auto& col : cv.get_columns())
         {
             double path_gradient_cost = 0;
@@ -82,32 +99,52 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
                 const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
 
+#ifndef _OPENMP
                 total_gap += col.get_gap();
                 total_sys_travel_time += col.get_sys_travel_time();
+#endif
                 total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
             }
         }
 
         if (p)
         {
+#ifndef _OPENMP
             total_sys_travel_time += p->get_sys_travel_time();
+#endif
+            const_cast<Column*>(p)->reset_gradient_diffs();
             const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
         }
     }
 
+#ifndef _OPENMP
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
     std::cout << "column updating: " << iter_no
               << "\ntotal gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
+#else
+    std::cout << "column updating: " << iter_no << '\n';
+#endif
 }
 
 void NetworkHandle::update_column_attributes()
 {
-    for (auto& [k, cv] : this->cp.get_column_vecs())
+    double total_gap = 0;
+    double total_sys_travel_time = 0;
+
+    #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, CHUNK)
+    for (auto& cv : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(k);
+        auto dp_no = std::get<2>(cv.get_key());
+        // col is const
         for (auto& col : cv.get_columns())
         {
+            // avoid data racing
+            #pragma omp atomic
+            total_gap += col.get_gap();
+            #pragma omp atomic
+            total_sys_travel_time += col.get_sys_travel_time();
+
             double tt = 0;
             double pt = 0;
 
@@ -122,6 +159,9 @@ void NetworkHandle::update_column_attributes()
             const_cast<Column&>(col).set_toll(pt);
         }
     }
+
+    auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
+    std::cout << "Final UE Convergency | total gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
 }
 
 void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool reduce_path_vol)
@@ -130,19 +170,27 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         return;
 
     // reset link flow
+    #pragma omp parallel for
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
+#ifdef _OPENMP
+            continue;
+#else
             break;
+#endif
 
         link->reset_period_vol();
     }
 
-    for (auto& [k, cv] : this->cp.get_column_vecs())
+    for (auto& cv : this->cp.get_column_vecs())
     {
+        if (!cv.get_column_num())
+            continue;
+
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
         auto pce = ats[at_no]->get_pce();
         // col is const
         for (auto& col : cv.get_columns())
@@ -160,13 +208,18 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     }
 }
 
-void NetworkHandle::update_link_travel_time(const std::vector<const DemandPeriod*>* dps, short iter_no)
+void NetworkHandle::update_link_travel_time()
 {
+    #pragma omp parallel for
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
+#ifdef _OPENMP
+            continue;
+#else
             break;
+#endif
 
-        link->update_period_travel_time(dps, iter_no);
+        link->update_period_travel_time();
     }
 }

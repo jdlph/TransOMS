@@ -9,18 +9,20 @@
 #ifndef GUARD_GLOBAL_H
 #define GUARD_GLOBAL_H
 
-// #define MLC_DEQUE
+#define MLC_DEQUE
+#define MULTIPROCESSING
 
 #include <string>
 #include <tuple>
 
 namespace transoms
 {
-using size_type = unsigned long;
+using size_type = unsigned int;
 // origin zone no, destination zone no, demand period no, agent type no
 using ColumnVecKey = std::tuple<size_type, size_type, unsigned short, unsigned short>;
 
 // some constants
+constexpr unsigned short CHUNK = 256;
 constexpr unsigned short COORD_X = 91;
 constexpr unsigned short COORD_Y = 181;
 constexpr unsigned short MINUTES_IN_HOUR = 60;

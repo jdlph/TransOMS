@@ -375,8 +375,9 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         auto oz_no = this->net.get_zone_no(oz_id);
         auto dz_no = this->net.get_zone_no(dz_id);
 
-        ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
-        this->cp.update(cvk, vol);
+        // ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
+        // this->cp.update(cvk, vol);
+        this->cp.update(ColumnVecKey{oz_no, dz_no, dp_no, at_no}, vol);
 
         total_vol += vol;
     }
@@ -386,7 +387,6 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
 
 void NetworkHandle::read_network(const std::string& dir)
 {
-    // read_settings(dir);
     read_nodes(dir);
     read_links(dir);
 }
@@ -396,7 +396,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     YAML::Node settings = YAML::LoadFile(file_path);
 
     unsigned short i = 0;
-    const auto& agents = settings["agents"];
+    const auto& agents = settings["agent_type"];
     for (const auto& a : agents)
     {
         try
@@ -429,14 +429,14 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
         this->ats.push_back(new AgentType());
 
     unsigned short j = 0;
-    const auto& demand_periods = settings["demand_periods"];
+    const auto& demand_periods = settings["demand_period"];
     for (const auto& dp : demand_periods)
     {
         unsigned short k = 0;
         auto&& period = dp["period"].as<std::string>();
         auto&& time_period = dp["time_period"].as<std::string>();
 
-        const auto& demands = dp["demands"];
+        const auto& demands = dp["demand"];
         for (const auto& d : demands)
         {
             auto&& file_name = d["file_name"].as<std::string>();
@@ -454,12 +454,9 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                     auto enable = special_event["enable"].as<bool>();
                     if (enable)
                     {
-                        auto beg_iter = special_event["beg_iteration"].as<unsigned short>();
-                        auto end_iter = special_event["end_iteration"].as<unsigned short>();
+                        se = std::make_unique<SpecialEvent>(std::move(name));
 
-                        se = std::make_unique<SpecialEvent>(beg_iter, end_iter, std::move(name));
-
-                        const auto& affected_links = special_event["affected_links"];
+                        const auto& affected_links = special_event["affected_link"];
                         for (const auto& link : affected_links)
                         {
                             auto link_id = link["link_id"].as<std::string>();
@@ -527,6 +524,18 @@ void NetworkHandle::read_demands(const std::string& dir)
             auto file_path = dir + d.get_file_name();
             read_demand(file_path, dp_no, at_no);
         }
+
+        // set up capacity ratio of affected links from special event
+        const auto& se = dp->get_special_event();
+        if (!se)
+            continue;
+
+        for (const auto& [link_id, r] : se->get_capaicty_ratios())
+        {
+            // to do: wrap them into a single function?
+            auto link_ptr = this->get_link(link_id);
+            link_ptr->set_reduction_ratio(dp_no, r);
+        }
     }
 }
 
@@ -584,7 +593,7 @@ std::string NetworkHandle::get_node_path_coordinates(const Column& c)
     return str;
 }
 
-void NetworkHandle::output_columns(const std::string& dir, const std::string& filename)
+void NetworkHandle::output_columns_seq(const std::string& dir, const std::string& filename)
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
 
@@ -593,13 +602,13 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
                       "link_sequence", "node_sequence", "geometry"});
 
     size_type i = 0;
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (const auto& cv : cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
-        auto oz_no = std::get<0>(k);
-        auto dz_no = std::get<1>(k);
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto oz_no = std::get<0>(cv.get_key());
+        auto dz_no = std::get<1>(cv.get_key());
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
 
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
@@ -656,13 +665,13 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
                          "link_sequence", "node_sequence", "geometry");
 
     size_type i = 0;
-    for (auto& [k, cv] : cp.get_column_vecs())
+    for (const auto& cv : cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
-        auto oz_no = std::get<0>(k);
-        auto dz_no = std::get<1>(k);
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
+        auto oz_no = std::get<0>(cv.get_key());
+        auto dz_no = std::get<1>(cv.get_key());
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
 
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();

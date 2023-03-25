@@ -40,17 +40,17 @@ The **ongoing development** can be tracked through [Projects](https://github.com
 
 ## Build
 
-TransOMS is built on [C++17](https://en.cppreference.com/w/cpp/17) with [yaml-cpp](https://github.com/jbeder/yaml-cpp) parsing configuration file[^1] and [OpenMP](https://www.openmp.org/about/openmp-faq/#WhatIs) managing parallelization[^2].
+TransOMS is built on [C++17](https://en.cppreference.com/w/cpp/17) with [yaml-cpp](https://github.com/jbeder/yaml-cpp) parsing configuration file[^1] and [OpenMP](https://www.openmp.org/about/openmp-faq/#WhatIs) managing parallelization.
 
 yaml-cpp is precompiled as a static library and embedded in [lib](lib/). OpenMP requires an additional runtime library. Its detailed installation instruction is summarized [here](https://path4gmns.readthedocs.io/en/latest/usecases.html#target-to-paragraph).
 
-The build process is defined in [CMakeLists.txt](CMakeLists.txt) along with the above dependency specifications. You will need [CMake](https://cmake.org/download/) (3.0.0 or higher) to build the executable by running the following commands.
+The build process is defined in [CMakeLists.txt](CMakeLists.txt) along with the above dependency specifications. You will need [CMake](https://cmake.org/download/) (3.1.0 or higher) to build the executable by running the following commands.
 
 ```bash
 # from the root directory of TransOMS
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake .. -DCMAKE_BUILD_TYPE=Release
 $ cmake --build .
 ```
 
@@ -62,4 +62,3 @@ coming soon!
 ## Reference
 
 [^1]: TransOMS now supports Windows (x86), Linux (x86), macOS (x86), and Apple Silicon. Make sure you use **Clang** as the complier for **macOS**. Using g++ will lead to **compatibility issue** with yaml-cpp, which is built using Clang.
-[^2]: Not implemented yet. It will be available when the project is stabilized.

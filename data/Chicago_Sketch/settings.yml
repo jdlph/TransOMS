@@ -1,6 +1,6 @@
 ---
 # settings for Path4GMNS
-agents:
+agent_type:
   - type: a
     name: auto
     flow_type: 0
@@ -16,19 +16,16 @@ agents:
     free_speed: 10
     use_link_ffs: false
 
-demand_periods:
+demand_period:
   - period: AM
     time_period: 0700_0800
-    demands:
+    demand:
       - file_name: demand.csv
         agent_type: auto
     special_event:
       name: work_zone
       enable: false
-      # with respect to iterations in column generation
-      beg_iteration: 1
-      end_iteration: 20
-      affected_links:
+      affected_link:
         - link_id: 1
           reduction_ratio: 0.5
         - link_id: 2
