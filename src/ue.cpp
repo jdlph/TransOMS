@@ -9,6 +9,7 @@
 #include <handles.h>
 
 #include <chrono>
+#include <cmath>
 #include <iostream>
 
 #include <omp.h>
@@ -55,7 +56,13 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_gap = 0;
     double total_sys_travel_time = 0;
 
-    // #pragma omp parallel for shared(total_gap, total_sys_travel_time)
+#ifdef _OPENMP
+    const auto n1 = omp_get_num_threads();
+    const auto n2 = this->cp.get_column_vecs().size();
+    const int chunk = std::min(static_cast<int>((n2 / n1) * 0.5 + 1), n1);
+#endif
+
+    #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, chunk)
     for (auto& cv : this->cp.get_column_vecs())
     {
         if (!cv.get_column_num())
@@ -94,38 +101,59 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
                 const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
 
-                #pragma omp critical
-                {
-                    total_gap += col.get_gap();
-                    total_sys_travel_time += col.get_sys_travel_time();
-                    total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
-                }
+#ifndef _OPENMP
+                total_gap += col.get_gap();
+                total_sys_travel_time += col.get_sys_travel_time();
+#endif
+                total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
             }
         }
 
         if (p)
         {
-            #pragma omp atomic
+#ifndef _OPENMP
             total_sys_travel_time += p->get_sys_travel_time();
-            if (total_switched_out_vol)
-                const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
+#endif
+            const_cast<Column*>(p)->reset_gradient_diffs();
+            const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
         }
     }
 
+#ifndef _OPENMP
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
     std::cout << "column updating: " << iter_no
               << "\ntotal gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
+#else
+    std::cout << "column updating: " << iter_no << '\n';
+#endif
 }
 
 void NetworkHandle::update_column_attributes()
 {
-    #pragma omp parallel for
+    double total_gap = 0;
+    double total_sys_travel_time = 0;
+
+#ifdef _OPENMP
+    const auto n1 = omp_get_num_threads();
+    const auto n2 = this->cp.get_column_vecs().size();
+    const int chunk = std::min(static_cast<int>((n2 / n1) * 0.5 + 1), n1);
+#endif
+
+    #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, chunk)
     for (auto& cv : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(cv.get_key());
         for (auto& col : cv.get_columns())
         {
+            // #pragma omp critical
+            {
+                #pragma omp atomic
+                total_gap += col.get_gap();
+                #pragma omp atomic
+                total_sys_travel_time += col.get_sys_travel_time();
+            }
+
             double tt = 0;
             double pt = 0;
 
@@ -140,6 +168,9 @@ void NetworkHandle::update_column_attributes()
             const_cast<Column&>(col).set_toll(pt);
         }
     }
+
+    auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
+    std::cout << "Final UE Convergency | total gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
 }
 
 void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool reduce_path_vol)

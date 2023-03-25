@@ -564,6 +564,11 @@ public:
         vol *= iter_no / (iter_no + 1.0);
     }
 
+    void reset_gradient_diffs()
+    {
+        gc_ad = gc_rd = 0;
+    }
+
     void set_geometry(std::string&& s)
     {
         geo = s;
