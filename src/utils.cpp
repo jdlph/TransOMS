@@ -605,42 +605,42 @@ void NetworkHandle::output_columns_seq(const std::string& dir, const std::string
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
 
-        for (const auto& [hash_, col] : cv.get_columns())
+        for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
             writer.append(this->get_zone_id(oz_no));
             writer.append(this->get_zone_id(dz_no));
-            writer.append(col.get_no());
+            writer.append(col->get_no());
             writer.append(at_str);
             writer.append(dp_str);
-            writer.append(col.get_volume());
-            writer.append(col.get_toll());
-            writer.append(col.get_travel_time());
-            writer.append(col.get_dist());
+            writer.append(col->get_volume());
+            writer.append(col->get_toll());
+            writer.append(col->get_travel_time());
+            writer.append(col->get_dist());
 
-            for (auto j = col.get_link_num() - 1; j != 0; --j)
+            for (auto j = col->get_link_num() - 1; j != 0; --j)
             {
-                const auto link = this->get_link(col.get_link_no(j));
+                const auto link = this->get_link(col->get_link_no(j));
                 writer.append(link->get_id(), ";");
             }
-            const auto link = this->get_link(col.get_link_no(0));
+            const auto link = this->get_link(col->get_link_no(0));
             writer.append(link->get_id(), ",");
 
-            for (auto j = col.get_node_num() - 1; j != 0; --j)
+            for (auto j = col->get_node_num() - 1; j != 0; --j)
             {
-                const auto node = this->get_node(col.get_node_no(j));
+                const auto node = this->get_node(col->get_node_no(j));
                 writer.append(node->get_id(), ";");
             }
-            const auto node = this->get_node(col.get_node_no(0));
+            const auto node = this->get_node(col->get_node_no(0));
             writer.append(node->get_id(), ",");
 
             writer.append("\"LINESTRING (", "");
-            for (auto j = col.get_node_num() - 1; j != 0; --j)
+            for (auto j = col->get_node_num() - 1; j != 0; --j)
             {
-                const auto node_ = this->get_node(col.get_node_no(j));
+                const auto node_ = this->get_node(col->get_node_no(j));
                 writer.append(node_->get_coordinate_str(), ", ");
             }
-            const auto node_ = this->get_node(col.get_node_no(0));
+            const auto node_ = this->get_node(col->get_node_no(0));
             writer.append(node_->get_coordinate_str(), ")\"\n");
         }
     }
@@ -668,22 +668,22 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
         auto dp_str = dps[dp_no]->get_period();
         auto at_str = ats[at_no]->get_name();
 
-        for (const auto& [hash_, col] : cv.get_columns())
+        for (const auto& col : cv.get_columns())
         {
             writer.append(++i);
             writer.append(this->get_zone_id(oz_no));
             writer.append(this->get_zone_id(dz_no));
-            writer.append(col.get_no());
+            writer.append(col->get_no());
             writer.append(at_str);
             writer.append(dp_str);
-            writer.append(col.get_volume());
-            writer.append(col.get_toll());
-            writer.append(col.get_travel_time());
-            writer.append(col.get_dist());
+            writer.append(col->get_volume());
+            writer.append(col->get_toll());
+            writer.append(col->get_travel_time());
+            writer.append(col->get_dist());
 
-            auto link_path = this->get_link_path_str(col);
-            auto node_path = this->get_node_path_str(col);
-            auto geo = this->get_node_path_coordinates(col);
+            auto link_path = this->get_link_path_str(*col);
+            auto node_path = this->get_node_path_str(*col);
+            auto geo = this->get_node_path_coordinates(*col);
 
             // the followings are not working yet!!
             // auto link_path = std::async(&NetworkHandle::get_link_path_str, this, col);

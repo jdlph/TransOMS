@@ -26,7 +26,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
         update_link_travel_time();
-        
+
         #pragma omp parallel for
         for (auto spn : this->spns)
             spn->generate_columns(i);
@@ -69,40 +69,43 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
 
-        for (auto& [hash_, col] : cv.get_columns())
+        for (auto& col : cv.get_columns())
         {
             double path_gradient_cost = 0;
-            for (auto i : col.get_links())
+            for (auto i : col->get_links())
                 path_gradient_cost += this->get_link(i)->get_generalized_cost(dp_no, vot);
 
-            col.set_gradient_cost(path_gradient_cost);
+            col->set_gradient_cost(path_gradient_cost);
 
             if (path_gradient_cost < least_gradient_cost)
             {
                 least_gradient_cost = path_gradient_cost;
-                p = &col;
+                p = col;
             }
         }
 
         double total_switched_out_vol = 0;
         if (cv.get_column_num() >= 2)
         {
-            for (auto& [hash_, col] : cv.get_columns())
+            for (auto& col : cv.get_columns())
             {
-                if (&col == p)
+                if (col == p)
                     continue;
 
-                col.update_gradient_cost_diffs(least_gradient_cost);
+                col->update_gradient_cost_diffs(least_gradient_cost);
 
-                // #pragma omp atomic
-                total_gap += col.get_gap();
-                total_sys_travel_time += col.get_sys_travel_time();
-                total_switched_out_vol += col.shift_volume(iter_no);
+                #pragma omp critical
+                {
+                    total_gap += col->get_gap();
+                    total_sys_travel_time += col->get_sys_travel_time();
+                    total_switched_out_vol += col->shift_volume(iter_no);
+                }
             }
         }
 
         if (p)
         {
+            #pragma omp atomic
             total_sys_travel_time += p->get_sys_travel_time();
             if (total_switched_out_vol)
                 p->increase_volume(total_switched_out_vol);
@@ -121,20 +124,20 @@ void NetworkHandle::update_column_attributes()
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(cv.get_key());
-        for (auto& [hash_, col] : cv.get_columns())
+        for (auto& col : cv.get_columns())
         {
             double tt = 0;
             double pt = 0;
 
-            for (auto i : col.get_links())
+            for (auto i : col->get_links())
             {
                 const auto link = this->get_link(i);
                 tt += link->get_period_travel_time(dp_no);
                 pt += link->get_toll();
             }
 
-            col.set_travel_time(tt);
-            col.set_toll(pt);
+            col->set_travel_time(tt);
+            col->set_toll(pt);
         }
     }
 }
@@ -164,17 +167,17 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         auto at_no = std::get<3>(cv.get_key());
         auto pce = ats[at_no]->get_pce();
         // col is const
-        for (auto& [hash_, col] : cv.get_columns())
+        for (auto& col : cv.get_columns())
         {
-            auto vol = col.get_volume() * pce;
-            for (auto i : col.get_links())
+            auto vol = col->get_volume() * pce;
+            for (auto i : col->get_links())
             {
                 auto link = this->get_link(i);
                 link->increase_period_vol(dp_no, vol);
             }
 
             if (reduce_path_vol && !cv.is_route_fixed())
-                col.reduce_volume(iter_no);
+                col->reduce_volume(iter_no);
         }
     }
 }

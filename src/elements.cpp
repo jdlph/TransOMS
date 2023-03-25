@@ -67,14 +67,29 @@ double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigne
     }
 }
 
-bool ColumnVec::has_column(const Column& c) const
+// bool ColumnVec::has_column(const Column& c) const
+// {
+//     auto er = cols.equal_range(c.get_hash());
+//     if (er.first != cols.end())
+//     {
+//         for (auto it = er.first; it != er.second; ++it)
+//         {
+//             if (it->second.get_links() == c.get_links())
+//                 return true;
+//         }
+//     }
+
+//     return false;
+// }
+
+bool ColumnVec::has_column(const Column* c) const
 {
-    auto er = cols.equal_range(c.get_hash());
-    if (er.first != cols.end())
+    auto er = cols_.equal_range(c->get_hash());
+    if (er.first != cols_.end())
     {
         for (auto it = er.first; it != er.second; ++it)
         {
-            if (it->second.get_links() == c.get_links())
+            if (it->second->get_links() == c->get_links())
                 return true;
         }
     }
@@ -82,25 +97,25 @@ bool ColumnVec::has_column(const Column& c) const
     return false;
 }
 
-void ColumnVec::update(Column&& c, unsigned short iter_no)
+void ColumnVec::update(Column* c, unsigned short iter_no)
 {
     // k_path_prob = 1 / (iter_no + 1)
     auto v = vol / (iter_no + 1);
 
-    auto er = cols.equal_range(c.get_hash());
-    if (er.first != cols.end())
+    auto er = cols_.equal_range(c->get_hash());
+    if (er.first != cols_.end())
     {
         for (auto it = er.first; it != er.second; ++it)
         {
-            if (it->second.get_links() == c.get_links())
+            if (it->second->get_links() == c->get_links())
             {
-                it->second.increase_volume(v);
+                it->second->increase_volume(v);
                 return;
             }
         }
     }
 
-    c.increase_volume(v);
+    c->increase_volume(v);
     add_new_column(c);
 }
 
@@ -221,7 +236,8 @@ void SPNetwork::backtrace_shortest_path_tree(size_type src_node_no, unsigned sho
             continue;
 
         // move temporary Column. note that link_path will be moved as well!
-        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
+        // cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
+        cv.update(new Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, iter_no);
     }
 }
 
@@ -342,7 +358,7 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
             {
                 if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
                     continue;
-                
+
                 auto new_node = link->get_tail_node_no();
                 auto new_cost = cur_cost + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
