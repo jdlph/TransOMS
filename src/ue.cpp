@@ -10,6 +10,7 @@
 
 #include <chrono>
 #include <iostream>
+
 #include <omp.h>
 
 using namespace transoms;
@@ -27,7 +28,8 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
         update_link_travel_time();
-#pragma omp parallel for schedule (dynamic)
+        
+        #pragma omp parallel for schedule (dynamic)
         for (auto spn : this->spns)
             spn->generate_columns(i);
     }
@@ -56,7 +58,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_sys_travel_time = 0;
     int col_num = 0;
 
-#pragma omp parallel for shared(total_gap, total_sys_travel_time, col_num)
+    #pragma omp parallel for shared(total_gap, total_sys_travel_time, col_num)
     for (auto& cv : this->cp.get_column_vecs())
     {
         if (!cv.get_column_num())
@@ -68,6 +70,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         auto vot = ats[at_no]->get_vot();
 
         if (!iter_no)
+            // #pragma omp atomic
+            #pragma omp critical
             col_num += cv.get_column_num();
 
         Column* p = nullptr;
@@ -89,6 +93,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         }
 
         double total_switched_out_vol = 0;
+        #pragma omp critical
         if (cv.get_column_num() >= 2)
         {
             for (auto& [hash_, col] : cv.get_columns())
@@ -98,6 +103,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
                 col.update_gradient_cost_diffs(least_gradient_cost);
 
+                // #pragma omp atomic
                 total_gap += col.get_gap();
                 total_sys_travel_time += col.get_sys_travel_time();
                 total_switched_out_vol += col.shift_volume(iter_no);
@@ -106,11 +112,13 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
         if (p)
         {
+            #pragma omp critical
             total_sys_travel_time += p->get_sys_travel_time();
             if (total_switched_out_vol)
                 p->increase_volume(total_switched_out_vol);
         }
     }
+
 
     if (!iter_no)
         std::cout << "column number " << col_num << '\n';
