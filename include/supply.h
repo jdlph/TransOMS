@@ -1252,8 +1252,8 @@ private:
     const int null_node = -1;
     const int past_node = -3;
 #else
-    // std::priority_queue<HeapNode> min_heap;
-    MinHeap min_heap{2};
+    std::priority_queue<HeapNode> min_heap;
+    // MinHeap min_heap{2};
     std::allocator<bool> bool_alloc;
     bool* marked;
 #endif
