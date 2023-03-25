@@ -29,7 +29,7 @@ int main()
     nh.read_settings(dir);
     nh.read_network(dir);
     nh.read_demands(dir);
-    
+
     auto te = high_resolution_clock::now();
     std::cout << "TransOMS loads input in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 

@@ -137,6 +137,18 @@ void SPNetwork::initialize()
         marked[i] = false;
 #endif
     }
+
+    outgoing_links.reserve(n);
+    for (const auto node : get_nodes())
+    {
+        for (const auto link : node->get_outgoing_links())
+        {
+            if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
+                continue;
+
+            outgoing_links[node->get_no()].push_back(link);
+        }
+    }
 }
 
 inline void SPNetwork::reset()
@@ -224,11 +236,8 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
-            for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
+            for (const auto link : get_outgoing_links(cur_node))
             {
-                if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
-                    continue;
-
                 size_type new_node = link->get_tail_node_no();
                 double new_cost = node_costs[cur_node] + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])
@@ -309,10 +318,10 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
          * or WORSE than that of using std::vector. See the following link for more
          * discussions.
          *
+         * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
+         *
          * A special min-heap, which guarantees logarithmic time pop(), will be
          * introduced later.
-         *
-         * https://github.com/jdlph/shortest-path-algorithms#more-discussion-on-the-deque-implementations-in-c
          */
         min_heap.pop();
 
@@ -325,11 +334,8 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
-            for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
+            for (const auto link : get_outgoing_links(cur_node))
             {
-                if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
-                    continue;
-
                 auto new_node = link->get_tail_node_no();
                 auto new_cost = cur_cost + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])

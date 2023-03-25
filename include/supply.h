@@ -1185,6 +1185,16 @@ public:
         orig_nodes.push_back(z->get_centroid()->get_no());
     }
 
+    std::vector<const Link*>& get_outgoing_links(size_type node_no)
+    {
+        return outgoing_links[node_no];
+    }
+
+    const std::vector<const Link*>& get_outgoing_links(size_type node_no) const
+    {
+        return outgoing_links[node_no];
+    }
+
     void generate_columns(unsigned short iter_no);
 
 private:
@@ -1213,6 +1223,8 @@ private:
     PhyNetwork* pn;
 
     std::vector<size_type> orig_nodes;
+    // outgoing links of each node which are compatible with AgentType at
+    std::vector<std::vector<const Link*>> outgoing_links;
 
     /**
      * @brief arrays for shortest path calculation and construction
