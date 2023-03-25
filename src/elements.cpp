@@ -10,7 +10,7 @@
 #include <handles.h>
 #include <supply.h>
 
-#include  <stdexcept>
+#include <stdexcept>
 
 #include <omp.h>
 
@@ -172,7 +172,7 @@ void SPNetwork::update_link_costs()
     auto dp_no = dp->get_no();
     auto vot = at->get_vot();
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (auto p : get_links())
     {
         if (!p->get_length())
@@ -338,11 +338,11 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
         // no centroid traversing
         if (cur_node < get_last_thru_node_no() || cur_node == src_node_no)
         {
-            if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
-                continue;
-
             for (const auto link : get_nodes()[cur_node]->get_outgoing_links())
             {
+                if (!is_mode_compatible(link->get_allowed_modes(), at->get_name()))
+                    continue;
+                
                 auto new_node = link->get_tail_node_no();
                 auto new_cost = cur_cost + link_costs[link->get_no()];
                 if (new_cost < node_costs[new_node])

@@ -375,8 +375,9 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         auto oz_no = this->net.get_zone_no(oz_id);
         auto dz_no = this->net.get_zone_no(dz_id);
 
-        ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
-        this->cp.update(cvk, vol);
+        // ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
+        // this->cp.update(cvk, vol);
+        this->cp.update(ColumnVecKey{oz_no, dz_no, dp_no, at_no}, vol);
 
         total_vol += vol;
     }

@@ -733,11 +733,27 @@ public:
         return pos.find(k) != pos.end();
     }
 
+    bool contains_key(ColumnVecKey&& k) const
+    {
+        return pos.find(k) != pos.end();
+    }
+
     void update(const ColumnVecKey& cvk, double vol)
     {
         if (!contains_key(cvk))
         {
             pos[cvk] = pos.size();
+            cp.push_back(ColumnVec(cvk));
+        }
+
+        cp[pos[cvk]].increase_volume(vol);
+    }
+
+    void update(ColumnVecKey&& cvk, double vol)
+    {
+        if (!contains_key(cvk))
+        {
+            pos.emplace(cvk, pos.size());
             cp.push_back(ColumnVec(cvk));
         }
 

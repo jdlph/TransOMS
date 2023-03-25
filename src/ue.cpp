@@ -21,15 +21,13 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
     auto ts = high_resolution_clock::now();
     setup_spnetworks();
 
-    // omp_set_num_threads(8);
-
     for (auto i = 0; i != column_gen_num; ++i)
     {
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
         update_link_travel_time();
         
-        #pragma omp parallel for schedule (dynamic)
+        #pragma omp parallel for
         for (auto spn : this->spns)
             spn->generate_columns(i);
     }
@@ -56,9 +54,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 {
     double total_gap = 0;
     double total_sys_travel_time = 0;
-    int col_num = 0;
 
-    #pragma omp parallel for shared(total_gap, total_sys_travel_time, col_num)
+    #pragma omp parallel for shared(total_gap, total_sys_travel_time)
     for (auto& cv : this->cp.get_column_vecs())
     {
         if (!cv.get_column_num())
@@ -68,11 +65,6 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         auto dp_no = std::get<2>(cv.get_key());
         auto at_no = std::get<3>(cv.get_key());
         auto vot = ats[at_no]->get_vot();
-
-        if (!iter_no)
-            // #pragma omp atomic
-            #pragma omp critical
-            col_num += cv.get_column_num();
 
         Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
@@ -93,7 +85,6 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         }
 
         double total_switched_out_vol = 0;
-        #pragma omp critical
         if (cv.get_column_num() >= 2)
         {
             for (auto& [hash_, col] : cv.get_columns())
@@ -112,16 +103,11 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
         if (p)
         {
-            #pragma omp critical
             total_sys_travel_time += p->get_sys_travel_time();
             if (total_switched_out_vol)
                 p->increase_volume(total_switched_out_vol);
         }
     }
-
-
-    if (!iter_no)
-        std::cout << "column number " << col_num << '\n';
 
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
     std::cout << "column updating: " << iter_no
@@ -130,6 +116,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
 void NetworkHandle::update_column_attributes()
 {
+    #pragma omp parallel for
     for (auto& cv : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
@@ -158,7 +145,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         return;
 
     // reset link flow
-#pragma omp parallel for
+    #pragma omp parallel for
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
@@ -194,7 +181,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 
 void NetworkHandle::update_link_travel_time()
 {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())

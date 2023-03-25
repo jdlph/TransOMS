@@ -19,8 +19,8 @@ int main()
 {
     auto ts = high_resolution_clock::now();
 
-    // const std::string dir {"../data/Chicago_Regional/"};
-    const std::string dir {"../data/Chicago_Sketch/"};
+    const std::string dir {"../data/Chicago_Regional/"};
+    // const std::string dir {"../data/Chicago_Sketch/"};
 
     unsigned short column_gen_num = 20;
     unsigned short column_opt_num = 20;
@@ -29,9 +29,14 @@ int main()
     nh.read_settings(dir);
     nh.read_network(dir);
     nh.read_demands(dir);
+    
+    auto te = high_resolution_clock::now();
+    std::cout << "TransOMS loads input in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+
     nh.find_ue(column_gen_num, column_opt_num);
 
-    auto te = high_resolution_clock::now();
+    // auto te = high_resolution_clock::now();
+    te = high_resolution_clock::now();
     std::cout << "TransOMS finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
 
     ts = high_resolution_clock::now();
