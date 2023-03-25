@@ -12,7 +12,9 @@
 
 #include <stdexcept>
 
+#ifdef MULTIPROCESSING
 #include <omp.h>
+#endif
 
 using namespace transoms;
 
@@ -174,7 +176,11 @@ void SPNetwork::update_link_costs()
     for (auto p : get_links())
     {
         if (!p->get_length())
-            continue;;
+#ifdef _OPENMP
+            continue;
+#else
+            break;
+#endif
 
         link_costs[p->get_no()] = p->get_generalized_cost(dp_no, vot);
     }

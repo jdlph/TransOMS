@@ -7,7 +7,7 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_BUILD_TYPE Release)
 
-add_executable(${PROJECT_NAME}.gradient src/main.cpp src/elements.cpp src/ue.cpp src/utils.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/elements.cpp src/ue.cpp src/utils.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -32,10 +32,10 @@ endif()
 
 find_package(OpenMP REQUIRED)
 find_library(YAML_CPP ${YAML_CPP_LIB_NAME} PATHS lib)
-target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC ${YAML_CPP})
-target_link_libraries(${PROJECT_NAME}.gradient PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${YAML_CPP})
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 
 # it is for std::experimental::filesystem in utils.cpp if g++ happens to be the compiler
 if (CMAKE_COMPILER_IS_GNUCXX)
-    target_link_libraries(${PROJECT_NAME}.gradient LINK_PUBLIC stdc++fs)
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC stdc++fs)
 endif()

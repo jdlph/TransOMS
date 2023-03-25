@@ -12,7 +12,9 @@
 #include <cmath>
 #include <iostream>
 
+#ifdef MULTIPROCESSING
 #include <omp.h>
+#endif
 
 using namespace transoms;
 using namespace std::chrono;
@@ -53,8 +55,10 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 
 void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 {
+#ifndef _OPENMP
     double total_gap = 0;
     double total_sys_travel_time = 0;
+#endif
 
     #pragma omp parallel for schedule(dynamic, CHUNK)
     for (auto& cv : this->cp.get_column_vecs())
@@ -69,7 +73,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
         const Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
-
+        // col is const
         for (auto& col : cv.get_columns())
         {
             double path_gradient_cost = 0;
@@ -132,6 +136,7 @@ void NetworkHandle::update_column_attributes()
     {
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(cv.get_key());
+        // col is const
         for (auto& col : cv.get_columns())
         {
             // avoid data racing
@@ -169,7 +174,11 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
+#ifdef _OPENMP
             continue;
+#else
+            break;
+#endif
 
         link->reset_period_vol();
     }
@@ -205,7 +214,11 @@ void NetworkHandle::update_link_travel_time()
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
+#ifdef _OPENMP
             continue;
+#else
+            break;
+#endif
 
         link->update_period_travel_time();
     }

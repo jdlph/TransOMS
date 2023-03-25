@@ -323,6 +323,11 @@ public:
         return ds;
     }
 
+    const auto& get_special_event() const
+    {
+        return se;
+    }
+
     bool contain_iter_no(unsigned short iter_no) const;
     double get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const;
 

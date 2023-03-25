@@ -48,12 +48,12 @@ public:
         return net.get_links()[link_no];
     }
 
-    const Link* get_link(std::string& link_id) const
+    const Link* get_link(const std::string& link_id) const
     {
         return net.get_link(link_id);
     }
 
-    Link* get_link(std::string& link_id)
+    Link* get_link(const std::string& link_id)
     {
         return net.get_link(link_id);
     }

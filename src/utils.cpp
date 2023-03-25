@@ -387,7 +387,6 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
 
 void NetworkHandle::read_network(const std::string& dir)
 {
-    // read_settings(dir);
     read_nodes(dir);
     read_links(dir);
 }
@@ -463,9 +462,6 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                             auto link_id = link["link_id"].as<std::string>();
                             auto rr = link["reduction_ratio"].as<double>();
                             se->add_affected_link(link_id, rr);
-                            // to do: wrap them into a single function?
-                            auto link_ptr = this->get_link(link_id);
-                            link_ptr->set_reduction_ratio(j, rr);
                         }
                     }
                 }
@@ -527,6 +523,18 @@ void NetworkHandle::read_demands(const std::string& dir)
             auto at_no = d.get_agent_type_no();
             auto file_path = dir + d.get_file_name();
             read_demand(file_path, dp_no, at_no);
+        }
+
+        // set up capacity ratio of affected links from special event
+        const auto& se = dp->get_special_event();
+        if (!se)
+            continue;
+
+        for (const auto& [link_id, r] : se->get_capaicty_ratios())
+        {
+            // to do: wrap them into a single function?
+            auto link_ptr = this->get_link(link_id);
+            link_ptr->set_reduction_ratio(dp_no, r);
         }
     }
 }

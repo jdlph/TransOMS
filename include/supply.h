@@ -54,6 +54,11 @@ public:
         return ratios.at(link_id);
     }
 
+    const auto& get_capaicty_ratios() const
+    {
+        return ratios;
+    }
+
     void add_affected_link(std::string& link_id, double r)
     {
         ratios[link_id] = r;

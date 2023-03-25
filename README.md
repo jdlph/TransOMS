@@ -50,7 +50,7 @@ The build process is defined in [CMakeLists.txt](CMakeLists.txt) along with the 
 # from the root directory of TransOMS
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake .. -DCMAKE_BUILD_TYPE=Release
 $ cmake --build .
 ```
 
