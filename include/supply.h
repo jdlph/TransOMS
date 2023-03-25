@@ -416,7 +416,10 @@ public:
     {
     }
 
-    Column(const Column&) = default;
+    Column(const Column&)
+    {
+        int ii = 1;
+    }
     Column& operator=(const Column&) = delete;
 
     Column(Column&&) = default;

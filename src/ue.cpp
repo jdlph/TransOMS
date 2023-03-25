@@ -56,59 +56,66 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_sys_travel_time = 0;
     int col_num = 0;
 
-#pragma opm parallel for shared(total_gap, total_sys_travel_time, col_num)
-    for (auto& [k, cv] : this->cp.get_column_vecs())
+// #pragma omp parallel for shared(total_gap, total_sys_travel_time, col_num) private(k, cv)
+#pragma omp parallel shared(total_gap, total_sys_travel_time, col_num)
     {
-        if (!cv.get_column_num())
-            continue;
-
-        // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(k);
-        auto at_no = std::get<3>(k);
-        auto vot = ats[at_no]->get_vot();
-
-        if (!iter_no)
-            col_num += cv.get_column_num();
-
-        Column* p = nullptr;
-        double least_gradient_cost = std::numeric_limits<double>::max();
-
-        for (auto& [hash_, col] : cv.get_columns())
+        #pragma omp single
+        for (auto& [k, cv] : this->cp.get_column_vecs())
         {
-            double path_gradient_cost = 0;
-            for (auto i : col.get_links())
-                path_gradient_cost += this->get_link(i)->get_generalized_cost(dp_no, vot);
-
-            col.set_gradient_cost(path_gradient_cost);
-
-            if (path_gradient_cost < least_gradient_cost)
+            // #pragma omp task private(cv) untied
             {
-                least_gradient_cost = path_gradient_cost;
-                p = &col;
-            }
-        }
-
-        double total_switched_out_vol = 0;
-        if (cv.get_column_num() >= 2)
-        {
-            for (auto& [hash_, col] : cv.get_columns())
-            {
-                if (&col == p)
+                if (!cv.get_column_num())
                     continue;
 
-                col.update_gradient_cost_diffs(least_gradient_cost);
+                // oz_no, dz_no, dp_no, at_no
+                auto dp_no = std::get<2>(k);
+                auto at_no = std::get<3>(k);
+                auto vot = ats[at_no]->get_vot();
 
-                total_gap += col.get_gap();
-                total_sys_travel_time += col.get_sys_travel_time();
-                total_switched_out_vol += col.shift_volume(iter_no);
+                if (!iter_no)
+                    col_num += cv.get_column_num();
+
+                Column* p = nullptr;
+                double least_gradient_cost = std::numeric_limits<double>::max();
+
+                for (auto& [hash_, col] : cv.get_columns())
+                {
+                    double path_gradient_cost = 0;
+                    for (auto i : col.get_links())
+                        path_gradient_cost += this->get_link(i)->get_generalized_cost(dp_no, vot);
+
+                    col.set_gradient_cost(path_gradient_cost);
+
+                    if (path_gradient_cost < least_gradient_cost)
+                    {
+                        least_gradient_cost = path_gradient_cost;
+                        p = &col;
+                    }
+                }
+
+                double total_switched_out_vol = 0;
+                if (cv.get_column_num() >= 2)
+                {
+                    for (auto& [hash_, col] : cv.get_columns())
+                    {
+                        if (&col == p)
+                            continue;
+
+                        col.update_gradient_cost_diffs(least_gradient_cost);
+
+                        total_gap += col.get_gap();
+                        total_sys_travel_time += col.get_sys_travel_time();
+                        total_switched_out_vol += col.shift_volume(iter_no);
+                    }
+                }
+
+                if (p)
+                {
+                    total_sys_travel_time += p->get_sys_travel_time();
+                    if (total_switched_out_vol)
+                        p->increase_volume(total_switched_out_vol);
+                }
             }
-        }
-
-        if (p)
-        {
-            total_sys_travel_time += p->get_sys_travel_time();
-            if (total_switched_out_vol)
-                p->increase_volume(total_switched_out_vol);
         }
     }
 
@@ -122,7 +129,6 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
 void NetworkHandle::update_column_attributes()
 {
-#pragma opm parallel for shared()
     for (auto& [k, cv] : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
