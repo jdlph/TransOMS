@@ -989,6 +989,7 @@ public:
         return node_id_no_map.at(node_id);
     }
 
+    // to do: use [] to boost the performance as zone_id is guaranteed to be valid
     size_type get_zone_no(const std::string& zone_id) const
     {
         return zones.at(zone_id)->get_no();

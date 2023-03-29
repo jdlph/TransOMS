@@ -12,7 +12,7 @@
 
 #include <stdexcept>
 
-#ifdef MULTIPROCESSING
+#ifdef PARALLEL
 #include <omp.h>
 #endif
 
@@ -175,7 +175,9 @@ void SPNetwork::update_link_costs()
     auto dp_no = dp->get_no();
     auto vot = at->get_vot();
 
+#ifdef _OPENMP
     #pragma omp parallel for
+#endif
     for (auto p : get_links())
     {
         if (!p->get_length())

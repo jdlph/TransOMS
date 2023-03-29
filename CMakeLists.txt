@@ -4,6 +4,9 @@ project(TransOMS VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
+option(PARALLEL ON)
+configure_file(build_config.h.in build_config.h)
+
 set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_BUILD_TYPE Release)
 
@@ -24,16 +27,25 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
         set(YAML_CPP_LIB_NAME yaml-cpp_mac-x86)
     endif()
-    set(CMAKE_CXX_FLAGS "-Xpreprocessor -fopenmp-version=50 -fpic")
+
+    if (PARALLEL)
+        set(CMAKE_CXX_FLAGS "-Xpreprocessor -fopenmp-version=50 -fpic")
+    endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(YAML_CPP_LIB_NAME yaml-cpp_linux)
-    set(CMAKE_CXX_FLAGS "-fopenmp -fpic")
+
+    if (PARALLEL)
+        set(CMAKE_CXX_FLAGS "-fopenmp -fpic")
+    endif()
 endif()
 
-find_package(OpenMP REQUIRED)
 find_library(YAML_CPP ${YAML_CPP_LIB_NAME} PATHS lib)
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${YAML_CPP})
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+
+if (PARALLEL)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 # it is for std::experimental::filesystem in utils.cpp if g++ happens to be the compiler
 if (CMAKE_COMPILER_IS_GNUCXX)

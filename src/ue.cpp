@@ -12,7 +12,7 @@
 #include <cmath>
 #include <iostream>
 
-#ifdef MULTIPROCESSING
+#ifdef PARALLEL
 #include <omp.h>
 #endif
 
@@ -30,7 +30,9 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         update_link_and_column_volume(i);
         update_link_travel_time();
 
+#ifdef _OPENMP
         #pragma omp parallel for
+#endif
         for (auto spn : this->spns)
             spn->generate_columns(i);
     }
@@ -60,7 +62,9 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
     double total_sys_travel_time = 0;
 #endif
 
+#ifdef _OPENMP
     #pragma omp parallel for schedule(dynamic, CHUNK)
+#endif
     for (auto& cv : this->cp.get_column_vecs())
     {
         if (!cv.get_column_num())
@@ -131,7 +135,9 @@ void NetworkHandle::update_column_attributes()
     double total_gap = 0;
     double total_sys_travel_time = 0;
 
+#ifdef _OPENMP
     #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, CHUNK)
+#endif
     for (auto& cv : this->cp.get_column_vecs())
     {
         // oz_no, dz_no, dp_no, at_no
@@ -170,7 +176,9 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         return;
 
     // reset link flow
+#ifdef _OPENMP
     #pragma omp parallel for
+#endif
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())
@@ -210,7 +218,9 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 
 void NetworkHandle::update_link_travel_time()
 {
+#ifdef _OPENMP
     #pragma omp parallel for
+#endif
     for (auto link : this->net.get_links())
     {
         if (!link->get_length())

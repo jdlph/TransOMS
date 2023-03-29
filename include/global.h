@@ -10,7 +10,6 @@
 #define GUARD_GLOBAL_H
 
 #define MLC_DEQUE
-#define MULTIPROCESSING
 
 #include <string>
 #include <tuple>

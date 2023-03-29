@@ -156,21 +156,21 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             continue;
         }
 
-        double len;
+        size_type head_node_no, tail_node_no;
         try
         {
-            len = std::stod(line["length"]);
+            head_node_no = this->net.get_node_no(head_node_id);
+            tail_node_no = this->net.get_node_no(tail_node_id);
         }
         catch(const std::exception& e)
         {
             continue;
         }
 
-        size_type head_node_no, tail_node_no;
+        double len;
         try
         {
-            head_node_no = this->net.get_node_no(head_node_id);
-            tail_node_no = this->net.get_node_no(tail_node_id);
+            len = std::stod(line["length"]);
         }
         catch(const std::exception& e)
         {
@@ -375,8 +375,6 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         auto oz_no = this->net.get_zone_no(oz_id);
         auto dz_no = this->net.get_zone_no(dz_id);
 
-        // ColumnVecKey cvk {oz_no, dz_no, dp_no, at_no};
-        // this->cp.update(cvk, vol);
         this->cp.update(ColumnVecKey{oz_no, dz_no, dp_no, at_no}, vol);
 
         total_vol += vol;
@@ -533,8 +531,15 @@ void NetworkHandle::read_demands(const std::string& dir)
         for (const auto& [link_id, r] : se->get_capaicty_ratios())
         {
             // to do: wrap them into a single function?
-            auto link_ptr = this->get_link(link_id);
-            link_ptr->set_reduction_ratio(dp_no, r);
+            try
+            {
+                auto link = this->get_link(link_id);
+                link->set_reduction_ratio(dp_no, r);
+            }
+            catch (std::out_of_range& re)
+            {
+                continue;
+            }
         }
     }
 }
