@@ -77,14 +77,12 @@ class VDFPeriod {
 public:
     VDFPeriod() = delete;
 
-    VDFPeriod(double cap_, double fftt_)
-        : no {0}, alpha {0.15}, beta {4}, mu {1000}, cap {cap_}, fftt {fftt_}
+    VDFPeriod(double cap_, double fftt_) : cap {cap_}, fftt {fftt_}
     {
     }
 
-    VDFPeriod(unsigned short no_, double alpha_ = 0.15, double beta_ = 4,
-              double mu_ = 1000, double cap_ = 1999, double fftt_ = std::numeric_limits<unsigned>::max())
-        : no {no_}, alpha {alpha_}, beta {beta_}, mu {mu_}, cap {cap_}, fftt {fftt_}
+    VDFPeriod(unsigned short no_, double alpha_, double beta_, double cap_ , double fftt_)
+        : no {no_}, alpha {alpha_}, beta {beta_}, cap {cap_}, fftt {fftt_}
     {
     }
 
@@ -136,14 +134,14 @@ public:
     }
 
 private:
-    unsigned short no;
+    unsigned short no = 0;
 
-    double alpha;
-    double beta;
-    double mu;
+    double alpha = 0.15;
+    double beta = 4;
+    // double mu = 1000;
 
-    double cap;
-    double fftt;
+    double cap = 1999;
+    double fftt = std::numeric_limits<unsigned>::max();
 
     double tt = std::numeric_limits<unsigned>::max();
     double voc = 0;

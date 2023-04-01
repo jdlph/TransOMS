@@ -32,6 +32,17 @@ using namespace std::filesystem;
 using namespace std::experimental::filesystem;
 #endif
 
+struct Positions {
+    Positions() : alpha_pos {-1}, beta_pos {-1}, cap_pos {-1}, fftt_pos {-1}
+    {
+    }
+
+    int alpha_pos;
+    int beta_pos;
+    int cap_pos;
+    int fftt_pos;
+};
+
 void NetworkHandle::read_nodes(const std::string& dir, const std::string& filename)
 {
     auto reader = miocsv::DictReader(dir + '/' + filename);
@@ -123,59 +134,58 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
     auto reader = miocsv::DictReader(dir + '/' + filename);
 
     const auto& headers = reader.get_fieldnames();
-
-    using Positions = std::tuple<int, int, int, int, int>;
     std::vector<Positions> vec;
 
     for (unsigned short i = 0; i != this->dps.size(); ++i)
     {
         auto dp_id = std::to_string(i + 1);
 
-        auto header_vdf_alpha = "VDF_alpha" + dp_id;
-        auto header_vdf_beta = "VDF_beta" + dp_id;
-        auto header_vdf_mu = "VDF_mu" + dp_id;
-        auto header_vdf_fftt = "VDF_fftt" + dp_id;
-        auto header_vdf_cap = "VDF_cap" + dp_id;
-        // auto header_vdf_phf = "VDF_phf" + dp_id;
+        auto header_vdf_alpha {"VDF_alpha" + dp_id};
+        auto header_vdf_beta {"VDF_beta" + dp_id};
+        auto header_vdf_cap {"VDF_cap" + dp_id};
+        auto header_vdf_fftt {"VDF_fftt" + dp_id};
 
-        int a = -1;
-        int b = -1;
-        int c = -1;
-        int f = -1;
-        int m = -1;
+        Positions posn;
 
-        if (headers.find(header_vdf_alpha) == headers.end())
-            break;
-        else
-            a = headers.at(header_vdf_alpha);
+        try
+        {
+            posn.alpha_pos = headers.at(header_vdf_alpha);
+        }
+        catch(const std::range_error& re)
+        {
+            if (i)
+                break;
+        }
 
-        if (headers.find(header_vdf_beta) == headers.end())
-            break;
-        else
-            b = headers.at(header_vdf_beta);
+        try
+        {
+            posn.beta_pos = headers.at(header_vdf_beta);
+        }
+        catch(const std::range_error& re)
+        {
+            if (i)
+                break;
+        }
 
-        if (headers.find(header_vdf_mu) == headers.end())
+        try
+        {
+            posn.cap_pos = headers.at(header_vdf_cap);
+        }
+        catch(const std::range_error& re)
         {
             // do nothing
         }
-        else
-            m = headers.at(header_vdf_mu);
 
-        if (headers.find(header_vdf_fftt) == headers.end())
+        try
+        {
+            posn.fftt_pos = headers.at(header_vdf_fftt);
+        }
+        catch(const std::range_error& re)
         {
             // do nothing
         }
-        else
-            f = headers.at(header_vdf_fftt);
 
-        if (headers.find(header_vdf_cap) == headers.end())
-        {
-            // do nothing
-        }
-        else
-            c = headers.at(header_vdf_cap);
-
-        vec.push_back(Positions{a, b, m, f, c});
+        vec.emplace_back(posn);
     }
 
     size_type link_no = 0;
@@ -306,15 +316,13 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             continue;
         }
 
-        // to do : optimize it by checking if those headers are existing in the first place
-        // for (unsigned short i = 0; i != this->dps.size(); ++i)
         unsigned short i = 0;
         for (const auto& posn : vec)
         {
             double vdf_alpha = 0.15;
             try
             {
-                vdf_alpha = std::stod(line[std::get<0>(posn)]);
+                vdf_alpha = std::stod(line[posn.alpha_pos]);
             }
             catch(const std::exception& e)
             {
@@ -325,57 +333,35 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_beta = 4;
             try
             {
-                vdf_beta = std::stod(line[std::get<1>(posn)]);
+                vdf_beta = std::stod(line[posn.beta_pos]);
             }
             catch(const std::exception& e)
             {
                 if (i)
                     break;
-            }
-
-            double vdf_mu = 1000;
-            try
-            {
-                vdf_mu = std::stod(line[std::get<2>(posn)]);
-            }
-            catch(const std::exception& e)
-            {
-                if (i)
-                    break;
-            }
-
-            double vdf_fftt = link->get_fftt();
-            try
-            {
-                vdf_fftt = std::stod(line[std::get<3>(posn)]);
-            }
-            catch(const std::exception& e)
-            {
-                // do nothing
             }
 
             double vdf_cap = link->get_cap();
             try
             {
-                vdf_cap = std::stod(line[std::get<4>(posn)]);
+                vdf_cap = std::stod(line[posn.cap_pos]);
             }
             catch(const std::exception& e)
             {
                 // do nothing
             }
 
-            // not used in the current implementation
-            // double vdf_phf = -1;
-            // try
-            // {
-            //     vdf_phf = std::stod(line[header_vdf_phf]);
-            // }
-            // catch(const std::exception& e)
-            // {
-            //     // do nothing
-            // }
+            double vdf_fftt = link->get_fftt();
+            try
+            {
+                vdf_fftt = std::stod(line[posn.fftt_pos]);
+            }
+            catch(const std::exception& e)
+            {
+                // do nothing
+            }
 
-            link->add_vdfperiod(VDFPeriod{i++, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt});
+            link->add_vdfperiod(VDFPeriod{i++, vdf_alpha, vdf_beta, vdf_cap, vdf_fftt});
         }
     }
 
