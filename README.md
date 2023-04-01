@@ -9,7 +9,7 @@ One of its major components is a *modern*, *cross-platform*, and *lightning-fast
 Extensive efforts have been or will be in place to ensure its appearance and performance.
 ### Appearance
 #### High-Quality and Cross-Platform
-1. Follow the best coding practices including [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines).
+1. Follow the best coding practices including the [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines).
 2. Prepare the source code in modern C++ (up to [C++17](https://en.cppreference.com/w/cpp/17)) and avoid vendor-specific features.
 3. Use CMake to define the build process across platforms.
 

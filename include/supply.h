@@ -370,12 +370,12 @@ public:
         return outgoing_links;
     }
 
-    void add_incoming_link(Link* p)
+    void add_incoming_link(const Link* p)
     {
         incoming_links.push_back(p);
     }
 
-    void add_outgoing_link(Link* p)
+    void add_outgoing_link(const Link* p)
     {
         outgoing_links.push_back(p);
     }

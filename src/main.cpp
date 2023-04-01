@@ -28,6 +28,7 @@ int main()
     NetworkHandle nh;
     nh.read_settings(dir);
     nh.read_network(dir);
+    ts = high_resolution_clock::now();
     nh.read_demands(dir);
 
     auto te = high_resolution_clock::now();

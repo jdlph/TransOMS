@@ -49,8 +49,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 
     /**
      * @brief update link flow and link travel time per path flow from the last iteration.
-     *
-     * path flow will keep constant any more after the last iteration.
+     * @note path flow will keep constant any more after the last iteration.
      */
     update_column_attributes();
 }

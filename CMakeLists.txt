@@ -5,7 +5,7 @@ include(CTest)
 enable_testing()
 
 option(PARALLEL ON)
-configure_file(build_config.h.in build_config.h)
+configure_file(config.h.in config.h)
 
 set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_BUILD_TYPE Release)

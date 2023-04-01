@@ -19,8 +19,8 @@
 #include <experimental/filesystem>
 #endif
 
-#include <future>
-#include <memory>
+// #include <future>
+// #include <memory>
 
 #include <yaml-cpp/yaml.h>
 
@@ -102,8 +102,7 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             if (this->net.get_zones().find(zone_id) == this->net.get_zones().end())
             {
                 size_type no = this->net.get_zones().size();
-                auto zone = new Zone {no, zone_id, bin_index};
-                this->net.add_zone(zone);
+                this->net.add_zone(new Zone{no, zone_id, bin_index});
             }
 
             this->net.get_zones()[zone_id]->add_node(node_no);
@@ -242,6 +241,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
                               lane_num, cap, ffs, len,
                               std::move(modes), std::move(geo)};
 
+        // to do : optimize it by checking if those headers are existing in the first place
         for (unsigned short i = 0; i != this->dps.size(); ++i)
         {
             auto dp_id = std::to_string(i + 1);
@@ -316,7 +316,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
                 // do nothing
             }
 
-            link->add_vdfperiod(VDFPeriod {i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt});
+            link->add_vdfperiod(VDFPeriod{i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt});
         }
 
         this->net.add_link(link);
@@ -333,6 +333,19 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
     double total_vol = 0;
     for (const auto& line : reader)
     {
+        double vol = 0;
+        try
+        {
+            vol = std::stod(line["volume"]);
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        if (vol <= 0)
+            continue;
+
         std::string oz_id;
         try
         {
@@ -353,27 +366,17 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
             continue;
         }
 
-        if (!this->net.contains_zone(oz_id))
-            continue;
-
-        if (!this->net.contains_zone(dz_id))
-            continue;
-
-        double vol = 0;
+        size_type oz_no;
+        size_type dz_no;
         try
         {
-            vol = std::stod(line["volume"]);
+            oz_no = this->net.get_zone_no(oz_id);
+            dz_no = this->net.get_zone_no(dz_id);
         }
         catch(const std::exception& e)
         {
             continue;
         }
-
-        if (vol <= 0)
-            continue;
-
-        auto oz_no = this->net.get_zone_no(oz_id);
-        auto dz_no = this->net.get_zone_no(dz_id);
 
         this->cp.update(ColumnVecKey{oz_no, dz_no, dp_no, at_no}, vol);
 
@@ -580,7 +583,7 @@ std::string NetworkHandle::get_node_path_str(const Column& c)
 
 std::string NetworkHandle::get_node_path_coordinates(const Column& c)
 {
-    std::string str = {"\"LINESTRING ("};
+    std::string str {"\"LINESTRING ("};
     for (auto j = c.get_link_num() - 1; j != 0; --j)
     {
         auto node_no = this->get_link(c.get_link_no(j))->get_tail_node_no();
@@ -666,7 +669,7 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
     auto writer = miocsv::Writer(dir + '/' + filename);
 
     writer.write_row_raw("agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type",
-                         "demand_period","volume", "toll", "travel_time", "distance",
+                         "demand_period", "volume", "toll", "travel_time", "distance",
                          "link_sequence", "node_sequence", "geometry");
 
     size_type i = 0;
