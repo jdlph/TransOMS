@@ -49,12 +49,12 @@ public:
         return end_iter_no;
     }
 
-    double get_cap_reduction_ratio(const std::string& link_id) const
+    double get_cap_ratio(const std::string& link_id) const
     {
         return ratios.at(link_id);
     }
 
-    const auto& get_capaicty_ratios() const
+    const auto& get_capacity_ratios() const
     {
         return ratios;
     }
@@ -120,13 +120,13 @@ public:
 
     void run_bpr()
     {
-        voc = reduction_ratio > 0 ? vol / (cap * reduction_ratio) : std::numeric_limits<unsigned>::max();
+        voc = cap_ratio > 0 ? vol / (cap * cap_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
     }
 
-    void set_reduction_ratio(double r)
+    void set_cap_ratio(double r)
     {
-        reduction_ratio = r;
+        cap_ratio = r;
     }
 
 private:
@@ -143,7 +143,7 @@ private:
     double voc = 0;
     double vol = 0;
 
-    double reduction_ratio = 1;
+    double cap_ratio = 1;
 };
 
 class Link {
@@ -273,9 +273,9 @@ public:
             v.reset_vol();
     }
 
-    void set_reduction_ratio(unsigned short i, double r)
+    void set_cap_ratio(unsigned short i, double r)
     {
-        vdfps[i].set_reduction_ratio(r);
+        vdfps[i].set_cap_ratio(r);
     }
 
     void update_period_travel_time()

@@ -498,7 +498,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                         for (const auto& link : affected_links)
                         {
                             auto link_id = link["link_id"].as<std::string>();
-                            auto rr = link["reduction_ratio"].as<double>();
+                            auto rr = link["capacity_ratio"].as<double>();
                             se->add_affected_link(link_id, rr);
                         }
                     }
@@ -569,13 +569,13 @@ void NetworkHandle::read_demands(const std::string& dir)
         if (!se)
             continue;
 
-        for (const auto& [link_id, r] : se->get_capaicty_ratios())
+        for (const auto& [link_id, r] : se->get_capacity_ratios())
         {
             // to do: wrap them into a single function?
             try
             {
                 auto link = this->get_link(link_id);
-                link->set_reduction_ratio(dp_no, r);
+                link->set_cap_ratio(dp_no, r);
             }
             catch (std::out_of_range& re)
             {

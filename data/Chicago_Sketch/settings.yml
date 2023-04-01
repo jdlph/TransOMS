@@ -24,16 +24,16 @@ demand_period:
         agent_type: auto
     special_event:
       name: work_zone
-      enable: false
+      enable: true
       affected_link:
         - link_id: 1
-          reduction_ratio: 0.5
+          capacity_ratio: 0.5
         - link_id: 2
-          reduction_ratio: 0.4
+          capacity_ratio: 0.4
         - link_id: 3
-          reduction_ratio: 0.6
+          capacity_ratio: 0.6
         - link_id: 4
-          reduction_ratio: 0
+          capacity_ratio: 0.1
 
 simulation:
   period: AM

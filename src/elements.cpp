@@ -54,14 +54,14 @@ inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
 }
 
 // deprecated
-double DemandPeriod::get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const
+double DemandPeriod::get_cap_ratio(const std::string& link_id, unsigned short iter_no) const
 {
     if (!contain_iter_no(iter_no))
         return 1;
 
     try
     {
-        return se->get_cap_reduction_ratio(link_id);
+        return se->get_cap_ratio(link_id);
     }
     catch (std::out_of_range& re)
     {
@@ -124,7 +124,6 @@ void SPNetwork::initialize()
     next_nodes = int_alloc.allocate(n);
 #else
     marked = bool_alloc.allocate(n);
-    // min_heap.reserve(n);
 #endif
 
     for (size_type i = 0; i != m; ++i)
@@ -138,7 +137,6 @@ void SPNetwork::initialize()
         next_nodes[i] = null_node;
 #else
         marked[i] = false;
-        // min_heap.reset();
 #endif
     }
 
@@ -165,7 +163,6 @@ inline void SPNetwork::reset()
         next_nodes[i] = null_node;
 #else
         marked[i] = false;
-        // min_heap.reset();
 #endif
     }
 }
@@ -450,6 +447,7 @@ void NetworkHandle::build_connectors()
     this->net.collect_centroids();
 }
 
+// useless
 void NetworkHandle::delete_spnetworks()
 {
     for (auto spn : this->spns)

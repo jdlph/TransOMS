@@ -329,7 +329,7 @@ public:
     }
 
     bool contain_iter_no(unsigned short iter_no) const;
-    double get_cap_reduction_ratio(const std::string& link_id, unsigned short iter_no) const;
+    double get_cap_ratio(const std::string& link_id, unsigned short iter_no) const;
 
 private:
     unsigned short no;
