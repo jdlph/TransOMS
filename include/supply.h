@@ -77,10 +77,6 @@ class VDFPeriod {
 public:
     VDFPeriod() = delete;
 
-    VDFPeriod(double cap_, double fftt_) : cap {cap_}, fftt {fftt_}
-    {
-    }
-
     VDFPeriod(unsigned short no_, double alpha_, double beta_, double cap_ , double fftt_)
         : no {no_}, alpha {alpha_}, beta {beta_}, cap {cap_}, fftt {fftt_}
     {

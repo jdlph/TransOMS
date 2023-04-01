@@ -32,8 +32,13 @@ using namespace std::filesystem;
 using namespace std::experimental::filesystem;
 #endif
 
-struct Positions {
-    Positions() : alpha_pos {-1}, beta_pos {-1}, cap_pos {-1}, fftt_pos {-1}
+/**
+ * @brief a helper struct to store the positions of headers related to VDFPeriod in link.csv
+ *
+ * @details it is to facilitate the operation on VDFPeriod in read_links()
+ */
+struct HeaderPos {
+    HeaderPos() : alpha_pos {-1}, beta_pos {-1}, cap_pos {-1}, fftt_pos {-1}
     {
     }
 
@@ -134,7 +139,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
     auto reader = miocsv::DictReader(dir + '/' + filename);
 
     const auto& headers = reader.get_fieldnames();
-    std::vector<Positions> vec;
+    std::vector<HeaderPos> vec;
 
     for (unsigned short i = 0; i != this->dps.size(); ++i)
     {
@@ -145,31 +150,11 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         auto header_vdf_cap {"VDF_cap" + dp_id};
         auto header_vdf_fftt {"VDF_fftt" + dp_id};
 
-        Positions posn;
+        HeaderPos hp;
 
         try
         {
-            posn.alpha_pos = headers.at(header_vdf_alpha);
-        }
-        catch(const std::range_error& re)
-        {
-            if (i)
-                break;
-        }
-
-        try
-        {
-            posn.beta_pos = headers.at(header_vdf_beta);
-        }
-        catch(const std::range_error& re)
-        {
-            if (i)
-                break;
-        }
-
-        try
-        {
-            posn.cap_pos = headers.at(header_vdf_cap);
+            hp.alpha_pos = headers.at(header_vdf_alpha);
         }
         catch(const std::range_error& re)
         {
@@ -178,14 +163,32 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
 
         try
         {
-            posn.fftt_pos = headers.at(header_vdf_fftt);
+            hp.beta_pos = headers.at(header_vdf_beta);
         }
         catch(const std::range_error& re)
         {
             // do nothing
         }
 
-        vec.emplace_back(posn);
+        try
+        {
+            hp.cap_pos = headers.at(header_vdf_cap);
+        }
+        catch(const std::range_error& re)
+        {
+            // do nothing
+        }
+
+        try
+        {
+            hp.fftt_pos = headers.at(header_vdf_fftt);
+        }
+        catch(const std::range_error& re)
+        {
+            // do nothing
+        }
+
+        vec.emplace_back(hp);
     }
 
     size_type link_no = 0;
@@ -307,44 +310,33 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             lane_num, cap, ffs, len, modes, geo
         };
 
-        this->net.add_link(link);
-        ++link_no;
-
-        if (vec.empty())
-        {
-            link->add_vdfperiod(VDFPeriod{cap, link->get_fftt()});
-            continue;
-        }
-
-        unsigned short i = 0;
-        for (const auto& posn : vec)
+        unsigned short dp_no = 0;
+        for (const auto& hp : vec)
         {
             double vdf_alpha = 0.15;
             try
             {
-                vdf_alpha = std::stod(line[posn.alpha_pos]);
+                vdf_alpha = std::stod(line[hp.alpha_pos]);
             }
             catch(const std::exception& e)
             {
-                if (i)
-                    break;
+                // do nothing
             }
 
             double vdf_beta = 4;
             try
             {
-                vdf_beta = std::stod(line[posn.beta_pos]);
+                vdf_beta = std::stod(line[hp.beta_pos]);
             }
             catch(const std::exception& e)
             {
-                if (i)
-                    break;
+                // do nothing
             }
 
             double vdf_cap = link->get_cap();
             try
             {
-                vdf_cap = std::stod(line[posn.cap_pos]);
+                vdf_cap = std::stod(line[hp.cap_pos]);
             }
             catch(const std::exception& e)
             {
@@ -354,15 +346,18 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_fftt = link->get_fftt();
             try
             {
-                vdf_fftt = std::stod(line[posn.fftt_pos]);
+                vdf_fftt = std::stod(line[hp.fftt_pos]);
             }
             catch(const std::exception& e)
             {
                 // do nothing
             }
 
-            link->add_vdfperiod(VDFPeriod{i++, vdf_alpha, vdf_beta, vdf_cap, vdf_fftt});
+            link->add_vdfperiod(VDFPeriod{dp_no++, vdf_alpha, vdf_beta, vdf_cap, vdf_fftt});
         }
+
+        this->net.add_link(link);
+        ++link_no;
     }
 
     std::cout << "the number of links is " << link_no << '\n';
