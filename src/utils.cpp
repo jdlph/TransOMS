@@ -94,7 +94,7 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        auto node = new Node {node_no, std::move(node_id), cx, cy, activity_node};
+        auto node = new Node {node_no, node_id, cx, cy, activity_node};
         this->net.add_node(node);
 
         unsigned short bin_index = 0;
@@ -252,15 +252,15 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        unsigned short lane_type = 1;
-        try
-        {
-            lane_type = std::stoi(line["link_type"]);
-        }
-        catch(const std::exception& e)
-        {
-            // do nothing
-        }
+        // unsigned short lane_type = 1;
+        // try
+        // {
+        //     lane_type = std::stoi(line["link_type"]);
+        // }
+        // catch(const std::exception& e)
+        // {
+        //     // do nothing
+        // }
 
         double ffs = 60;
         try
@@ -302,10 +302,10 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        auto link = new Link {std::move(link_id), link_no,
-                              head_node_no, tail_node_no,
-                              lane_num, cap, ffs, len,
-                              std::move(modes), std::move(geo)};
+        auto link = new Link {
+            link_id, link_no, head_node_no, tail_node_no,
+            lane_num, cap, ffs, len, modes, geo
+        };
 
         this->net.add_link(link);
         ++link_no;
@@ -445,7 +445,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
         try
         {
             // auto type_ = a["type"];
-            auto&& name = a["name"].as<std::string>();
+            auto name = a["name"].as<std::string>();
             if (this->contains_agent_name(name))
             {
                 std::cout << "duplicate agent type found: " << name << '\n';
@@ -458,7 +458,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
             auto ffs = a["free_speed"].as<double>();
             auto use_ffs = a["use_link_ffs"].as<bool>();
 
-            const auto at = new AgentType{i++, std::move(name), flow_type, pce, vot, ffs, use_ffs};
+            const auto at = new AgentType{i++, name, flow_type, pce, vot, ffs, use_ffs};
             this->ats.push_back(at);
         }
         catch(const std::exception& e)
@@ -476,14 +476,14 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     for (const auto& dp : demand_periods)
     {
         unsigned short k = 0;
-        auto&& period = dp["period"].as<std::string>();
-        auto&& time_period = dp["time_period"].as<std::string>();
+        auto period = dp["period"].as<std::string>();
+        auto time_period = dp["time_period"].as<std::string>();
 
         const auto& demands = dp["demand"];
         for (const auto& d : demands)
         {
-            auto&& file_name = d["file_name"].as<std::string>();
-            auto&& at_name = d["agent_type"].as<std::string>();
+            auto file_name = d["file_name"].as<std::string>();
+            auto at_name = d["agent_type"].as<std::string>();
             try
             {
                 const auto at = this->get_agent_type(at_name);
@@ -493,11 +493,11 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                 {
                     const auto& special_event = dp["special_event"];
 
-                    auto&& name = special_event["name"].as<std::string>();
+                    auto name = special_event["name"].as<std::string>();
                     auto enable = special_event["enable"].as<bool>();
                     if (enable)
                     {
-                        se = std::make_unique<SpecialEvent>(std::move(name));
+                        se = std::make_unique<SpecialEvent>(name);
 
                         const auto& affected_links = special_event["affected_link"];
                         for (const auto& link : affected_links)
@@ -513,9 +513,10 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                     // do nothing
                 }
 
-                const auto dp_ = new DemandPeriod{j++, std::move(at_name), std::move(period),
-                                                  std::move(time_period),
-                                                  Demand{k++, std::move(file_name), at}, se};
+                const auto dp_ = new DemandPeriod{
+                    j++, period, time_period, Demand{k++, file_name, at}, se
+                };
+
                 this->dps.push_back(dp_);
             }
             catch(const std::exception& e)
@@ -534,7 +535,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
 
     // not in use as the simulation module is not implemented yet!
     const YAML::Node& simulation = settings["simulation"];
-    auto&& period = simulation["period"].as<std::string>();
+    auto period = simulation["period"].as<std::string>();
     auto res = simulation["resolution"].as<unsigned short>();
 }
 

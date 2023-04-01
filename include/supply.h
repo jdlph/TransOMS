@@ -27,7 +27,7 @@ class SpecialEvent {
 public:
     SpecialEvent() = delete;
 
-    SpecialEvent(std::string&& name_) : name {name_}
+    explicit SpecialEvent(std::string& name_) : name {std::move(name_)}
     {
     }
 
@@ -124,7 +124,7 @@ public:
 
     void run_bpr()
     {
-        voc = cap > 0 ? vol / (cap * reduction_ratio) : std::numeric_limits<unsigned>::max();
+        voc = reduction_ratio > 0 ? vol / (cap * reduction_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
     }
 
@@ -154,12 +154,12 @@ class Link {
 public:
     Link() = default;
 
-    Link(std::string&& id_, size_type no_, size_type head_node_no_, size_type tail_node_no_,
+    Link(std::string& id_, size_type no_, size_type head_node_no_, size_type tail_node_no_,
          unsigned short lane_num_, double cap_, double ffs_, double len_,
-         std::string&& modes_, std::string&& geo_)
-         : id {id_}, no {no_}, head_node_no {head_node_no_}, tail_node_no {tail_node_no_},
+         std::string& modes_, std::string& geo_)
+         : id {std::move(id_)}, no {no_}, head_node_no {head_node_no_}, tail_node_no {tail_node_no_},
            lane_num {lane_num_}, cap {cap_}, ffs {ffs_}, len {len_},
-           allowed_modes {modes_}, geo {geo_}
+           allowed_modes {std::move(modes_)}, geo {std::move(geo_)}
     {
     }
 
@@ -297,8 +297,8 @@ private:
 
     unsigned short lane_num = 1;
 
-    double cap;
-    double ffs;
+    double cap = 1999;
+    double ffs = 60;
     double len = 0;
 
     double choice_cost = 0;
@@ -313,9 +313,13 @@ class Node {
 public:
     Node() = default;
 
-    Node(size_type no_, std::string&& id_,  double x_, double y_,
-         size_type z_no_, bool act_node_ = false)
-        : no {no_}, id {id_},  x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
+    Node(size_type no_, std::string& id_, double x_, double y_, size_type z_no_, bool act_node_ = false)
+        : no {no_}, id {std::move(id_)}, x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
+    {
+    }
+
+    Node(size_type no_, std::string&& id_, double x_, double y_, size_type z_no_, bool act_node_ = false)
+        : no {no_}, id {id_}, x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
     {
     }
 

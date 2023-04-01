@@ -155,9 +155,9 @@ public:
     {
     }
 
-    AgentType(unsigned short no_, std::string&& name_, unsigned short flow_type_,
+    AgentType(unsigned short no_, std::string& name_, unsigned short flow_type_,
               double pce_, double vot_,  double ffs_, bool use_link_ffs_)
-        : no {no_}, name {name_}, flow_type {flow_type_}, pce {pce_},
+        : no {no_}, name {std::move(name_)}, flow_type {flow_type_}, pce {pce_},
           vot {vot_}, ffs {ffs_}, is_link_ffs {use_link_ffs_}
     {
     }
@@ -236,8 +236,8 @@ public:
     {
     }
 
-    Demand(unsigned short no_, std::string&& filename_, const AgentType* at_)
-        : no {no_}, filename {filename_}, at {at_}
+    Demand(unsigned short no_, std::string& filename_, const AgentType* at_)
+        : no {no_}, filename {std::move(filename_)}, at {at_}
     {
     }
 
@@ -287,10 +287,10 @@ public:
         ds.push_back(dem);
     }
 
-    DemandPeriod(unsigned short no_, std::string&& at_name_,
-                 std::string&& period_, std::string&& time_period_,
+    DemandPeriod(unsigned short no_,
+                 std::string& period_, std::string& time_period_,
                  Demand&& dem, std::unique_ptr<SpecialEvent>& se_)
-        : no {no_}, period {period_}, time_period {time_period_}, se {std::move(se_)}
+        : no {no_}, period {std::move(period_)}, time_period {std::move(time_period_)}, se {std::move(se_)}
     {
         ds.push_back(dem);
     }

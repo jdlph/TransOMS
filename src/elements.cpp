@@ -418,7 +418,7 @@ void NetworkHandle::build_connectors()
             y = node->get_coordinate().second;
         }
 
-        auto node = new Node {node_no, std::string {"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
+        auto node = new Node {node_no, std::string{"c_" + std::to_string(z->get_no())}, x, y, z->get_no()};
         z->set_centroid(node);
         this->net.add_node(node);
 
@@ -428,11 +428,15 @@ void NetworkHandle::build_connectors()
             auto head_node = net.get_nodes()[node_no];
             auto tail_node = net.get_nodes()[i];
 
-            auto forward_link = new Link {std::string{"conn_" + std::to_string(link_no)},
-                                          link_no, head_node->get_no(), tail_node->get_no()};
+            auto forward_link = new Link {
+                std::string{"conn_" + std::to_string(link_no)},
+                link_no, head_node->get_no(), tail_node->get_no()
+            };
 
-            auto backward_link = new Link {std::string{"conn_" + std::to_string(link_no + 1)},
-                                           link_no + 1, tail_node->get_no(), head_node->get_no()};
+            auto backward_link = new Link {
+                std::string{"conn_" + std::to_string(link_no + 1)},
+                link_no + 1, tail_node->get_no(), head_node->get_no()
+            };
 
             this->net.add_link(forward_link);
             this->net.add_link(backward_link);
