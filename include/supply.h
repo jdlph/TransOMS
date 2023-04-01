@@ -10,7 +10,6 @@
 #define GUARD_SUPPLY_H
 
 #include <global.h>
-#include <minheap.h>
 
 #include <cmath>
 #include <cstddef>
@@ -77,6 +76,11 @@ private:
 class VDFPeriod {
 public:
     VDFPeriod() = delete;
+
+    VDFPeriod(double cap_, double fftt_)
+        : no {0}, alpha {0.15}, beta {4}, mu {1000}, cap {cap_}, fftt {fftt_}
+    {
+    }
 
     VDFPeriod(unsigned short no_, double alpha_ = 0.15, double beta_ = 4,
               double mu_ = 1000, double cap_ = 1999, double fftt_ = std::numeric_limits<unsigned>::max())
@@ -1254,7 +1258,6 @@ private:
     const int past_node = -3;
 #else
     std::priority_queue<HeapNode> min_heap;
-    // MinHeap min_heap{2};
     std::allocator<bool> bool_alloc;
     bool* marked;
 #endif

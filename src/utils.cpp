@@ -122,6 +122,62 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
 {
     auto reader = miocsv::DictReader(dir + '/' + filename);
 
+    const auto& headers = reader.get_fieldnames();
+
+    using Positions = std::tuple<int, int, int, int, int>;
+    std::vector<Positions> vec;
+
+    for (unsigned short i = 0; i != this->dps.size(); ++i)
+    {
+        auto dp_id = std::to_string(i + 1);
+
+        auto header_vdf_alpha = "VDF_alpha" + dp_id;
+        auto header_vdf_beta = "VDF_beta" + dp_id;
+        auto header_vdf_mu = "VDF_mu" + dp_id;
+        auto header_vdf_fftt = "VDF_fftt" + dp_id;
+        auto header_vdf_cap = "VDF_cap" + dp_id;
+        // auto header_vdf_phf = "VDF_phf" + dp_id;
+
+        int a = -1;
+        int b = -1;
+        int c = -1;
+        int f = -1;
+        int m = -1;
+
+        if (headers.find(header_vdf_alpha) == headers.end())
+            break;
+        else
+            a = headers.at(header_vdf_alpha);
+
+        if (headers.find(header_vdf_beta) == headers.end())
+            break;
+        else
+            b = headers.at(header_vdf_beta);
+
+        if (headers.find(header_vdf_mu) == headers.end())
+        {
+            // do nothing
+        }
+        else
+            m = headers.at(header_vdf_mu);
+
+        if (headers.find(header_vdf_fftt) == headers.end())
+        {
+            // do nothing
+        }
+        else
+            f = headers.at(header_vdf_fftt);
+
+        if (headers.find(header_vdf_cap) == headers.end())
+        {
+            // do nothing
+        }
+        else
+            c = headers.at(header_vdf_cap);
+
+        vec.push_back(Positions{a, b, m, f, c});
+    }
+
     size_type link_no = 0;
     for (const auto& line : reader)
     {
@@ -241,22 +297,24 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
                               lane_num, cap, ffs, len,
                               std::move(modes), std::move(geo)};
 
-        // to do : optimize it by checking if those headers are existing in the first place
-        for (unsigned short i = 0; i != this->dps.size(); ++i)
+        this->net.add_link(link);
+        ++link_no;
+
+        if (vec.empty())
         {
-            auto dp_id = std::to_string(i + 1);
+            link->add_vdfperiod(VDFPeriod{cap, link->get_fftt()});
+            continue;
+        }
 
-            auto header_vdf_alpha = "VDF_alpha" + dp_id;
-            auto header_vdf_beta = "VDF_beta" + dp_id;
-            auto header_vdf_mu = "VDF_mu" + dp_id;
-            auto header_vdf_fftt = "VDF_fftt" + dp_id;
-            auto header_vdf_cap = "VDF_cap" + dp_id;
-            auto header_vdf_phf = "VDF_phf" + dp_id;
-
+        // to do : optimize it by checking if those headers are existing in the first place
+        // for (unsigned short i = 0; i != this->dps.size(); ++i)
+        unsigned short i = 0;
+        for (const auto& posn : vec)
+        {
             double vdf_alpha = 0.15;
             try
             {
-                vdf_alpha = std::stod(line[header_vdf_alpha]);
+                vdf_alpha = std::stod(line[std::get<0>(posn)]);
             }
             catch(const std::exception& e)
             {
@@ -267,7 +325,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_beta = 4;
             try
             {
-                vdf_beta = std::stod(line[header_vdf_beta]);
+                vdf_beta = std::stod(line[std::get<1>(posn)]);
             }
             catch(const std::exception& e)
             {
@@ -278,7 +336,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_mu = 1000;
             try
             {
-                vdf_mu = std::stod(line[header_vdf_mu]);
+                vdf_mu = std::stod(line[std::get<2>(posn)]);
             }
             catch(const std::exception& e)
             {
@@ -289,7 +347,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_fftt = link->get_fftt();
             try
             {
-                vdf_fftt = std::stod(line[header_vdf_fftt]);
+                vdf_fftt = std::stod(line[std::get<3>(posn)]);
             }
             catch(const std::exception& e)
             {
@@ -299,28 +357,26 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
             double vdf_cap = link->get_cap();
             try
             {
-                vdf_cap = std::stod(line[header_vdf_cap]);
+                vdf_cap = std::stod(line[std::get<4>(posn)]);
             }
             catch(const std::exception& e)
             {
                 // do nothing
             }
 
-            double vdf_phf = -1;
-            try
-            {
-                vdf_phf = std::stod(line[header_vdf_phf]);
-            }
-            catch(const std::exception& e)
-            {
-                // do nothing
-            }
+            // not used in the current implementation
+            // double vdf_phf = -1;
+            // try
+            // {
+            //     vdf_phf = std::stod(line[header_vdf_phf]);
+            // }
+            // catch(const std::exception& e)
+            // {
+            //     // do nothing
+            // }
 
-            link->add_vdfperiod(VDFPeriod{i, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt});
+            link->add_vdfperiod(VDFPeriod{i++, vdf_alpha, vdf_beta, vdf_mu, vdf_cap, vdf_fftt});
         }
-
-        this->net.add_link(link);
-        ++link_no;
     }
 
     std::cout << "the number of links is " << link_no << '\n';
