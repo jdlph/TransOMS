@@ -6,6 +6,7 @@
  * @copyright Copyright (c) 2023 Peiheng Li, Ph.D. and Xuesong (Simon) Zhou, Ph.D.
  */
 
+#include <config.h>
 #include <handles.h>
 
 #include <chrono>

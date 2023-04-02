@@ -17,6 +17,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 include_directories(include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR})
 
 # default name for Windows
 set(YAML_CPP_LIB_NAME yaml-cpp)
