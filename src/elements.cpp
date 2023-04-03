@@ -141,7 +141,12 @@ void SPNetwork::initialize()
 #endif
     }
 
+#ifdef _MSC_VER
+    outgoing_links.resize(n);
+#else
     outgoing_links.reserve(n);
+#endif
+
     for (const auto node : get_nodes())
     {
         for (const auto link : node->get_outgoing_links())
@@ -175,9 +180,20 @@ void SPNetwork::update_link_costs()
 
 #ifdef _OPENMP
     #pragma omp parallel for
-#endif
+
+#if _OPENMP >= 201511
     for (auto p : get_links())
     {
+#else
+    for (int i = 0; i < get_links().size(); ++i)
+    {
+        auto p = get_links()[i];
+#endif
+
+#else
+    for (auto p : get_links())
+    {
+#endif
         if (!p->get_length())
 #ifdef _OPENMP
             continue;
