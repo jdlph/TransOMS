@@ -30,22 +30,11 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
         std::cout << "column generation: " << i << '\n';
         update_link_and_column_volume(i);
         update_link_travel_time();
-
 #ifdef _OPENMP
         #pragma omp parallel for
-
-#if _OPENMP >= 201511
-        for (auto spn : this->spns)
-            spn->generate_columns(i);
-#else
-        for (int j = 0; j < this->spns.size(); ++j)
+#endif
+        for (auto j = 0; j < this->spns.size(); ++j)
             this->spns[j]->generate_columns(i);
-#endif
-
-#else
-        for (auto spn : this->spns)
-            spn->generate_columns(i);
-#endif
     }
 
     auto te = high_resolution_clock::now();
@@ -74,20 +63,10 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
 #ifdef _OPENMP
     #pragma omp parallel for schedule(dynamic, CHUNK)
-
-#if _OPENMP >= 201511
-    for (auto& cv : this->cp.get_column_vecs())
-    {
-#else
-    for (int i = 0; i < this->cp.get_column_vecs().size(); ++i)
+#endif
+    for (auto i = 0; i < this->cp.get_column_vecs().size(); ++i)
     {
         auto& cv = this->cp.get_column_vecs()[i];
-#endif
-
-#else
-    for (auto& cv : this->cp.get_column_vecs())
-    {
-#endif
         if (!cv.get_column_num())
             continue;
 
@@ -158,20 +137,10 @@ void NetworkHandle::update_column_attributes()
 
 #ifdef _OPENMP
     #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, CHUNK)
-
-#if _OPENMP >= 201511
-    for (auto& cv : this->cp.get_column_vecs())
-    {
-#else
-    for (int i = 0; i < this->cp.get_column_vecs().size(); ++i)
+#endif
+    for (auto i = 0; i < this->cp.get_column_vecs().size(); ++i)
     {
         auto& cv = this->cp.get_column_vecs()[i];
-#endif
-
-#else
-    for (auto& cv : this->cp.get_column_vecs())
-    {
-#endif
         // oz_no, dz_no, dp_no, at_no
         auto dp_no = std::get<2>(cv.get_key());
         // col is const
@@ -210,20 +179,10 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     // reset link flow
 #ifdef _OPENMP
     #pragma omp parallel for
-
-#if _OPENMP >= 201511
-    for (auto link : this->net.get_links())
-    {
-#else
-    for (int i = 0; i < this->net.get_links().size(); ++i)
+#endif
+    for (auto i = 0; i < this->net.get_link_num(); ++i)
     {
         auto link = this->get_link(i);
-#endif
-
-#else
-    for (auto link : this->net.get_links())
-    {
-#endif
         if (!link->get_length())
 #ifdef _OPENMP
             continue;
@@ -263,20 +222,10 @@ void NetworkHandle::update_link_travel_time()
 {
 #ifdef _OPENMP
     #pragma omp parallel for
-
-#if _OPENMP >= 201511
-    for (auto link : this->net.get_links())
-    {
-#else
-    for (int i = 0; i < this->net.get_links().size(); ++i)
+#endif
+    for (auto i = 0; i < this->net.get_link_num(); ++i)
     {
         auto link = this->get_link(i);
-#endif
-
-#else
-    for (auto link : this->net.get_links())
-    {
-#endif
         if (!link->get_length())
 #ifdef _OPENMP
             continue;

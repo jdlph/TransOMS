@@ -180,20 +180,10 @@ void SPNetwork::update_link_costs()
 
 #ifdef _OPENMP
     #pragma omp parallel for
-
-#if _OPENMP >= 201511
-    for (auto p : get_links())
-    {
-#else
-    for (int i = 0; i < get_links().size(); ++i)
+#endif
+    for (auto i = 0; i < get_link_num(); ++i)
     {
         auto p = get_links()[i];
-#endif
-
-#else
-    for (auto p : get_links())
-    {
-#endif
         if (!p->get_length())
 #ifdef _OPENMP
             continue;
