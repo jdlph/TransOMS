@@ -735,6 +735,11 @@ public:
         return cp[pos.at(k)];
     }
 
+    ColumnVec& get_column_vec(size_type i)
+    {
+        return cp[i];
+    }
+
     auto& get_column_vecs()
     {
         return cp;
@@ -1007,6 +1012,11 @@ public:
         return nodes;
     }
 
+    Link* get_link(size_type i)
+    {
+        return links[i];
+    }
+
     Link* get_link(const std::string& link_id)
     {
         return links[get_link_no(link_id)];
@@ -1192,6 +1202,11 @@ public:
     void add_orig_nodes(const Zone* z)
     {
         orig_nodes.push_back(z->get_centroid()->get_no());
+    }
+
+    Link* get_link(size_type i)
+    {
+        return pn->get_link(i);
     }
 
     std::vector<const Link*>& get_outgoing_links(size_type node_no)

@@ -45,7 +45,7 @@ public:
 
     Link* get_link(size_type link_no)
     {
-        return net.get_links()[link_no];
+        return net.get_link(link_no);
     }
 
     const Link* get_link(const std::string& link_id) const
@@ -130,6 +130,7 @@ private:
     void setup_spnetworks();
     void delete_spnetworks();
 
+    ColumnVec& get_column_vec(size_type i);
     std::string get_link_path_str(const Column& c);
     std::string get_node_path_str(const Column& c);
     std::string get_node_path_coordinates(const Column& c);

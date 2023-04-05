@@ -175,15 +175,16 @@ inline void SPNetwork::reset()
 
 void SPNetwork::update_link_costs()
 {
-    auto dp_no = dp->get_no();
-    auto vot = at->get_vot();
+    const auto dp_no = dp->get_no();
+    const auto vot = at->get_vot();
+    const auto m = get_link_num();
 
 #ifdef _OPENMP
     #pragma omp parallel for
 #endif
-    for (auto i = 0; i < get_link_num(); ++i)
+    for (auto i = 0; i < m; ++i)
     {
-        auto p = get_links()[i];
+        auto p = get_link(i);
         if (!p->get_length())
 #ifdef _OPENMP
             continue;
@@ -461,4 +462,9 @@ void NetworkHandle::delete_spnetworks()
         delete spn;
 
     this->spns.clear();
+}
+
+ColumnVec& NetworkHandle::get_column_vec(size_type i)
+{
+    return this->cp.get_column_vec(i);
 }

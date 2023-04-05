@@ -56,6 +56,8 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 
 void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 {
+    const auto cv_num = this->cp.get_column_vecs().size();
+
 #ifndef _OPENMP
     double total_gap = 0;
     double total_sys_travel_time = 0;
@@ -64,16 +66,16 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 #ifdef _OPENMP
     #pragma omp parallel for schedule(dynamic, CHUNK)
 #endif
-    for (auto i = 0; i < this->cp.get_column_vecs().size(); ++i)
+    for (auto i = 0; i < cv_num; ++i)
     {
-        auto& cv = this->cp.get_column_vecs()[i];
+        auto& cv = this->cp.get_column_vec(i);
         if (!cv.get_column_num())
             continue;
 
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(cv.get_key());
-        auto at_no = std::get<3>(cv.get_key());
-        auto vot = ats[at_no]->get_vot();
+        const auto dp_no = std::get<2>(cv.get_key());
+        const auto at_no = std::get<3>(cv.get_key());
+        const auto vot = ats[at_no]->get_vot();
 
         const Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
@@ -134,15 +136,19 @@ void NetworkHandle::update_column_attributes()
 {
     double total_gap = 0;
     double total_sys_travel_time = 0;
+    const auto cv_num = this->cp.get_column_vecs().size();
 
 #ifdef _OPENMP
     #pragma omp parallel for shared(total_gap, total_sys_travel_time) schedule(dynamic, CHUNK)
 #endif
-    for (auto i = 0; i < this->cp.get_column_vecs().size(); ++i)
+    for (auto i = 0; i < cv_num; ++i)
     {
-        auto& cv = this->cp.get_column_vecs()[i];
+        auto& cv = this->cp.get_column_vec(i);
+        if (!cv.get_column_num())
+            continue;
+
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(cv.get_key());
+        const auto dp_no = std::get<2>(cv.get_key());
         // col is const
         for (auto& col : cv.get_columns())
         {
@@ -155,9 +161,9 @@ void NetworkHandle::update_column_attributes()
             double tt = 0;
             double pt = 0;
 
-            for (auto i : col.get_links())
+            for (auto j : col.get_links())
             {
-                const auto link = this->get_link(i);
+                const auto link = this->get_link(j);
                 tt += link->get_period_travel_time(dp_no);
                 pt += link->get_toll();
             }
@@ -176,11 +182,13 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
     if (!iter_no)
         return;
 
+    const auto m = this->net.get_link_num();
+
     // reset link flow
 #ifdef _OPENMP
     #pragma omp parallel for
 #endif
-    for (auto i = 0; i < this->net.get_link_num(); ++i)
+    for (auto i = 0; i < m; ++i)
     {
         auto link = this->get_link(i);
         if (!link->get_length())
@@ -199,9 +207,9 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
             continue;
 
         // oz_no, dz_no, dp_no, at_no
-        auto dp_no = std::get<2>(cv.get_key());
-        auto at_no = std::get<3>(cv.get_key());
-        auto pce = ats[at_no]->get_pce();
+        const auto dp_no = std::get<2>(cv.get_key());
+        const auto at_no = std::get<3>(cv.get_key());
+        const auto pce = ats[at_no]->get_pce();
         // col is const
         for (auto& col : cv.get_columns())
         {
@@ -220,10 +228,12 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 
 void NetworkHandle::update_link_travel_time()
 {
+    const auto m = this->net.get_link_num();
+
 #ifdef _OPENMP
     #pragma omp parallel for
 #endif
-    for (auto i = 0; i < this->net.get_link_num(); ++i)
+    for (auto i = 0; i < m; ++i)
     {
         auto link = this->get_link(i);
         if (!link->get_length())
