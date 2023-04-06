@@ -53,7 +53,17 @@ $ cmake .. -DCMAKE_BUILD_TYPE=Release
 $ cmake --build .
 ```
 
-Many modern IDEs or text editors (e.g., [VS Code](https://code.visualstudio.com/)) support CMake as an alterative build system, which offers an integrated experience of building, debugging, and testing a CMake project (without command lines). If you want to take this advantage, a step-by-step tutorial on VS Code is listed [here](https://code.visualstudio.com/docs/cpp/cmake-linux#_create-a-cmake-hello-world-project). The comprehensive documentation can be retrieved on [GitHub](https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md).
+The default build is single-processing. To enable parallelization (multiprocessing), you will need to pass PARALLEL=ON (as an option) to CMake.
+
+```bash
+# from the root directory of TransOMS
+$ mkdir build
+$ cd build
+$ cmake .. -DCMAKE_BUILD_TYPE=Release -DPARALLEL=ON
+$ cmake --build .
+```
+
+Many modern IDEs or text editors (e.g., [VS Code](https://code.visualstudio.com/)) support CMake as an alterative build system, which offers an integrated experience of building, debugging, and testing a CMake project. If you want to take this advantage, a step-by-step tutorial on VS Code is listed [here](https://code.visualstudio.com/docs/cpp/cmake-linux#_create-a-cmake-hello-world-project). The comprehensive documentation can be retrieved on [GitHub](https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md).
 ## Benchmark
 
 coming soon!

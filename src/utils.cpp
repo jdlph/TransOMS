@@ -487,11 +487,10 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
                 try
                 {
                     const auto& special_event = dp["special_event"];
-
-                    auto name = special_event["name"].as<std::string>();
                     auto enable = special_event["enable"].as<bool>();
                     if (enable)
                     {
+                        auto name = special_event["name"].as<std::string>();
                         se = std::make_unique<SpecialEvent>(name);
 
                         const auto& affected_links = special_event["affected_link"];
