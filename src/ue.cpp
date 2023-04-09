@@ -49,7 +49,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 
     /**
      * @brief update link flow and link travel time per path flow from the last iteration.
-     * @note path flow will keep constant any more after the last iteration.
+     * @note path flow will remain unchanged after the last iteration.
      */
     update_column_attributes();
 }
@@ -61,9 +61,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 #ifndef _OPENMP
     double total_gap = 0;
     double total_sys_travel_time = 0;
-#endif
-
-#ifdef _OPENMP
+#else
     #pragma omp parallel for schedule(dynamic, CHUNK)
 #endif
     for (auto i = 0; i < cv_num; ++i)
@@ -83,8 +81,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         for (auto& col : cv.get_columns())
         {
             double path_gradient_cost = 0;
-            for (auto i : col.get_links())
-                path_gradient_cost += this->get_link(i)->get_generalized_cost(dp_no, vot);
+            for (auto j : col.get_links())
+                path_gradient_cost += this->get_link(j)->get_generalized_cost(dp_no, vot);
 
             const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
 
@@ -214,9 +212,9 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
         for (auto& col : cv.get_columns())
         {
             auto vol = col.get_volume() * pce;
-            for (auto i : col.get_links())
+            for (auto j : col.get_links())
             {
-                auto link = this->get_link(i);
+                auto link = this->get_link(j);
                 link->increase_period_vol(dp_no, vol);
             }
 

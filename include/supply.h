@@ -22,7 +22,6 @@
 
 namespace transoms
 {
-// move ratio_reduction to each individual VDFPeriod?
 class SpecialEvent {
 public:
     SpecialEvent() = delete;
@@ -34,7 +33,7 @@ public:
     SpecialEvent(const SpecialEvent&) = delete;
     SpecialEvent& operator=(const SpecialEvent&) = delete;
 
-    SpecialEvent(SpecialEvent&&) = default;
+    SpecialEvent(SpecialEvent&&) = delete;
     SpecialEvent& operator=(SpecialEvent&&) = delete;
 
     ~SpecialEvent() = default;
@@ -942,6 +941,8 @@ public:
     virtual size_type get_link_num() const = 0;
     virtual size_type get_node_num() const = 0;
 
+    virtual Link* get_link(size_type i) = 0;
+
     virtual ~Network() {}
 };
 
@@ -952,8 +953,8 @@ public:
     PhyNetwork(const PhyNetwork&) = delete;
     PhyNetwork& operator=(const PhyNetwork&) = delete;
 
-    PhyNetwork(PhyNetwork&&) = default;
-    PhyNetwork& operator=(PhyNetwork&&) = default;
+    PhyNetwork(PhyNetwork&&) = delete;
+    PhyNetwork& operator=(PhyNetwork&&) = delete;
 
     ~PhyNetwork()
     {
@@ -1012,11 +1013,6 @@ public:
         return nodes;
     }
 
-    Link* get_link(size_type i)
-    {
-        return links[i];
-    }
-
     Link* get_link(const std::string& link_id)
     {
         return links[get_link_no(link_id)];
@@ -1025,6 +1021,11 @@ public:
     const Link* get_link(const std::string& link_id) const
     {
         return links[get_link_no(link_id)];
+    }
+
+    Link* get_link(size_type i) override
+    {
+        return links[i];
     }
 
     std::vector<Link*>& get_links() override
@@ -1114,7 +1115,7 @@ private:
 
     std::vector<Agent> agents;
     // time-dependent agents for simulation
-    std::map<unsigned, size_type> td_agents;
+    std::map<size_type, size_type> td_agents;
 };
 
 class SPNetwork : public Network {
@@ -1157,6 +1158,11 @@ public:
     size_type get_node_num() const override
     {
         return pn->get_node_num();
+    }
+
+    Link* get_link(size_type i) override
+    {
+        return pn->get_link(i);
     }
 
     std::vector<Link*>& get_links() override
@@ -1202,11 +1208,6 @@ public:
     void add_orig_nodes(const Zone* z)
     {
         orig_nodes.push_back(z->get_centroid()->get_no());
-    }
-
-    Link* get_link(size_type i)
-    {
-        return pn->get_link(i);
     }
 
     std::vector<const Link*>& get_outgoing_links(size_type node_no)
