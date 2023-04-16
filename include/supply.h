@@ -97,6 +97,11 @@ public:
         return fftt;
     }
 
+    double get_gradient() const
+    {
+        return gradient;
+    }
+
     double get_voc() const
     {
         return voc;
@@ -121,6 +126,8 @@ public:
     {
         voc = cap_ratio > 0 ? vol / (cap * cap_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
+        auto c_inverse =  cap_ratio > 0 ? 1 / (cap * cap_ratio) : std::numeric_limits<unsigned>::max();
+        gradient = fftt * alpha * beta * std::pow(voc, beta - 1) * c_inverse;
     }
 
     void set_cap_ratio(double r)
@@ -141,6 +148,8 @@ private:
     double tt = std::numeric_limits<unsigned>::max();
     double voc = 0;
     double vol = 0;
+
+    double gradient = std::numeric_limits<unsigned>::max();
 
     double cap_ratio = 1;
 };
@@ -203,6 +212,11 @@ public:
             vot = std::numeric_limits<double>::epsilon();
 
         return vdfps[i].get_travel_time() + choice_cost + toll / vot * MINUTES_IN_HOUR;
+    }
+
+    double get_gradient(unsigned short i) const
+    {
+        return vdfps[i].get_gradient();
     }
 
     size_type get_head_node_no() const
@@ -501,13 +515,19 @@ public:
      */
     double shift_volume(unsigned short iter_no)
     {
-        auto scaling = 1 / (iter_no + 2.0);
-        auto delta = scaling * gc_rd * od_vol;
+        // auto scaling = 1 / (iter_no + 2.0);
+        auto scaling = std::max(1 / second_order_gc, 1 / (iter_no + 2.0));
+        // auto delta = scaling * gc_rd * od_vol;
+        // auto delta = scaling * gc_ad * vol;
+        auto delta = scaling * gc_ad;
+        // auto delta = scaling * gc_rd;
+        // auto delta = scaling * gc_ad;
 
         if (delta >= vol)
         {
-            auto p = std::min(0.618, 1 - vol / delta);
-            delta = p * vol;
+            // auto p = std::min(0.618, 1 - vol / delta);
+            // delta = p * vol;
+            delta = vol;
         }
 
         vol -= delta;
@@ -586,6 +606,12 @@ public:
         gc = c;
     }
 
+    void set_gradient_cost(double c, double sc)
+    {
+        gc = c;
+        second_order_gc = sc;
+    }
+
     void set_node_path(std::vector<size_type>&& nodes_)
     {
         nodes = nodes_;
@@ -618,6 +644,8 @@ private:
     double tt = 0;
     double toll = 0;
     double vol = 0;
+
+    double second_order_gc = std::numeric_limits<unsigned>::max();
 
     std::string geo;
     std::vector<size_type> links;

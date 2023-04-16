@@ -145,6 +145,9 @@ private:
     std::vector<const DemandPeriod*> dps;
 
     unsigned short thread_nums = 4;
+
+    double total_sys_tt = 0;
+    double min_sys_tt = 0;
 };
 
 } // namespace transoms

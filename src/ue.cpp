@@ -57,6 +57,7 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 {
     const auto cv_num = this->cp.get_column_vecs().size();
+    min_sys_tt = 0;
 
 #ifndef _OPENMP
     double total_gap = 0;
@@ -81,10 +82,15 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
         for (auto& col : cv.get_columns())
         {
             double path_gradient_cost = 0;
+            double second_order_gc = 0;
             for (auto j : col.get_links())
+            {
                 path_gradient_cost += this->get_link(j)->get_generalized_cost(dp_no, vot);
+                second_order_gc += this->get_link(j)->get_gradient(dp_no);
+            }
 
-            const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
+            // const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
+            const_cast<Column&>(col).set_gradient_cost(path_gradient_cost, second_order_gc);
 
             if (path_gradient_cost < least_gradient_cost)
             {
@@ -93,6 +99,8 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
             }
         }
 
+        #pragma omp atomic
+        min_sys_tt += least_gradient_cost * cv.get_volume();
         double total_switched_out_vol = 0;
         if (cv.get_column_num() >= 2)
         {
@@ -171,7 +179,16 @@ void NetworkHandle::update_column_attributes()
         }
     }
 
+    for (auto link : this->net.get_links())
+    {
+        if (!link->get_length())
+            break;
+
+        total_sys_tt += link->get_generalized_cost(0, 0) * link->get_period_vol(0);
+    }
+
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
+    auto rel_gap_adjust = 1 - min_sys_tt / total_sys_tt;
     std::cout << "Final UE Convergency | total gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
 }
 
@@ -227,6 +244,7 @@ void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool r
 void NetworkHandle::update_link_travel_time()
 {
     const auto m = this->net.get_link_num();
+    total_sys_tt = 0;
 
 #ifdef _OPENMP
     #pragma omp parallel for

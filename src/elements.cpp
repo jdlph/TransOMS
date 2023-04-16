@@ -264,8 +264,8 @@ void SPNetwork::single_source_shortest_path(size_type src_node_no)
                     /**
                      * three cases
                      *
-                     * case i: new_node was in deque before, add it to the begin of deque
-                     * case ii: new_node is not in deque, and wasn't there before, add it to the end of deque
+                     * case i: new_node was in deque before, add it to deque head
+                     * case ii: new_node is not in deque, and wasn't there before, add it to deque tail
                      * case iii: new_node is in deque, do nothing
                      */
                     if (next_nodes[new_node] == past_node)
@@ -341,7 +341,7 @@ void SPNetwork::single_source_shortest_path_dijkstra(size_type src_node_no)
          */
         min_heap.pop();
 
-        // the node has been scanned / labeled. skip it.
+        // the node has been scanned / labeled, skip it.
         if (marked[cur_node])
             continue;
 
@@ -464,6 +464,7 @@ void NetworkHandle::delete_spnetworks()
     this->spns.clear();
 }
 
+// useless
 ColumnVec& NetworkHandle::get_column_vec(size_type i)
 {
     return this->cp.get_column_vec(i);

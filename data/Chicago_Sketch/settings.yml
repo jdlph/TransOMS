@@ -1,5 +1,5 @@
 ---
-# settings for Path4GMNS
+# settings for TransOMS
 agent_type:
   - type: a
     name: auto
@@ -24,7 +24,7 @@ demand_period:
         agent_type: auto
     special_event:
       name: work_zone
-      enable: true
+      enable: false
       affected_link:
         - link_id: 1
           capacity_ratio: 0.5
