@@ -156,7 +156,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         {
             hp.alpha_pos = headers.at(header_vdf_alpha);
         }
-        catch(const std::range_error& re)
+        catch(const std::out_of_range& re)
         {
             // do nothing
         }
@@ -165,7 +165,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         {
             hp.beta_pos = headers.at(header_vdf_beta);
         }
-        catch(const std::range_error& re)
+        catch(const std::out_of_range& re)
         {
             // do nothing
         }
@@ -174,7 +174,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         {
             hp.cap_pos = headers.at(header_vdf_cap);
         }
-        catch(const std::range_error& re)
+        catch(const std::out_of_range& re)
         {
             // do nothing
         }
@@ -183,7 +183,7 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         {
             hp.fftt_pos = headers.at(header_vdf_fftt);
         }
-        catch(const std::range_error& re)
+        catch(const std::out_of_range& re)
         {
             // do nothing
         }
@@ -706,7 +706,7 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
     auto writer = miocsv::Writer(dir + '/' + filename);
 
     writer.write_row_raw("agent_id", "o_zone_id", "d_zone_id", "path_id", "agent_type",
-                         "demand_period", "volume", "toll", "travel_time", "distance",
+                         "demand_period", "volume", "toll", "travel_time","least_cost_pi", "gap_flow_weighted", "gap_abs", "gap_rel", "distance",
                          "link_sequence", "node_sequence", "geometry");
 
     size_type i = 0;
@@ -732,6 +732,10 @@ void NetworkHandle::output_columns_par(const std::string& dir, const std::string
             writer.append(col.get_volume());
             writer.append(col.get_toll());
             writer.append(col.get_travel_time());
+            writer.append(col.get_least_cost());
+            writer.append(col.get_gap());
+            writer.append(col.get_gradient_cost_abs_diff());
+            writer.append(col.get_gradient_cost_rel_diff());
             writer.append(col.get_dist());
 
             auto link_path = this->get_link_path_str(col);

@@ -127,7 +127,7 @@ public:
         voc = cap_ratio > 0 ? vol / (cap * cap_ratio) : std::numeric_limits<unsigned>::max();
         tt = fftt * (1 + alpha * std::pow(voc, beta));
         auto c_inverse =  cap_ratio > 0 ? 1 / (cap * cap_ratio) : std::numeric_limits<unsigned>::max();
-        gradient = fftt * alpha * beta * std::pow(voc, beta - 1) * c_inverse;
+        gradient = fftt * alpha * beta * std::pow(std::max(voc, 0.001), beta - 1) * c_inverse;
     }
 
     void set_cap_ratio(double r)
@@ -515,19 +515,31 @@ public:
      */
     double shift_volume(unsigned short iter_no)
     {
-        // auto scaling = 1 / (iter_no + 2.0);
-        auto scaling = std::max(1 / second_order_gc, 1 / (iter_no + 2.0));
-        // auto delta = scaling * gc_rd * od_vol;
-        // auto delta = scaling * gc_ad * vol;
-        auto delta = scaling * gc_ad;
-        // auto delta = scaling * gc_rd;
-        // auto delta = scaling * gc_ad;
+        auto scaling = 1 / (iter_no + 2.0);
+        auto delta = scaling * gc_rd * od_vol;
 
         if (delta >= vol)
         {
-            // auto p = std::min(0.618, 1 - vol / delta);
-            // delta = p * vol;
-            delta = vol;
+            auto p = std::min(0.618, 1 - vol / delta);
+            delta = p * vol;
+        }
+
+        vol -= delta;
+
+        return delta;
+    }
+
+    double shift_volume(unsigned short iter_no, double least_second_order_gc)
+    {
+        if (!vol)
+            return 0;
+
+        auto delta = 1 / std::max((least_second_order_gc + second_order_gc), 0.001) * gc_ad;
+        if (delta >= vol)
+        {
+            auto p = std::min(0.618, 1 - vol / delta);
+            delta = p * vol;
+            // delta = vol;
         }
 
         vol -= delta;
@@ -631,6 +643,12 @@ public:
     {
         gc_ad = gc - least_gc;
         gc_rd = least_gc > 0 ? gc_ad / least_gc : std::numeric_limits<unsigned>::max();
+        least_cost = least_gc;
+    }
+
+    double get_least_cost() const
+    {
+        return least_cost;
     }
 
 private:
@@ -644,6 +662,7 @@ private:
     double tt = 0;
     double toll = 0;
     double vol = 0;
+    double least_cost = 0;
 
     double second_order_gc = std::numeric_limits<unsigned>::max();
 
