@@ -141,11 +141,7 @@ void SPNetwork::initialize()
 #endif
     }
 
-#ifdef _MSC_VER
     outgoing_links.resize(n);
-#else
-    outgoing_links.reserve(n);
-#endif
 
     for (const auto node : get_nodes())
     {
