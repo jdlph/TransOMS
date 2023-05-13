@@ -515,31 +515,13 @@ public:
      */
     double shift_volume(unsigned short iter_no)
     {
-        auto scaling = 1 / (iter_no + 2.0);
+        auto scaling = std::max(1 / (iter_no + 2.0), 0.1);
         auto delta = scaling * gc_rd * od_vol;
 
         if (delta >= vol)
         {
             auto p = std::min(0.618, 1 - vol / delta);
             delta = p * vol;
-        }
-
-        vol -= delta;
-
-        return delta;
-    }
-
-    double shift_volume(unsigned short iter_no, double least_second_order_gc)
-    {
-        if (!vol)
-            return 0;
-
-        auto delta = 1 / std::max((least_second_order_gc + second_order_gc), 0.001) * gc_ad;
-        if (delta >= vol)
-        {
-            auto p = std::min(0.618, 1 - vol / delta);
-            delta = p * vol;
-            // delta = vol;
         }
 
         vol -= delta;
@@ -618,12 +600,6 @@ public:
         gc = c;
     }
 
-    void set_gradient_cost(double c, double sc)
-    {
-        gc = c;
-        second_order_gc = sc;
-    }
-
     void set_node_path(std::vector<size_type>&& nodes_)
     {
         nodes = nodes_;
@@ -663,8 +639,6 @@ private:
     double toll = 0;
     double vol = 0;
     double least_cost = 0;
-
-    double second_order_gc = std::numeric_limits<unsigned>::max();
 
     std::string geo;
     std::vector<size_type> links;

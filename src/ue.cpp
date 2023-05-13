@@ -77,35 +77,27 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
         const Column* p = nullptr;
         double least_gradient_cost = std::numeric_limits<double>::max();
-        double least_second_order_gc = 0;
         // col is const
         for (auto& col : cv.get_columns())
         {
             double path_gradient_cost = 0;
-            double second_order_gc = 0;
             for (auto j : col.get_links())
-            {
                 path_gradient_cost += this->get_link(j)->get_generalized_cost(dp_no, vot);
-                second_order_gc += this->get_link(j)->get_gradient(dp_no);
-            }
 
-            // const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
-            const_cast<Column&>(col).set_gradient_cost(path_gradient_cost, second_order_gc);
+            const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
 
             if (path_gradient_cost < least_gradient_cost)
             {
                 least_gradient_cost = path_gradient_cost;
-                least_second_order_gc = second_order_gc;
                 p = &col;
             }
         }
 
-        #pragma omp atomic
         double total_switched_out_vol = 0;
         if (cv.get_column_num() >= 2)
         {
             for (auto& col : cv.get_columns())
-            {   
+            {
                 if (&col == p)
                     continue;
 
@@ -115,8 +107,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
                 total_gap += col.get_gap();
                 total_sys_travel_time += col.get_sys_travel_time();
 #endif
-                // total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
-                total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no, least_second_order_gc);
+                total_switched_out_vol += const_cast<Column&>(col).shift_volume(iter_no);
             }
         }
 
@@ -125,7 +116,6 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 #ifndef _OPENMP
             total_sys_travel_time += p->get_sys_travel_time();
 #endif
-            // const_cast<Column*>(p)->update_gradient_cost_diffs(least_gradient_cost);
             const_cast<Column*>(p)->reset_gradient_diffs();
             const_cast<Column*>(p)->increase_volume(total_switched_out_vol);
         }
