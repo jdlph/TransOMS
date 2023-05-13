@@ -606,13 +606,25 @@ public:
     ~Writer() = default;
 
     template<typename T>
-    void append(const T& t, const std::string& sep = ",")
+    void append(const T& t, const char sep = ',')
     {
         ost << t << sep;
     }
 
     template<typename T>
-    void append(T&& t, const std::string& sep = ",")
+    void append(T&& t, const char sep = ',')
+    {
+        ost << t << sep;
+    }
+
+    template<typename T>
+    void append(const T& t, const std::string& sep)
+    {
+        ost << t << sep;
+    }
+
+    template<typename T>
+    void append(T&& t, const std::string& sep)
     {
         ost << t << sep;
     }

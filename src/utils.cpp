@@ -682,7 +682,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 
             writer.append(link_path);
             writer.append(node_path);
-            writer.append(geo, "\n");
+            writer.append(geo, '\n');
         }
     }
 

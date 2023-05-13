@@ -19,8 +19,8 @@ int main()
 {
     auto ts = high_resolution_clock::now();
 
-    const std::string dir {"../data/Chicago_Regional/"};
-    // const std::string dir {"../data/Chicago_Sketch/"};
+    // const std::string dir {"../data/Chicago_Regional/"};
+    const std::string dir {"../data/Chicago_Sketch/"};
     // const std::string dir {"../data/Two_Corridor/"};
     // const std::string dir {"../data/Sioux_Falls/"};
 
