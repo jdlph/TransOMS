@@ -71,7 +71,7 @@ public:
     }
 
     // simulation
-    bool at_last_link() const
+    bool reaches_last_link() const
     {
         return curr_link_no == 0;
     }
@@ -84,6 +84,16 @@ public:
     auto get_dep_interval() const
     {
         return dep_intvls[curr_link_no];
+    }
+
+    std::vector<size_type>::size_type get_link_num() const
+    {
+        return col->get_link_num();
+    }
+
+    size_type get_last_link_no() const
+    {
+        return col->get_last_link_no();
     }
 
     size_type get_next_link_no() const
@@ -278,7 +288,7 @@ private:
 
 class DemandPeriod {
 public:
-    DemandPeriod() : no {0}, period {"AM"}, time_period {"0700_0800"}, se {nullptr}
+    DemandPeriod() : no {0}, period {"AM"}, time_period {"0700-0800"}, se {nullptr}
     {
     }
 

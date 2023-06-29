@@ -18,7 +18,7 @@ agent_type:
 
 demand_period:
   - period: AM
-    time_period: 0700_0800
+    time_period: 0700-0800
     demand:
       - file_name: demand.csv
         agent_type: auto

@@ -19,9 +19,6 @@
 #include <experimental/filesystem>
 #endif
 
-// #include <future>
-// #include <memory>
-
 #include <yaml-cpp/yaml.h>
 
 using namespace transoms;

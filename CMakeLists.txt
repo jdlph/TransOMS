@@ -10,7 +10,7 @@ configure_file(config.h.in config.h)
 set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_BUILD_TYPE Release)
 
-add_executable(${PROJECT_NAME} src/main.cpp src/elements.cpp src/ue.cpp src/utils.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/elements.cpp src/simulation src/ue.cpp src/utils.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

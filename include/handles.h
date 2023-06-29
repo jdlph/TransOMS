@@ -37,6 +37,7 @@ public:
     }
 
     void find_ue(unsigned short column_gen_num, unsigned short column_opt_num);
+    void run_simulation();
 
     const Link* get_link(size_type link_no) const
     {
@@ -129,10 +130,19 @@ private:
     void setup_spnetworks();
     void delete_spnetworks();
 
+    void setup_agent_dep_time();
+
     ColumnVec& get_column_vec(size_type i);
     std::string get_link_path_str(const Column& c);
     std::string get_node_path_str(const Column& c);
     std::string get_node_path_coordinates(const Column& c);
+
+    unsigned short get_simulation_resolution() const;
+    unsigned short get_simulation_intervals() const;
+
+    const std::vector<size_type>& get_agents_at_interval(unsigned short i) const;
+    Agent& get_agent(size_type no);
+    const Agent& get_agent(size_type no) const;
 
 private:
     ColumnPool cp;
@@ -144,6 +154,14 @@ private:
     std::vector<const DemandPeriod*> dps;
 
     unsigned short thread_nums = 4;
+
+    // simulation
+    // number of seconds per simulation interval
+    unsigned short simu_res = 6;
+    // simulation duration in minutes
+    unsigned short simu_dur = 60;
+    // simulation start time in minutes as time of day
+    unsigned short simu_stt = 0;
 };
 
 } // namespace transoms

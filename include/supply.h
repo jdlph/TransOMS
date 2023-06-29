@@ -556,7 +556,7 @@ public:
 
     size_type get_last_link_no() const
     {
-        return links.back();
+        return links.front();
     }
 
     size_type get_link_no(size_type i) const
@@ -1121,6 +1121,21 @@ public:
         last_thru_node_no = no;
     }
 
+    const std::vector<size_type>& get_agents_at_interval(unsigned short i) const
+    {
+        return td_agents.at(i);
+    }
+
+    const Agent& get_agent(size_type no) const
+    {
+        return agents[no];
+    }
+
+    Agent& get_agent(size_type no)
+    {
+        return agents[no];
+    }
+
 private:
     size_type last_thru_node_no;
 
@@ -1136,7 +1151,7 @@ private:
 
     std::vector<Agent> agents;
     // time-dependent agents for simulation
-    std::map<size_type, size_type> td_agents;
+    std::map<unsigned short, std::vector<size_type>> td_agents;
 };
 
 class SPNetwork : public Network {
