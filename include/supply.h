@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <list>
 #include <map>
 #include <memory>
 #include <queue>
@@ -1317,6 +1318,77 @@ private:
     std::allocator<double> double_alloc;
     std::allocator<int> int_alloc;
     std::allocator<const Link*> link_alloc;
+};
+
+// a wrapper class of link object and queues for simulation purpose
+class LinkQueue {
+public:
+    LinkQueue() = delete;
+
+    // cap : link cap, n: total number of simulation interval, k: simulation duration
+    LinkQueue(const Link* link_, size_type cap, size_type n, unsigned short k)
+        : link {link_}, cum_arr (n, 0), cum_dep (n, 0), outflow_cap (n, cap), waiting_time (k, 0)
+    {
+    }
+
+    LinkQueue(const LinkQueue&) = delete;
+    LinkQueue& operator=(const LinkQueue&) = delete;
+
+    LinkQueue(LinkQueue&&) = default;
+    LinkQueue& operator=(LinkQueue&&) = delete;
+
+    ~LinkQueue() = default;
+
+    const Link* get_link() const
+    {
+        return link;
+    }
+
+    size_type get_outflow_cap(unsigned short i) const
+    {
+        return outflow_cap[i];
+    }
+
+    size_type get_entr_queue_front() const
+    {
+        return entr_queue.front();
+    }
+
+    size_type get_exit_queue_front() const
+    {
+        return exit_queue.front();
+    }
+
+    void pop_entr_queue_front()
+    {
+        entr_queue.pop_front();
+    }
+
+    void pop_exit_queue_front()
+    {
+        exit_queue.pop_front();
+    }
+
+    void append_entr_queue(size_type a)
+    {
+        entr_queue.push_back(a);
+    }
+
+    void append_exit_queue(size_type a)
+    {
+        exit_queue.push_back(a);
+    }
+
+private:
+    const Link* link;
+
+    std::list<size_type> entr_queue;
+    std::list<size_type> exit_queue;
+
+    std::vector<size_type> cum_arr;
+    std::vector<size_type> cum_dep;
+    std::vector<size_type> outflow_cap;
+    std::vector<double> waiting_time;
 };
 
 } // namespace transoms

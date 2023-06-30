@@ -13,7 +13,7 @@
 
 using namespace transoms;
 
-inline unsigned short NetworkHandle::get_simulation_intervals() const
+inline size_type NetworkHandle::get_simulation_intervals() const
 {
     return std::ceil(this->simu_dur * SECONDS_IN_MINUTE / this->simu_res);
 }

@@ -138,7 +138,7 @@ private:
     std::string get_node_path_coordinates(const Column& c);
 
     unsigned short get_simulation_resolution() const;
-    unsigned short get_simulation_intervals() const;
+    size_type get_simulation_intervals() const;
 
     const std::vector<size_type>& get_agents_at_interval(unsigned short i) const;
     Agent& get_agent(size_type no);
