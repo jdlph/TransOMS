@@ -127,6 +127,11 @@ public:
         dep_intvls[curr_link_no] = i;
     }
 
+    void set_dep_time(double t)
+    {
+        dep_time = t;
+    }
+
     // can be combined with set_arr_interval()?
     void set_orig_arr_interval(unsigned i)
     {
@@ -341,6 +346,17 @@ public:
     const auto& get_special_event() const
     {
         return se;
+    }
+
+    // minute as time of day
+    unsigned short get_start_time() const
+    {
+
+    }
+
+    unsigned short get_duration() const
+    {
+
     }
 
     bool contain_iter_no(unsigned short iter_no) const;

@@ -25,12 +25,12 @@ const std::vector<size_type>& NetworkHandle::get_agents_at_interval(unsigned sho
 
 Agent& NetworkHandle::get_agent(size_type no)
 {
-    return this->net.get_agent(no);
+    return this->agents[no];
 }
 
 const Agent& NetworkHandle::get_agent(size_type no) const
 {
-    return this->net.get_agent(no);
+    return this->agents[no];
 }
 
 LinkQueue& NetworkHandle::get_link_queue(size_type i)
@@ -38,9 +38,36 @@ LinkQueue& NetworkHandle::get_link_queue(size_type i)
     return this->link_queues[i];
 }
 
-void NetworkHandle::setup_agent_dep_time()
+void NetworkHandle::setup_agents()
 {
+    size_type agent_no = 0;
+    for (const auto& cv : this->cp.get_column_vecs())
+    {
+        // oz_no, dz_no, dp_no, at_no
+        auto oz_no = std::get<0>(cv.get_key());
+        auto dz_no = std::get<1>(cv.get_key());
+        auto dp_no = std::get<2>(cv.get_key());
+        auto at_no = std::get<3>(cv.get_key());
 
+        for (const auto& col : cv.get_columns())
+        {
+            for (size_type i = 0, vol = std::ceil(col.get_volume()); i != vol; ++i)
+            {
+                // avoid copy by constructing Agent object as rvalue and moving it to agents
+                this->agents.push_back(Agent{agent_no, at_no, dp_no, oz_no, dz_no, &col});
+                auto delta = static_cast<unsigned short>(i / col.get_volume() * this->dps[dp_no]->get_duration());
+
+                auto intvl = delta * SECONDS_IN_MINUTE / this->simu_res;
+                auto dep_time = this->dps[dp_no]->get_start_time() + delta;
+
+                auto& agent = this->get_agent(agent_no);
+                agent.set_arr_interval(intvl);
+                agent.set_dep_time(dep_time);
+
+                this->td_agents[intvl].push_back(agent_no++);
+            }
+        }
+    }
 }
 
 void NetworkHandle::setup_link_queues()
@@ -54,6 +81,14 @@ void NetworkHandle::setup_link_queues()
 
 void NetworkHandle::run_simulation()
 {
+    this->setup_agents();
+    if (this->td_agents.empty())
+        return;
+
+    this->setup_link_queues();
+    if (this->link_queues.empty())
+        return;
+
     size_type cum_arr = 0;
     size_type cum_dep = 0;
     // number of simulation intervals in one minute

@@ -1122,16 +1122,6 @@ public:
         last_thru_node_no = no;
     }
 
-    const Agent& get_agent(size_type no) const
-    {
-        return agents[no];
-    }
-
-    Agent& get_agent(size_type no)
-    {
-        return agents[no];
-    }
-
 private:
     size_type last_thru_node_no;
 
@@ -1144,8 +1134,6 @@ private:
     std::vector<const Node*> centroids;
     std::vector<std::string> zone_ids;
     std::map<std::string, Zone*> zones;
-
-    std::vector<Agent> agents;
 };
 
 class SPNetwork : public Network {

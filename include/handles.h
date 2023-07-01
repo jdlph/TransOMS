@@ -130,7 +130,7 @@ private:
     void setup_spnetworks();
     void delete_spnetworks();
 
-    void setup_agent_dep_time();
+    void setup_agents();
     void setup_link_queues();
 
     ColumnVec& get_column_vec(size_type i);
@@ -167,6 +167,8 @@ private:
     unsigned short simu_stt = 0;
 
     std::vector<LinkQueue> link_queues;
+
+    std::vector<Agent> agents;
     // time-dependent agents for simulation
     std::map<unsigned short, std::vector<size_type>> td_agents;
 };
