@@ -133,6 +133,11 @@ public:
         arr_intvls.back() = i;
     }
 
+    void update_deq_interval(double tt)
+    {
+        dep_intvls[curr_link_no] = arr_intvls[curr_link_no] + tt;
+    }
+
 private:
     void initialize_intervals();
 

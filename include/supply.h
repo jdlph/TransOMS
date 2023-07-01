@@ -18,6 +18,7 @@
 #include <map>
 #include <memory>
 #include <queue>
+#include <random>
 #include <unordered_set>
 #include <vector>
 
@@ -1096,7 +1097,6 @@ public:
     void add_node(Node* n)
     {
         node_id_no_map[n->get_id()] = n->get_no();
-
         nodes.push_back(n);
     }
 
@@ -1325,9 +1325,9 @@ class LinkQueue {
 public:
     LinkQueue() = delete;
 
-    // cap : link cap, n: total number of simulation interval, k: simulation duration
-    LinkQueue(const Link* link_, size_type cap, size_type n, unsigned short k)
-        : link {link_}, cum_arr (n, 0), cum_dep (n, 0), outflow_cap (n, cap), waiting_time (k, 0)
+    // cap : link cap, n: total number of simulation interval, k: simulation duration, r : simulation resolution
+    LinkQueue(const Link* link_, size_type n, unsigned short k, unsigned short r)
+        : link {link_}, cum_arr (n, 0), cum_dep (n, 0), waiting_time (k, 0), outflow_cap(n, get_spatial_cap(r))
     {
     }
 
@@ -1379,6 +1379,73 @@ public:
         exit_queue.push_back(a);
     }
 
+    void deduct_outflow_cap(size_type i)
+    {
+        --outflow_cap[i];
+    }
+
+    void increment_cum_arr(size_type i)
+    {
+        ++cum_arr[i];
+    }
+
+    void increment_cum_dep(size_type i)
+    {
+        ++cum_dep[i];
+    }
+
+    void update_waiting_time(size_type i, double wt)
+    {
+        waiting_time[i] += wt;
+    }
+
+    bool has_outflow_cap(size_type i) const
+    {
+        return outflow_cap[i] > 0;
+    }
+
+    bool is_entr_queue_empty() const
+    {
+        return entr_queue.empty();
+    }
+
+    bool is_exit_queue_empty() const
+    {
+        return exit_queue.empty();
+    }
+
+    auto get_period_travel_time(unsigned short i) const
+    {
+        return link->get_period_travel_time(i);
+    }
+
+private:
+    size_type get_spatial_cap(unsigned short res) const
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+
+        double c1 = link->get_cap() / (SECONDS_IN_MINUTE * res);
+        size_type c2 = std::floor(link->get_cap() / (SECONDS_IN_MINUTE * res));
+
+        double residual = c1 - c2;
+        if (dis(gen) >= residual)
+            residual = 1;
+        else
+            residual = 0;
+
+        return c2 + residual;
+    }
+
+    void setup_outflow_cap(size_type n, unsigned short r)
+    {
+        auto c = get_spatial_cap(r);
+        outflow_cap.resize(n);
+        for (auto i = 0; i != n; ++i)
+            outflow_cap[i] = c;
+    }
+
 private:
     const Link* link;
 
@@ -1387,6 +1454,7 @@ private:
 
     std::vector<size_type> cum_arr;
     std::vector<size_type> cum_dep;
+
     std::vector<size_type> outflow_cap;
     std::vector<double> waiting_time;
 };

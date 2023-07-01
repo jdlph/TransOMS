@@ -131,6 +131,7 @@ private:
     void delete_spnetworks();
 
     void setup_agent_dep_time();
+    void setup_link_queues();
 
     ColumnVec& get_column_vec(size_type i);
     std::string get_link_path_str(const Column& c);
@@ -143,6 +144,8 @@ private:
     const std::vector<size_type>& get_agents_at_interval(unsigned short i) const;
     Agent& get_agent(size_type no);
     const Agent& get_agent(size_type no) const;
+
+    LinkQueue& get_link_queue(size_type i);
 
 private:
     ColumnPool cp;
@@ -162,6 +165,8 @@ private:
     unsigned short simu_dur = 60;
     // simulation start time in minutes as time of day
     unsigned short simu_stt = 0;
+
+    std::vector<LinkQueue> link_queues;
 };
 
 } // namespace transoms
