@@ -167,6 +167,8 @@ private:
     unsigned short simu_stt = 0;
 
     std::vector<LinkQueue> link_queues;
+    // time-dependent agents for simulation
+    std::map<unsigned short, std::vector<size_type>> td_agents;
 };
 
 } // namespace transoms

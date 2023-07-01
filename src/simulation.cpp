@@ -20,7 +20,7 @@ inline size_type NetworkHandle::get_simulation_intervals() const
 
 const std::vector<size_type>& NetworkHandle::get_agents_at_interval(unsigned short i) const
 {
-    return this->net.get_agents_at_interval(i);
+    return this->td_agents.at(i);;
 }
 
 Agent& NetworkHandle::get_agent(size_type no)
@@ -48,7 +48,7 @@ void NetworkHandle::setup_link_queues()
     for (const auto link : this->net.get_links())
     {
         link_queues.push_back(LinkQueue{link, this->get_simulation_intervals(),
-                              this->simu_dur, this->simu_res});
+                                        this->simu_dur, this->simu_res});
     }
 }
 
@@ -65,6 +65,12 @@ void NetworkHandle::run_simulation()
             std::cout << "simulation time = " << t / num << " min, CA = "
                       << cum_arr << ", CD = " << cum_dep << '\n';
 
+        if (t)
+        {
+            for (auto& link_que : this->link_queues)
+                link_que.update_cum_states(t);
+        }
+
         for (auto a_no : this->get_agents_at_interval(t))
         {
             const auto& agent = this->get_agent(a_no);
@@ -72,6 +78,7 @@ void NetworkHandle::run_simulation()
                 continue;
 
             auto& link_que = this->get_link_queue(agent.get_last_link_no());
+            link_que.increment_cum_arr(t);
             link_que.append_entr_queue(a_no);
             ++cum_arr;
         }
@@ -82,10 +89,10 @@ void NetworkHandle::run_simulation()
             {
                 auto a_no = link_que.get_entr_queue_front();
                 auto& agent = this->get_agent(a_no);
-                auto tt = std::ceil(link_que.get_period_travel_time(0) * num);
+                auto tt = std::ceil(link_que.get_period_fftt(0) * num);
 
                 link_que.append_exit_queue(a_no);
-                agent.update_deq_interval(tt);
+                agent.update_dep_interval(tt);
             }
         }
 
@@ -112,15 +119,15 @@ void NetworkHandle::run_simulation()
                     }
                     else
                     {
-                        auto link_no_ = agent.get_next_link_no();
-                        auto& next_link_que = this->get_link_queue(link_no_);
+                        auto next_link_no = agent.get_next_link_no();
+                        auto& next_link_que = this->get_link_queue(next_link_no);
 
                         next_link_que.append_entr_queue(a_no);
                         agent.set_dep_interval(t);
                         agent.set_arr_interval(t);
 
                         auto travel_time = t - agent.get_arr_interval();
-                        auto waiting_time = travel_time - link_que.get_period_travel_time(0);
+                        auto waiting_time = travel_time - link_que.get_period_fftt(0);
                         auto arrival_time = std::floor(agent.get_arr_interval() / num);
 
                         link_que.update_waiting_time(arrival_time, waiting_time);

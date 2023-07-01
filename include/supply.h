@@ -1122,11 +1122,6 @@ public:
         last_thru_node_no = no;
     }
 
-    const std::vector<size_type>& get_agents_at_interval(unsigned short i) const
-    {
-        return td_agents.at(i);
-    }
-
     const Agent& get_agent(size_type no) const
     {
         return agents[no];
@@ -1151,8 +1146,6 @@ private:
     std::map<std::string, Zone*> zones;
 
     std::vector<Agent> agents;
-    // time-dependent agents for simulation
-    std::map<unsigned short, std::vector<size_type>> td_agents;
 };
 
 class SPNetwork : public Network {
@@ -1394,9 +1387,19 @@ public:
         ++cum_dep[i];
     }
 
-    void update_waiting_time(size_type i, double wt)
+    // t is the simulation time stamp in minute
+    void update_waiting_time(unsigned short t, double wt)
     {
-        waiting_time[i] += wt;
+        waiting_time[t] += wt;
+    }
+
+    void update_cum_states(size_type i)
+    {
+        if (!i)
+            return;
+
+        cum_arr[i] = cum_arr[i-1];
+        cum_dep[i] = cum_dep[i-1];
     }
 
     bool has_outflow_cap(size_type i) const
@@ -1414,14 +1417,20 @@ public:
         return exit_queue.empty();
     }
 
-    auto get_period_travel_time(unsigned short i) const
+    auto get_period_travel_time(unsigned short k) const
     {
-        return link->get_period_travel_time(i);
+        return link->get_period_travel_time(k);
+    }
+
+    auto get_period_fftt(unsigned short k) const
+    {
+        return link->get_period_fftt(k);
     }
 
 private:
     size_type get_spatial_cap(unsigned short res) const
     {
+        // the following will be set up again and again, which is not efficient!!
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -1436,14 +1445,6 @@ private:
             residual = 0;
 
         return c2 + residual;
-    }
-
-    void setup_outflow_cap(size_type n, unsigned short r)
-    {
-        auto c = get_spatial_cap(r);
-        outflow_cap.resize(n);
-        for (auto i = 0; i != n; ++i)
-            outflow_cap[i] = c;
     }
 
 private:
