@@ -62,9 +62,6 @@ public:
         return no;
     }
 
-    const std::vector<size_type>& get_link_path() const;
-    const std::vector<size_type>& get_node_path() const;
-
     double get_pce() const
     {
         return pce;
@@ -84,16 +81,6 @@ public:
     auto get_dep_interval() const
     {
         return dep_intvls[curr_link_no];
-    }
-
-    std::vector<size_type>::size_type get_link_num() const
-    {
-        return col->get_link_num();
-    }
-
-    size_type get_last_link_no() const
-    {
-        return col->get_last_link_no();
     }
 
     size_type get_next_link_no() const
@@ -142,6 +129,12 @@ public:
     {
         dep_intvls[curr_link_no] = arr_intvls[curr_link_no] + tt;
     }
+
+    const std::vector<size_type>& get_link_path() const;
+    const std::vector<size_type>& get_node_path() const;
+
+    std::vector<size_type>::size_type get_link_num() const;
+    size_type get_last_link_no() const;
 
 private:
     void initialize_intervals();

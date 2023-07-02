@@ -39,6 +39,14 @@ public:
     void find_ue(unsigned short column_gen_num, unsigned short column_opt_num);
     void run_simulation();
 
+    void read_demands(const std::string& dir);
+    void read_network(const std::string& dir);
+    void read_settings(const std::string& dir);
+
+    void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
+    void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
+
+private:
     const Link* get_link(size_type link_no) const
     {
         return net.get_links()[link_no];
@@ -106,13 +114,6 @@ public:
         return false;
     }
 
-    void read_demands(const std::string& dir);
-    void read_network(const std::string& dir);
-    void read_settings(const std::string& dir);
-
-    void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
-    void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
-
 private:
     void read_demand(const std::string& dir, unsigned short dp_no, unsigned short at_no);
     void read_settings_yml(const std::string& file_path);
@@ -138,7 +139,7 @@ private:
     std::string get_node_path_str(const Column& c);
     std::string get_node_path_coordinates(const Column& c);
 
-    unsigned short get_simulation_resolution() const;
+    // unsigned short get_simulation_resolution() const;
     size_type get_simulation_intervals() const;
 
     const std::vector<size_type>& get_agents_at_interval(unsigned short i) const;
@@ -173,7 +174,7 @@ private:
     std::vector<Agent> agents;
     // time-dependent agents for simulation
     std::map<unsigned short, std::vector<size_type>> td_agents;
-    
+
     std::vector<size_type> time_periods;
 };
 

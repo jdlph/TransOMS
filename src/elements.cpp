@@ -19,29 +19,6 @@
 
 using namespace transoms;
 
-inline const std::vector<size_type>& Agent::get_link_path() const
-{
-    return col->get_links();
-}
-
-inline const std::vector<size_type>& Agent::get_node_path() const
-{
-    return col->get_nodes();
-}
-
-void Agent::initialize_intervals()
-{
-    // throw an error or terminate?
-    if (!col)
-        return;
-
-    auto n = col->get_node_num();
-
-    arr_intvls.resize(n);
-    dep_intvls.resize(n);
-    curr_link_no = n - 1;
-}
-
 // deprecated
 inline bool DemandPeriod::contain_iter_no(unsigned short iter_no) const
 {

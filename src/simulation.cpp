@@ -13,6 +13,39 @@
 
 using namespace transoms;
 
+inline const std::vector<size_type>& Agent::get_link_path() const
+{
+    return col->get_links();
+}
+
+inline const std::vector<size_type>& Agent::get_node_path() const
+{
+    return col->get_nodes();
+}
+
+inline std::vector<size_type>::size_type Agent::get_link_num() const
+{
+    return col->get_link_num();
+}
+
+inline size_type Agent::get_last_link_no() const
+{
+    return col->get_last_link_no();
+}
+
+void Agent::initialize_intervals()
+{
+    // throw an error or terminate?
+    if (!col)
+        return;
+
+    auto n = col->get_link_num();
+
+    arr_intvls.resize(n);
+    dep_intvls.resize(n);
+    curr_link_no = n - 1;
+}
+
 inline size_type NetworkHandle::get_simulation_intervals() const
 {
     return std::ceil(this->simu_dur * SECONDS_IN_MINUTE / this->simu_res);
@@ -64,8 +97,8 @@ void NetworkHandle::setup_agents()
         {
             for (size_type i = 0, vol = std::ceil(col.get_volume()); i != vol; ++i)
             {
-                // avoid copy by constructing Agent object as rvalue and moving it to agents
-                this->agents.push_back(Agent{agent_no, at_no, dp_no, oz_no, dz_no, &col});
+                // avoid copy by constructing Agent object in place
+                this->agents.emplace_back(agent_no, at_no, dp_no, oz_no, dz_no, &col);
                 auto delta = static_cast<unsigned short>(i / col.get_volume() * this->dps[dp_no]->get_duration());
 
                 auto intvl = delta * SECONDS_IN_MINUTE / this->simu_res;
@@ -93,8 +126,8 @@ void NetworkHandle::setup_link_queues()
 {
     for (const auto link : this->net.get_links())
     {
-        link_queues.push_back(LinkQueue{link, this->get_simulation_intervals(),
-                                        this->simu_dur, this->simu_res});
+        link_queues.emplace_back(link, this->get_simulation_intervals(),
+                                 this->simu_dur, this->simu_res);
     }
 }
 
@@ -111,7 +144,7 @@ void NetworkHandle::run_simulation()
     size_type cum_arr = 0;
     size_type cum_dep = 0;
     // number of simulation intervals in one minute
-    const unsigned short num = std::ceil(SECONDS_IN_MINUTE / this->get_simulation_resolution());
+    const unsigned short num = std::ceil(SECONDS_IN_MINUTE / this->simu_res);
 
     for (auto t = 0; t != this->get_simulation_intervals(); ++t)
     {
