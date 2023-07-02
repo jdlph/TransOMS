@@ -262,6 +262,11 @@ public:
         return vdfps[i].get_fftt();
     }
 
+    double get_last_period_fftt() const
+    {
+        return vdfps.back().get_fftt();
+    }
+
     double get_period_travel_time(unsigned short i) const
     {
         return vdfps[i].get_travel_time();
@@ -270,6 +275,11 @@ public:
     double get_period_vol(unsigned short i) const
     {
         return vdfps[i].get_vol();
+    }
+
+    std::vector<VDFPeriod>::size_type get_vdfperiod_count() const
+    {
+        return vdfps.size();
     }
 
     void add_vdfperiod(VDFPeriod&& vdf)
@@ -1412,6 +1422,9 @@ public:
 
     auto get_period_fftt(unsigned short k) const
     {
+        if (k >= link->get_vdfperiod_count())
+            return link->get_last_period_fftt();
+        
         return link->get_period_fftt(k);
     }
 
