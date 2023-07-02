@@ -147,6 +147,8 @@ private:
 
     LinkQueue& get_link_queue(size_type i);
 
+    unsigned short get_demand_period_no(size_type i) const;
+
 private:
     ColumnPool cp;
 
@@ -171,6 +173,8 @@ private:
     std::vector<Agent> agents;
     // time-dependent agents for simulation
     std::map<unsigned short, std::vector<size_type>> td_agents;
+    
+    std::vector<size_type> time_periods;
 };
 
 } // namespace transoms

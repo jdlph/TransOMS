@@ -313,6 +313,7 @@ public:
         : no {no_}, period {std::move(period_)}, time_period {std::move(time_period_)}, se {std::move(se_)}
     {
         ds.push_back(dem);
+        setup_time();
     }
 
     DemandPeriod(const DemandPeriod&) = delete;
@@ -351,22 +352,28 @@ public:
     // minute as time of day
     unsigned short get_start_time() const
     {
-
+        return start_time;
     }
 
     unsigned short get_duration() const
     {
-
+        return dur;
     }
 
     bool contain_iter_no(unsigned short iter_no) const;
     double get_cap_ratio(const std::string& link_id, unsigned short iter_no) const;
 
 private:
+    void setup_time();
+
+private:
     unsigned short no;
 
     std::string period;
     std::string time_period;
+
+    unsigned short start_time;
+    unsigned short dur;
 
     std::vector<Demand> ds;
     const std::unique_ptr<SpecialEvent> se;

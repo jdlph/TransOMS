@@ -33,6 +33,17 @@ const Agent& NetworkHandle::get_agent(size_type no) const
     return this->agents[no];
 }
 
+unsigned short NetworkHandle::get_demand_period_no(size_type i) const
+{
+    for (auto j = 0; j != this->time_periods.size(); ++j)
+    {
+        if (i < this->time_periods[j])
+            return j;
+    }
+
+    throw std::string{std::to_string(i) + " is out of the simulation duration"};
+}
+
 LinkQueue& NetworkHandle::get_link_queue(size_type i)
 {
     return this->link_queues[i];
@@ -68,6 +79,14 @@ void NetworkHandle::setup_agents()
             }
         }
     }
+
+    // this requires that time periods are consecutive
+    size_type beg_intvl = 0;
+    for (const auto dp : this->dps)
+    {
+        beg_intvl += dp->get_duration() * SECONDS_IN_MINUTE / this->simu_res;
+        this->time_periods.push_back(beg_intvl);
+    }
 }
 
 void NetworkHandle::setup_link_queues()
@@ -96,6 +115,8 @@ void NetworkHandle::run_simulation()
 
     for (auto t = 0; t != this->get_simulation_intervals(); ++t)
     {
+        auto dp_no = this->get_demand_period_no(t);
+
         if (t % num == 0)
             std::cout << "simulation time = " << t / num << " min, CA = "
                       << cum_arr << ", CD = " << cum_dep << '\n';
@@ -124,7 +145,7 @@ void NetworkHandle::run_simulation()
             {
                 auto a_no = link_que.get_entr_queue_front();
                 auto& agent = this->get_agent(a_no);
-                auto tt = std::ceil(link_que.get_period_fftt(0) * num);
+                auto tt = std::ceil(link_que.get_period_fftt(dp_no) * num);
 
                 link_que.append_exit_queue(a_no);
                 agent.update_dep_interval(tt);
@@ -162,7 +183,7 @@ void NetworkHandle::run_simulation()
                         agent.set_arr_interval(t);
 
                         auto travel_time = t - agent.get_arr_interval();
-                        auto waiting_time = travel_time - link_que.get_period_fftt(0);
+                        auto waiting_time = travel_time - link_que.get_period_fftt(dp_no);
                         auto arrival_time = std::floor(agent.get_arr_interval() / num);
 
                         link_que.update_waiting_time(arrival_time, waiting_time);
