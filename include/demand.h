@@ -365,8 +365,8 @@ private:
     std::string period;
     std::string time_period;
 
-    unsigned short start_time;
-    unsigned short dur;
+    unsigned short start_time = 420;
+    unsigned short dur = 60;
 
     std::vector<Demand> ds;
     const std::unique_ptr<SpecialEvent> se;

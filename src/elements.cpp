@@ -50,23 +50,13 @@ double DemandPeriod::get_cap_ratio(const std::string& link_id, unsigned short it
 void DemandPeriod::setup_time()
 {
     static const char delim = '-';
-    std::string s1, s2;
 
     auto b = time_period.begin();
-    for (auto i = time_period.begin(), e = time_period.end();;)
-    {
-        if (*i == delim && s1.empty())
-        {
-            s1 += std::string(b, i);
-            b = ++i;
-        }
-        else if (i == e)
-        {
-            s2 += std::string(b, e);
-        }
-        else
-            ++i;
-    }
+    auto e = time_period.end();
+    auto n = time_period.find(delim);
+
+    auto s1 = std::string(b, b + n);
+    auto s2 = std::string(b + n + 1, e);
 
     try
     {
@@ -74,7 +64,7 @@ void DemandPeriod::setup_time()
     }
     catch (const std::exception& e)
     {
-        start_time = 420;
+        // do nothing
     }
 
     try
@@ -84,7 +74,7 @@ void DemandPeriod::setup_time()
     }
     catch (const std::exception& e)
     {
-        dur = 60;
+        // do nothing
     }
 }
 

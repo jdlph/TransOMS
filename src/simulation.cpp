@@ -18,6 +18,7 @@ inline const std::vector<size_type>& Agent::get_link_path() const
     return col->get_links();
 }
 
+// useless
 inline const std::vector<size_type>& Agent::get_node_path() const
 {
     return col->get_nodes();
@@ -46,9 +47,19 @@ void Agent::initialize_intervals()
     curr_link_no = n - 1;
 }
 
+unsigned short NetworkHandle::cast_interval_to_minute(size_type i) const
+{
+    return std::floor(i * this->simu_res / SECONDS_IN_MINUTE);
+}
+
+size_type NetworkHandle::cast_minute_to_interval(unsigned short m) const
+{
+    return std::ceil(m * SECONDS_IN_MINUTE / this->simu_res);
+}
+
 inline size_type NetworkHandle::get_simulation_intervals() const
 {
-    return std::ceil(this->simu_dur * SECONDS_IN_MINUTE / this->simu_res);
+    return this->cast_minute_to_interval(this->simu_dur);
 }
 
 const std::vector<size_type>& NetworkHandle::get_agents_at_interval(unsigned short i) const
@@ -80,19 +91,15 @@ size_type NetworkHandle::get_beg_simulation_interval(unsigned short k) const
     auto st = this->dps[0]->get_start_time();
     auto et = this->dps[k]->get_start_time();
 
-    return std::ceil((et - st) * SECONDS_IN_MINUTE / this->simu_res);
+    return this->cast_minute_to_interval(et - st);
 }
 
 size_type NetworkHandle::get_end_simulation_interval(unsigned short k) const
 {
-    // in case we allow user to add buffer time to simulation in addition to given demand periods
-    if (k >= this->dps.size())
-        return this->get_simulation_intervals();
-
     auto st = this->dps[0]->get_start_time();
     auto et = this->dps[k]->get_start_time() + this->dps[k]->get_duration();
 
-    return std::ceil((et - st) * SECONDS_IN_MINUTE / this->simu_res);
+    return this->cast_minute_to_interval(et - st);
 }
 
 void NetworkHandle::setup_agents()
@@ -107,6 +114,8 @@ void NetworkHandle::setup_agents()
         auto at_no = std::get<3>(cv.get_key());
 
         auto beg_intvl = this->get_beg_simulation_interval(dp_no);
+        auto dp_dur = this->dps[dp_no]->get_duration();
+        auto dp_st = this->dps[dp_no]->get_start_time();
 
         for (const auto& col : cv.get_columns())
         {
@@ -114,10 +123,10 @@ void NetworkHandle::setup_agents()
             {
                 // avoid copy by constructing Agent object in place
                 this->agents.emplace_back(agent_no, at_no, dp_no, oz_no, dz_no, &col);
-                auto delta = static_cast<unsigned short>(i / col.get_volume() * this->dps[dp_no]->get_duration());
+                auto delta = static_cast<unsigned short>(i / col.get_volume() * dp_dur);
 
-                auto intvl = std::ceil(delta * SECONDS_IN_MINUTE / this->simu_res) + beg_intvl;
-                auto dep_time = this->dps[dp_no]->get_start_time() + delta;
+                auto intvl = this->cast_minute_to_interval(delta) + beg_intvl;
+                auto dep_time = dp_st + delta;
 
                 auto& agent = this->get_agent(agent_no);
                 agent.set_arr_interval(intvl);
@@ -154,16 +163,23 @@ void NetworkHandle::run_simulation()
     unsigned short dp_no = 0;
     size_type ub = this->get_end_simulation_interval(dp_no);
     // number of simulation intervals in one minute
-    const unsigned short num = std::ceil(SECONDS_IN_MINUTE / this->simu_res);
+    const unsigned short num = this->cast_minute_to_interval(1);
 
-    for (auto t = 0; t != this->get_simulation_intervals(); ++t)
+    for (size_type t = 0, e = this->get_simulation_intervals(); t != e; ++t)
     {
-        if (t >= ub)
-            ub = this->get_end_simulation_interval(++dp_no);
-
         if (t % num == 0)
             std::cout << "simulation time = " << t / num << " min, CA = "
                       << cum_arr << ", CD = " << cum_dep << '\n';
+
+        if (t >= ub)
+        {
+            // restrict dp_no as we allow user to add buffer time to simulation
+            // in addition to the given demand periods
+            if (dp_no < this->dps.size() - 1)
+                ub = this->get_end_simulation_interval(++dp_no);
+            else
+                ub = this->get_simulation_intervals();
+        }
 
         if (t)
         {
@@ -189,7 +205,7 @@ void NetworkHandle::run_simulation()
             {
                 auto a_no = link_que.get_entr_queue_front();
                 auto& agent = this->get_agent(a_no);
-                auto tt = std::ceil(link_que.get_period_fftt(dp_no) * num);
+                auto tt = this->cast_minute_to_interval(link_que.get_period_fftt(dp_no));
 
                 link_que.append_exit_queue(a_no);
                 agent.update_dep_interval(tt);
@@ -228,7 +244,7 @@ void NetworkHandle::run_simulation()
 
                         auto travel_time = t - agent.get_arr_interval();
                         auto waiting_time = travel_time - link_que.get_period_fftt(dp_no);
-                        auto arrival_time = std::floor(agent.get_arr_interval() / num);
+                        auto arrival_time = this->cast_interval_to_minute(agent.get_arr_interval());
 
                         link_que.update_waiting_time(arrival_time, waiting_time);
                         link_que.increment_cum_dep(t);

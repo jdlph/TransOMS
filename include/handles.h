@@ -139,6 +139,12 @@ private:
     std::string get_node_path_str(const Column& c);
     std::string get_node_path_coordinates(const Column& c);
 
+    unsigned short cast_interval_to_minute(size_type i) const;
+    size_type cast_minute_to_interval(unsigned short m) const;
+
+    size_type get_beg_simulation_interval(unsigned short k) const;
+    size_type get_end_simulation_interval(unsigned short k) const;
+
     // unsigned short get_simulation_resolution() const;
     size_type get_simulation_intervals() const;
 
@@ -147,9 +153,6 @@ private:
     const Agent& get_agent(size_type no) const;
 
     LinkQueue& get_link_queue(size_type i);
-
-    size_type get_beg_simulation_interval(unsigned short k) const;
-    size_type get_end_simulation_interval(unsigned short k) const;
 
 private:
     ColumnPool cp;
