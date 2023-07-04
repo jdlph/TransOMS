@@ -148,7 +148,7 @@ private:
     // unsigned short get_simulation_resolution() const;
     size_type get_simulation_intervals() const;
 
-    const std::vector<size_type>& get_agents_at_interval(unsigned short i) const;
+    const std::vector<size_type>& get_agents_at_interval(size_type i) const;
     Agent& get_agent(size_type no);
     const Agent& get_agent(size_type no) const;
 
@@ -173,9 +173,10 @@ private:
 
     std::vector<LinkQueue> link_queues;
 
+    // the following two can be combined
     std::vector<Agent> agents;
     // time-dependent agents for simulation
-    std::map<unsigned short, std::vector<size_type>> td_agents;
+    std::map<size_type, std::vector<size_type>> td_agents;
 };
 
 } // namespace transoms

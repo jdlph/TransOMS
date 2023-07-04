@@ -1308,7 +1308,8 @@ public:
 
     // cap : link cap, n: total number of simulation interval, k: simulation duration, r : simulation resolution
     LinkQueue(const Link* link_, size_type n, unsigned short k, unsigned short r)
-        : link {link_}, cum_arr (n, 0), cum_dep (n, 0), waiting_time (k, 0), outflow_cap(n, get_spatial_cap(r))
+        : link {link_}, res {r}, cum_arr (n, 0), cum_dep (n, 0), 
+           waiting_time (k, 0), outflow_cap(n, get_flow_cap())
     {
     }
 
@@ -1375,10 +1376,13 @@ public:
         ++cum_dep[i];
     }
 
-    // t is the simulation time stamp in minute
-    void update_waiting_time(unsigned short t, size_type wt)
+    void update_waiting_time(size_type i, size_type arr, unsigned short k)
     {
-        waiting_time[t] += wt;
+        auto travel_intvl = i - arr;
+        auto waiting_intvl = travel_intvl - get_period_fftt_intvl(k);
+        auto arrival_time = to_minute(arr);
+
+        waiting_time[arrival_time] += waiting_intvl;
     }
 
     void update_cum_states(size_type i)
@@ -1405,29 +1409,24 @@ public:
         return exit_queue.empty();
     }
 
-    auto get_period_travel_time(unsigned short k) const
+    double get_period_travel_time(unsigned short k) const
     {
         return link->get_period_travel_time(k);
     }
 
-    auto get_period_fftt(unsigned short k) const
+    size_type get_period_fftt_intvl(unsigned short k) const
     {
-        return link->get_period_fftt(k);
+        return to_interval(link->get_period_fftt(k));
     }
 
 private:
-    size_type get_spatial_cap(unsigned short res) const
+    size_type get_flow_cap() const
     {
-        // the following will be set up again and again, which is not efficient!!
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<> dis(0.0, 1.0);
-
         double c1 = link->get_cap() / SECONDS_IN_HOUR * res;
         size_type c2 = std::floor(link->get_cap() / SECONDS_IN_HOUR * res);
 
         double residual = c1 - c2;
-        if (dis(gen) >= residual)
+        if (uniform(0.0, 1.0) >= residual)
             residual = 1;
         else
             residual = 0;
@@ -1435,8 +1434,19 @@ private:
         return c2 + residual;
     }
 
+    size_type to_interval(unsigned short m) const
+    {
+        return std::ceil(m * SECONDS_IN_MINUTE / res);
+    }
+
+    unsigned short to_minute(size_type i) const
+    {
+        return std::floor(i * res / SECONDS_IN_MINUTE);
+    }
+
 private:
     const Link* link;
+    unsigned short res;
 
     std::list<size_type> entr_queue;
     std::list<size_type> exit_queue;

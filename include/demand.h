@@ -125,9 +125,9 @@ public:
         arr_intvls.back() = i;
     }
 
-    void update_dep_interval(double tt)
+    void increment_dep_interval(size_type i)
     {
-        dep_intvls[curr_link_no] = arr_intvls[curr_link_no] + tt;
+        dep_intvls[curr_link_no] = arr_intvls[curr_link_no] + i;
     }
 
     const std::vector<size_type>& get_link_path() const;

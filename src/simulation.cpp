@@ -54,7 +54,7 @@ unsigned short NetworkHandle::cast_interval_to_minute(size_type i) const
 
 size_type NetworkHandle::cast_minute_to_interval(unsigned short m) const
 {
-    return std::floor(m * SECONDS_IN_MINUTE / this->simu_res);
+    return std::ceil(m * SECONDS_IN_MINUTE / this->simu_res);
 }
 
 inline size_type NetworkHandle::get_simulation_intervals() const
@@ -62,7 +62,7 @@ inline size_type NetworkHandle::get_simulation_intervals() const
     return this->cast_minute_to_interval(this->simu_dur);
 }
 
-const std::vector<size_type>& NetworkHandle::get_agents_at_interval(unsigned short i) const
+const std::vector<size_type>& NetworkHandle::get_agents_at_interval(size_type i) const
 {
     return this->td_agents.at(i);;
 }
@@ -204,11 +204,13 @@ void NetworkHandle::run_simulation()
             while (!link_que.is_entr_queue_empty())
             {
                 auto a_no = link_que.get_entr_queue_front();
+                link_que.pop_entr_queue_front();
+
                 auto& agent = this->get_agent(a_no);
-                auto tt = this->cast_minute_to_interval(link_que.get_period_fftt(dp_no));
+                auto intvl = link_que.get_period_fftt_intvl(dp_no);
 
                 link_que.append_exit_queue(a_no);
-                agent.update_dep_interval(tt);
+                agent.increment_dep_interval(intvl);
             }
         }
 
@@ -239,15 +241,12 @@ void NetworkHandle::run_simulation()
                         auto& next_link_que = this->get_link_queue(next_link_no);
 
                         next_link_que.append_entr_queue(a_no);
+                        // departure interval for the current link, i.e.,link_que, is t
                         agent.set_dep_interval(t);
-                        agent.set_arr_interval(t);
+                        // arrival interval for the next link, i.e., next_link_que, is t
+                        agent.set_arr_interval(t, 1);
 
-                        auto travel_time = t - agent.get_arr_interval();
-                        // waiting time in simulation intervals
-                        auto waiting_time = travel_time - this->cast_minute_to_interval(link_que.get_period_fftt(dp_no));
-                        auto arrival_time = this->cast_interval_to_minute(agent.get_arr_interval());
-
-                        link_que.update_waiting_time(arrival_time, waiting_time);
+                        link_que.update_waiting_time(t, agent.get_arr_interval(), dp_no);
                         link_que.increment_cum_dep(t);
                         next_link_que.increment_cum_arr(t);
                     }

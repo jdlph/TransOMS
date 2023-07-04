@@ -11,6 +11,7 @@
 
 #define MLC_DEQUE
 
+#include <random>
 #include <string>
 #include <tuple>
 
@@ -57,6 +58,16 @@ struct HeapNode {
     double cost;
 };
 #endif
+
+template<typename T>
+T uniform(T lb, T ub)
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> dis(lb, ub);
+
+    return dis(gen);
+}
 
 } // namespace transoms
 
