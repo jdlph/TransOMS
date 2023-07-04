@@ -1376,7 +1376,7 @@ public:
     }
 
     // t is the simulation time stamp in minute
-    void update_waiting_time(unsigned short t, double wt)
+    void update_waiting_time(unsigned short t, size_type wt)
     {
         waiting_time[t] += wt;
     }
@@ -1423,8 +1423,8 @@ private:
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis(0.0, 1.0);
 
-        double c1 = link->get_cap() / (SECONDS_IN_MINUTE * res);
-        size_type c2 = std::floor(link->get_cap() / (SECONDS_IN_MINUTE * res));
+        double c1 = link->get_cap() / SECONDS_IN_HOUR * res;
+        size_type c2 = std::floor(link->get_cap() / SECONDS_IN_HOUR * res);
 
         double residual = c1 - c2;
         if (dis(gen) >= residual)
@@ -1445,7 +1445,8 @@ private:
     std::vector<size_type> cum_dep;
 
     std::vector<size_type> outflow_cap;
-    std::vector<double> waiting_time;
+    // waiting time at each minute in terms of simulation interval
+    std::vector<size_type> waiting_time;
 };
 
 } // namespace transoms

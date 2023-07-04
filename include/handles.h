@@ -170,8 +170,6 @@ private:
     unsigned short simu_res = 6;
     // simulation duration in minutes
     unsigned short simu_dur = 60;
-    // simulation start time in minutes as time of day
-    unsigned short simu_stt = 0;
 
     std::vector<LinkQueue> link_queues;
 

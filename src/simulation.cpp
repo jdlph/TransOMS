@@ -54,7 +54,7 @@ unsigned short NetworkHandle::cast_interval_to_minute(size_type i) const
 
 size_type NetworkHandle::cast_minute_to_interval(unsigned short m) const
 {
-    return std::ceil(m * SECONDS_IN_MINUTE / this->simu_res);
+    return std::floor(m * SECONDS_IN_MINUTE / this->simu_res);
 }
 
 inline size_type NetworkHandle::get_simulation_intervals() const
@@ -243,7 +243,8 @@ void NetworkHandle::run_simulation()
                         agent.set_arr_interval(t);
 
                         auto travel_time = t - agent.get_arr_interval();
-                        auto waiting_time = travel_time - link_que.get_period_fftt(dp_no);
+                        // waiting time in simulation intervals
+                        auto waiting_time = travel_time - this->cast_minute_to_interval(link_que.get_period_fftt(dp_no));
                         auto arrival_time = this->cast_interval_to_minute(agent.get_arr_interval());
 
                         link_que.update_waiting_time(arrival_time, waiting_time);

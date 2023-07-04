@@ -26,6 +26,7 @@ constexpr unsigned short COORD_X = 91;
 constexpr unsigned short COORD_Y = 181;
 constexpr unsigned short MINUTES_IN_HOUR = 60;
 constexpr unsigned short SECONDS_IN_MINUTE = 60;
+constexpr unsigned short SECONDS_IN_HOUR = 3600;
 
 const std::string ALL_MODES {"all"};
 const std::string AT_DEFAULT_NAME {"passenger"};
