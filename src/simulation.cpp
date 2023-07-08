@@ -34,6 +34,17 @@ inline size_type Agent::get_last_link_no() const
     return col->get_last_link_no();
 }
 
+std::vector<size_type> Agent::get_time_sequence() const
+{
+    std::vector<size_type> vec;
+    vec.resize(arr_intvls.size() + 1);
+
+    vec.push_back(arr_intvls.back());
+    std::reverse_copy(dep_intvls.begin(), dep_intvls.end(), std::back_inserter(vec));
+
+    return vec;
+}
+
 void Agent::initialize_intervals()
 {
     // throw an error or terminate?

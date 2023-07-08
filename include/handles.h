@@ -45,6 +45,7 @@ public:
 
     void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
     void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
+    void output_trajectories(const std::string& = ".", const std::string& filename = "trajectories.csv");
 
 private:
     const Link* get_link(size_type link_no) const
@@ -140,6 +141,7 @@ private:
     std::string get_node_path_coordinates(const Column& c);
 
     unsigned short cast_interval_to_minute(size_type i) const;
+    double cast_interval_to_minute_double(size_type i) const;
     size_type cast_minute_to_interval(unsigned short m) const;
 
     size_type get_beg_simulation_interval(unsigned short k) const;
@@ -153,6 +155,8 @@ private:
     const Agent& get_agent(size_type no) const;
 
     LinkQueue& get_link_queue(size_type i);
+
+    static std::string get_time_stamp(double t);
 
 private:
     ColumnPool cp;

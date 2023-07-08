@@ -37,9 +37,19 @@ public:
 
     ~Agent() = default;
 
+    bool completes_trip() const
+    {
+        return dep_intvls.front() >= 0;
+    }
+
     auto get_agent_type_no() const
     {
         return at_no;
+    }
+
+    const Column* get_column() const
+    {
+        return col;
     }
 
     auto get_demand_period_no() const
@@ -55,6 +65,11 @@ public:
     auto get_orig_zone_no() const
     {
         return oz_no;
+    }
+
+    auto get_od() const
+    {
+        return std::make_pair(oz_no, dz_no);
     }
 
     size_type get_no() const
@@ -98,6 +113,11 @@ public:
         return dep_intvls.back();
     }
 
+    size_type get_travel_time() const
+    {
+        return get_dep_interval() - arr_intvls.back();
+    }
+
     void move_to_next_link()
     {
         if (curr_link_no > 0)
@@ -135,6 +155,8 @@ public:
 
     std::vector<size_type>::size_type get_link_num() const;
     size_type get_last_link_no() const;
+
+    std::vector<size_type> get_time_sequence() const;
 
 private:
     void initialize_intervals();

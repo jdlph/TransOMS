@@ -657,7 +657,7 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 
         for (const auto& col : cv.get_columns())
         {
-            writer.append(++i);
+            writer.append(i++);
             writer.append(this->get_zone_id(oz_no));
             writer.append(this->get_zone_id(dz_no));
             writer.append(col.get_no());
@@ -671,11 +671,6 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
             auto link_path = this->get_link_path_str(col);
             auto node_path = this->get_node_path_str(col);
             auto geo = this->get_node_path_coordinates(col);
-
-            // the followings are not working yet!!
-            // auto link_path = std::async(&NetworkHandle::get_link_path_str, this, col);
-            // auto node_path = std::async(&NetworkHandle::get_node_path_str, this, col);
-            // auto geo = std::async(&NetworkHandle::get_node_path_coordinates, this, col);
 
             writer.append(link_path);
             writer.append(node_path);
@@ -711,4 +706,68 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
     }
 
     std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
+}
+
+double NetworkHandle::cast_interval_to_minute_double(size_type i) const
+{
+    return i * this->simu_res / SECONDS_IN_MINUTE;
+}
+
+std::string NetworkHandle::get_time_stamp(double t)
+{
+    static constexpr char sep = ':';
+
+    unsigned short ti = std::floor(t);
+
+    unsigned short hh = ti / MINUTES_IN_HOUR;
+    unsigned short mm = ti - hh * MINUTES_IN_HOUR;
+    unsigned short ss = (t - ti) * SECONDS_IN_MINUTE;
+
+    return std::string{std::to_string(hh) + sep + std::to_string(mm) + sep + std::to_string(ss)};
+}
+
+void NetworkHandle::output_trajectories(const std::string& dir, const std::string& filename)
+{
+    auto writer = miocsv::Writer(dir + '/' + filename);
+
+    writer.write_row_raw("agent_id", "o_zone_id", "d_zone_id", "dep_time", "arr_time", "trip_completed",
+                         "travel_time", "PCE", "travel_distance", "node_path", "geometry", "time_sequence");
+
+
+    double pre_dt = -1;
+    auto pre_od = this->get_agent(0).get_od();
+    for (const auto& agent : this->agents)
+    {
+        if (!agent.get_link_num())
+            continue;
+
+        if (agent.get_orig_dep_time() == pre_dt && agent.get_od() == pre_od)
+            continue;
+
+        pre_dt = agent.get_orig_dep_time();
+
+        const auto dt = agent.get_orig_dep_time();
+        std::string time_seq_str;
+        for (auto i : agent.get_time_sequence())
+        {
+            auto t = this->cast_interval_to_minute_double(i) + dt;
+            time_seq_str += std::to_string(t);
+            time_seq_str += ',';
+        }
+
+        auto trip_status = 'c' ? agent.completes_trip() : 'n';
+
+        writer.append(agent.get_no());
+        writer.append(agent.get_orig_zone_no());
+        writer.append(agent.get_dest_zone_no());
+        writer.append(dt);
+        writer.append(trip_status);
+        writer.append(this->cast_interval_to_minute_double(agent.get_travel_time()));
+        writer.append(agent.get_pce());
+        writer.append(agent.get_column()->get_dist());
+        writer.append(this->get_node_path_str(*(agent.get_column())));
+        writer.append(this->get_node_path_coordinates(*(agent.get_column())));
+        writer.append(time_seq_str);
+        writer.append('\n');
+    }
 }
