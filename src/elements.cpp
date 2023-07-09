@@ -11,6 +11,7 @@
 #include <handles.h>
 #include <supply.h>
 
+#include <iomanip>
 #include <stdexcept>
 
 #ifdef PARALLEL
@@ -60,7 +61,7 @@ void DemandPeriod::setup_time()
 
     try
     {
-        start_time = std::stoi(s1);
+        start_time = to_minutes(s1) ;
     }
     catch (const std::exception& e)
     {
@@ -69,13 +70,22 @@ void DemandPeriod::setup_time()
 
     try
     {
-        unsigned short end_time = std::stoi(s2);
+        unsigned short end_time = to_minutes(s2);
         dur = end_time - start_time;
     }
     catch (const std::exception& e)
     {
         // do nothing
     }
+}
+
+unsigned short DemandPeriod::to_minutes(const std::string& t)
+{
+    unsigned short num = std::stoi(t);
+    auto h = num / 100;
+    auto m = num % 100;
+
+    return h * MINUTES_IN_HOUR + m;
 }
 
 bool ColumnVec::has_column(const Column& c) const

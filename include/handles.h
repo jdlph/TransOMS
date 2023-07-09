@@ -156,6 +156,8 @@ private:
 
     LinkQueue& get_link_queue(size_type i);
 
+    bool has_dep_agents(size_type i) const;
+
     static std::string get_time_stamp(double t);
 
 private:

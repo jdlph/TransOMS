@@ -380,6 +380,7 @@ public:
 
 private:
     void setup_time();
+    unsigned short to_minutes(const std::string& t);
 
 private:
     unsigned short no;

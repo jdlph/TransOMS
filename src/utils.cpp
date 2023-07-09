@@ -710,7 +710,7 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
 
 double NetworkHandle::cast_interval_to_minute_double(size_type i) const
 {
-    return i * this->simu_res / SECONDS_IN_MINUTE;
+    return static_cast<double>(i) * this->simu_res / SECONDS_IN_MINUTE;
 }
 
 std::string NetworkHandle::get_time_stamp(double t)
@@ -720,7 +720,7 @@ std::string NetworkHandle::get_time_stamp(double t)
     unsigned short ti = std::floor(t);
 
     unsigned short hh = ti / MINUTES_IN_HOUR;
-    unsigned short mm = ti - hh * MINUTES_IN_HOUR;
+    unsigned short mm = ti % MINUTES_IN_HOUR;
     unsigned short ss = (t - ti) * SECONDS_IN_MINUTE;
 
     return std::string{std::to_string(hh) + sep + std::to_string(mm) + sep + std::to_string(ss)};
@@ -732,7 +732,6 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
 
     writer.write_row_raw("agent_id", "o_zone_id", "d_zone_id", "dep_time", "arr_time", "trip_completed",
                          "travel_time", "PCE", "travel_distance", "node_path", "geometry", "time_sequence");
-
 
     double pre_dt = -1;
     auto pre_od = this->get_agent(0).get_od();
@@ -751,23 +750,24 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
         for (auto i : agent.get_time_sequence())
         {
             auto t = this->cast_interval_to_minute_double(i) + dt;
-            time_seq_str += std::to_string(t);
-            time_seq_str += ',';
+            time_seq_str += get_time_stamp(t);
+            time_seq_str += ';';
         }
 
-        auto trip_status = 'c' ? agent.completes_trip() : 'n';
+        const char trip_status = 'c' ? agent.completes_trip() : 'n';
+        auto at = this->cast_interval_to_minute_double(agent.get_arr_interval()) + dt;
 
         writer.append(agent.get_no());
         writer.append(agent.get_orig_zone_no());
         writer.append(agent.get_dest_zone_no());
-        writer.append(dt);
-        writer.append(trip_status);
+        writer.append(this->get_time_stamp(dt));
+        writer.append(this->get_time_stamp(at));
+        writer.append('c');
         writer.append(this->cast_interval_to_minute_double(agent.get_travel_time()));
         writer.append(agent.get_pce());
         writer.append(agent.get_column()->get_dist());
         writer.append(this->get_node_path_str(*(agent.get_column())));
         writer.append(this->get_node_path_coordinates(*(agent.get_column())));
-        writer.append(time_seq_str);
-        writer.append('\n');
+        writer.append(time_seq_str, '\n');
     }
 }

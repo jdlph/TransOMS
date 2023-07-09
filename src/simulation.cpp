@@ -37,10 +37,17 @@ inline size_type Agent::get_last_link_no() const
 std::vector<size_type> Agent::get_time_sequence() const
 {
     std::vector<size_type> vec;
-    vec.resize(arr_intvls.size() + 1);
+    vec.resize(curr_link_no + 1);
 
     vec.push_back(arr_intvls.back());
-    std::reverse_copy(dep_intvls.begin(), dep_intvls.end(), std::back_inserter(vec));
+    for (auto it = dep_intvls.rbegin(), end = dep_intvls.rend(); it != end; ++it)
+    {
+        auto i = *it;
+        if (!i)
+            break;
+        
+        vec.push_back(i);
+    }
 
     return vec;
 }
@@ -111,6 +118,11 @@ size_type NetworkHandle::get_end_simulation_interval(unsigned short k) const
     auto et = this->dps[k]->get_start_time() + this->dps[k]->get_duration();
 
     return this->cast_minute_to_interval(et - st);
+}
+
+bool NetworkHandle::has_dep_agents(size_type i) const
+{
+    return this->td_agents.find(i) != this->td_agents.end();
 }
 
 void NetworkHandle::setup_agents()
@@ -198,16 +210,19 @@ void NetworkHandle::run_simulation()
                 link_que.update_cum_states(t);
         }
 
-        for (auto a_no : this->get_agents_at_interval(t))
+        if (this->has_dep_agents(t))
         {
-            const auto& agent = this->get_agent(a_no);
-            if (!agent.get_link_num())
-                continue;
+            for (auto a_no : this->get_agents_at_interval(t))
+            {
+                const auto& agent = this->get_agent(a_no);
+                if (!agent.get_link_num())
+                    continue;
 
-            auto& link_que = this->get_link_queue(agent.get_last_link_no());
-            link_que.increment_cum_arr(t);
-            link_que.append_entr_queue(a_no);
-            ++cum_arr;
+                auto& link_que = this->get_link_queue(agent.get_last_link_no());
+                link_que.increment_cum_arr(t);
+                link_que.append_entr_queue(a_no);
+                ++cum_arr;
+            }
         }
 
         for (auto& link_que : this->link_queues)

@@ -1434,7 +1434,7 @@ private:
         return c2 + residual;
     }
 
-    size_type to_interval(unsigned short m) const
+    size_type to_interval(double m) const
     {
         return std::ceil(m * SECONDS_IN_MINUTE / res);
     }
