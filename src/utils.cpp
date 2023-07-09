@@ -737,33 +737,35 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
     auto pre_od = this->get_agent(0).get_od();
     for (const auto& agent : this->agents)
     {
-        if (!agent.get_link_num())
-            continue;
+        // it will lead to mysterious linkage error on macOS with Clang++ sometime but not always!!
+        // if (!agent.get_link_num())
+        //     continue;
 
         if (agent.get_orig_dep_time() == pre_dt && agent.get_od() == pre_od)
             continue;
 
         pre_dt = agent.get_orig_dep_time();
+        auto at = this->get_real_time(agent.get_dest_arr_interval());
 
-        const auto dt = agent.get_orig_dep_time();
+        char trip_status = 'c';
+        if (!agent.completes_trip())
+            trip_status = 'n';
+
         std::string time_seq_str;
         for (auto i : agent.get_time_sequence())
         {
-            auto t = this->cast_interval_to_minute_double(i) + dt;
-            time_seq_str += get_time_stamp(t);
+            auto t = this->get_real_time(i);
+            time_seq_str += this->get_time_stamp(t);
             time_seq_str += ';';
         }
-
-        const char trip_status = 'c' ? agent.completes_trip() : 'n';
-        auto at = this->cast_interval_to_minute_double(agent.get_arr_interval()) + dt;
 
         writer.append(agent.get_no());
         writer.append(agent.get_orig_zone_no());
         writer.append(agent.get_dest_zone_no());
-        writer.append(this->get_time_stamp(dt));
+        writer.append(this->get_time_stamp(pre_dt));
         writer.append(this->get_time_stamp(at));
-        writer.append('c');
-        writer.append(this->cast_interval_to_minute_double(agent.get_travel_time()));
+        writer.append(trip_status);
+        writer.append(this->cast_interval_to_minute_double(agent.get_travel_interval()));
         writer.append(agent.get_pce());
         writer.append(agent.get_column()->get_dist());
         writer.append(this->get_node_path_str(*(agent.get_column())));

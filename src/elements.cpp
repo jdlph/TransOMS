@@ -11,7 +11,6 @@
 #include <handles.h>
 #include <supply.h>
 
-#include <iomanip>
 #include <stdexcept>
 
 #ifdef PARALLEL

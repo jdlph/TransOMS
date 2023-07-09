@@ -37,15 +37,14 @@ inline size_type Agent::get_last_link_no() const
 std::vector<size_type> Agent::get_time_sequence() const
 {
     std::vector<size_type> vec;
-    vec.resize(curr_link_no + 1);
-
     vec.push_back(arr_intvls.back());
+
     for (auto it = dep_intvls.rbegin(), end = dep_intvls.rend(); it != end; ++it)
     {
         auto i = *it;
         if (!i)
             break;
-        
+
         vec.push_back(i);
     }
 
@@ -118,6 +117,11 @@ size_type NetworkHandle::get_end_simulation_interval(unsigned short k) const
     auto et = this->dps[k]->get_start_time() + this->dps[k]->get_duration();
 
     return this->cast_minute_to_interval(et - st);
+}
+
+double NetworkHandle::get_real_time(size_type i) const
+{
+    return this->cast_interval_to_minute_double(i) + this->dps.front()->get_start_time();
 }
 
 bool NetworkHandle::has_dep_agents(size_type i) const

@@ -39,7 +39,7 @@ public:
 
     bool completes_trip() const
     {
-        return dep_intvls.front() >= 0;
+        return dep_intvls.front() > 0;
     }
 
     auto get_agent_type_no() const
@@ -103,6 +103,18 @@ public:
         return get_link_path()[curr_link_no - 1];
     }
 
+    size_type get_dest_arr_interval() const
+    {
+        if (get_dep_interval())
+            return dep_intvls[curr_link_no];
+
+        for (auto i = 1; i != dep_intvls.size() - 1; ++i)
+        {
+            if (dep_intvls[curr_link_no + i])
+                return dep_intvls[curr_link_no + i];
+        }
+    }
+
     double get_orig_dep_time() const
     {
         return dep_time;
@@ -113,9 +125,9 @@ public:
         return dep_intvls.back();
     }
 
-    size_type get_travel_time() const
+    size_type get_travel_interval() const
     {
-        return get_dep_interval() - arr_intvls.back();
+        return get_dest_arr_interval() - arr_intvls.back();
     }
 
     void move_to_next_link()

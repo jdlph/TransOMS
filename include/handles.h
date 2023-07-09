@@ -147,6 +147,8 @@ private:
     size_type get_beg_simulation_interval(unsigned short k) const;
     size_type get_end_simulation_interval(unsigned short k) const;
 
+    double get_real_time(size_type i) const;
+
     // unsigned short get_simulation_resolution() const;
     size_type get_simulation_intervals() const;
 
