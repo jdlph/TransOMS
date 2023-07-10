@@ -29,9 +29,9 @@ inline std::vector<size_type>::size_type Agent::get_link_num() const
     return col->get_link_num();
 }
 
-inline size_type Agent::get_last_link_no() const
+inline size_type Agent::get_first_link_no() const
 {
-    return col->get_last_link_no();
+    return col->get_first_link_no();
 }
 
 std::vector<size_type> Agent::get_time_sequence() const
@@ -71,7 +71,7 @@ unsigned short NetworkHandle::cast_interval_to_minute(size_type i) const
 
 size_type NetworkHandle::cast_minute_to_interval(unsigned short m) const
 {
-    return std::ceil(m * SECONDS_IN_MINUTE / this->simu_res);
+    return std::floor(m * SECONDS_IN_MINUTE / this->simu_res);
 }
 
 inline size_type NetworkHandle::get_simulation_intervals() const
@@ -222,7 +222,7 @@ void NetworkHandle::run_simulation()
                 if (!agent.get_link_num())
                     continue;
 
-                auto& link_que = this->get_link_queue(agent.get_last_link_no());
+                auto& link_que = this->get_link_queue(agent.get_first_link_no());
                 link_que.increment_cum_arr(t);
                 link_que.append_entr_queue(a_no);
                 ++cum_arr;

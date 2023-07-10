@@ -105,14 +105,11 @@ public:
 
     size_type get_dest_arr_interval() const
     {
-        if (get_dep_interval())
-            return dep_intvls[curr_link_no];
+        auto i = get_dep_interval();
+        if (i)
+            return i;
 
-        for (auto i = 1; i != dep_intvls.size() - 1; ++i)
-        {
-            if (dep_intvls[curr_link_no + i])
-                return dep_intvls[curr_link_no + i];
-        }
+        return dep_intvls[curr_link_no + 1];
     }
 
     double get_orig_dep_time() const
@@ -166,7 +163,7 @@ public:
     const std::vector<size_type>& get_node_path() const;
 
     std::vector<size_type>::size_type get_link_num() const;
-    size_type get_last_link_no() const;
+    size_type get_first_link_no() const;
 
     std::vector<size_type> get_time_sequence() const;
 

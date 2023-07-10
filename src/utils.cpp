@@ -737,7 +737,7 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
     auto pre_od = this->get_agent(0).get_od();
     for (const auto& agent : this->agents)
     {
-        // it will lead to mysterious linkage error on macOS with Clang++ sometime but not always!!
+        // it will lead to mysterious linkage error on macOS with Clang++ (sometime but not always)!!
         // if (!agent.get_link_num())
         //     continue;
 
@@ -769,7 +769,7 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
         writer.append(agent.get_pce());
         writer.append(agent.get_column()->get_dist());
         writer.append(this->get_node_path_str(*(agent.get_column())));
-        writer.append(this->get_node_path_coordinates(*(agent.get_column())));
+        // writer.append(this->get_node_path_coordinates(*(agent.get_column())));
         writer.append(time_seq_str, '\n');
     }
 }

@@ -556,9 +556,10 @@ public:
         return nodes;
     }
 
-    size_type get_last_link_no() const
+    size_type get_first_link_no() const
     {
-        return links.front();
+        // as link path is in reverse order
+        return links.back();
     }
 
     size_type get_link_no(size_type i) const
@@ -1423,7 +1424,7 @@ private:
     size_type get_flow_cap() const
     {
         double c1 = link->get_cap() / SECONDS_IN_HOUR * res;
-        size_type c2 = std::floor(link->get_cap() / SECONDS_IN_HOUR * res);
+        size_type c2 = std::floor(c1);
 
         double residual = c1 - c2;
         if (uniform(0.0, 1.0) >= residual)
