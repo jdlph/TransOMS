@@ -19,6 +19,9 @@
 #include <experimental/filesystem>
 #endif
 
+#include <iostream>
+#include <iomanip>
+
 #include <yaml-cpp/yaml.h>
 
 using namespace transoms;
@@ -718,12 +721,17 @@ std::string NetworkHandle::get_time_stamp(double t)
     static constexpr char sep = ':';
 
     unsigned short ti = std::floor(t);
-
     unsigned short hh = ti / MINUTES_IN_HOUR;
     unsigned short mm = ti % MINUTES_IN_HOUR;
     unsigned short ss = (t - ti) * SECONDS_IN_MINUTE;
 
-    return std::string{std::to_string(hh) + sep + std::to_string(mm) + sep + std::to_string(ss)};
+    // convert time to hh::mm::ss format without leading 0 for hh
+    // (e.g., 7AM will be displayed as 7:00:00 rather than 07:00:00)
+    std::ostringstream os;
+    os << hh << sep
+       << std::setfill('0') << std::setw(2) << mm << sep << std::setw(2) << ss;
+
+    return os.str();
 }
 
 void NetworkHandle::output_trajectories(const std::string& dir, const std::string& filename)
@@ -733,43 +741,49 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
     writer.write_row_raw("agent_id", "o_zone_id", "d_zone_id", "dep_time", "arr_time", "trip_completed",
                          "travel_time", "PCE", "travel_distance", "node_path", "geometry", "time_sequence");
 
-    double pre_dt = -1;
-    auto pre_od = this->get_agent(0).get_od();
+    double dt = -1;
+    auto od = this->get_agent(0).get_od();
     for (const auto& agent : this->agents)
     {
         // it will lead to mysterious linkage error on macOS with Clang++ (sometime but not always)!!
         // if (!agent.get_link_num())
         //     continue;
 
-        if (agent.get_orig_dep_time() == pre_dt && agent.get_od() == pre_od)
+        if (agent.get_orig_dep_time() == dt && agent.get_od() == od)
             continue;
 
-        pre_dt = agent.get_orig_dep_time();
-        auto at = this->get_real_time(agent.get_dest_arr_interval());
+        dt = agent.get_orig_dep_time();
+        od = agent.get_od();
 
-        char trip_status = 'c';
-        if (!agent.completes_trip())
-            trip_status = 'n';
+        auto at = this->get_real_time(agent.get_dest_arr_interval());
+        char trip_status = agent.completes_trip() ? 'c' : 'n';
 
         std::string time_seq_str;
-        for (auto i : agent.get_time_sequence())
+        // move assignment
+        const auto vec = agent.get_time_sequence();
+        for (size_type i = 0, e = vec.size() - 1; i != e; ++i)
         {
-            auto t = this->get_real_time(i);
+            auto t = this->get_real_time(vec[i]);
             time_seq_str += this->get_time_stamp(t);
             time_seq_str += ';';
         }
+        // the last one without trailing ';'
+        auto t = this->get_real_time(vec.back());
+        time_seq_str += this->get_time_stamp(t);
+
+        const auto& col = *agent.get_column();
 
         writer.append(agent.get_no());
         writer.append(agent.get_orig_zone_no());
         writer.append(agent.get_dest_zone_no());
-        writer.append(this->get_time_stamp(pre_dt));
+        writer.append(this->get_time_stamp(dt));
         writer.append(this->get_time_stamp(at));
         writer.append(trip_status);
         writer.append(this->cast_interval_to_minute_double(agent.get_travel_interval()));
         writer.append(agent.get_pce());
-        writer.append(agent.get_column()->get_dist());
-        writer.append(this->get_node_path_str(*(agent.get_column())));
-        // writer.append(this->get_node_path_coordinates(*(agent.get_column())));
+        writer.append(col.get_dist());
+        writer.append(this->get_node_path_str(col));
+        writer.append(this->get_node_path_coordinates(col));
         writer.append(time_seq_str, '\n');
     }
 }

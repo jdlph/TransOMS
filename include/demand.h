@@ -105,8 +105,7 @@ public:
 
     size_type get_dest_arr_interval() const
     {
-        auto i = get_dep_interval();
-        if (i)
+        if (auto i = get_dep_interval())
             return i;
 
         return dep_intvls[curr_link_no + 1];
