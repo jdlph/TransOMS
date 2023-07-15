@@ -105,7 +105,8 @@ public:
 
     size_type get_dest_arr_interval() const
     {
-        if (auto i = get_dep_interval())
+        auto i = get_dep_interval();
+        if (i < std::numeric_limits<size_type>::max())
             return i;
 
         return dep_intvls[curr_link_no + 1];

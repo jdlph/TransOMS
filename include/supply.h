@@ -236,6 +236,11 @@ public:
         return geo;
     }
 
+    unsigned short get_lane_num() const
+    {
+        return lane_num;
+    }
+
     double get_length() const
     {
         return len;
@@ -1309,9 +1314,10 @@ public:
 
     // cap : link cap, n: total number of simulation interval, k: simulation duration, r : simulation resolution
     LinkQueue(const Link* link_, size_type n, unsigned short k, unsigned short r)
-        : link {link_}, res {r}, cum_arr (n, 0), cum_dep (n, 0), 
-           waiting_time (k, 0), outflow_cap(n, get_flow_cap())
+        : link {link_}, res {r}, cum_arr (n, 0), cum_dep (n, 0),
+          waiting_time (k, 0), outflow_cap(n, get_flow_cap())
     {
+        spatial_cap = std::floor(link->get_length() * link->get_lane_num() * JAM_DENSITY);
     }
 
     LinkQueue(const LinkQueue&) = delete;
@@ -1420,6 +1426,16 @@ public:
         return to_interval(link->get_period_fftt(k));
     }
 
+    size_type get_spatial_capacity() const
+    {
+        return spatial_cap;
+    }
+
+    size_type get_waiting_vehicle_num(size_type i) const
+    {
+        return cum_arr[i] - cum_dep[i];
+    }
+
 private:
     size_type get_flow_cap() const
     {
@@ -1447,6 +1463,8 @@ private:
 
 private:
     const Link* link;
+
+    size_type spatial_cap;
     unsigned short res;
 
     std::list<size_type> entr_queue;

@@ -14,6 +14,10 @@
 
 namespace transoms
 {
+enum class TrafficFlowModel {
+    point_queue, spatial_queue, kinematic_wave
+};
+
 class NetworkHandle {
 public:
     NetworkHandle() = default;
@@ -159,6 +163,9 @@ private:
     LinkQueue& get_link_queue(size_type i);
 
     bool has_dep_agents(size_type i) const;
+    bool uses_point_queue_model() const;
+    bool uses_spatial_queue_model() const;
+    bool uses_kinematic_wave_model() const;
 
     static std::string get_time_stamp(double t);
 
@@ -178,6 +185,8 @@ private:
     unsigned short simu_res = 6;
     // simulation duration in minutes
     unsigned short simu_dur = 60;
+
+    TrafficFlowModel tfm = TrafficFlowModel::point_queue;
 
     std::vector<LinkQueue> link_queues;
 

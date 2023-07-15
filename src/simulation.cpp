@@ -42,7 +42,7 @@ std::vector<size_type> Agent::get_time_sequence() const
     for (auto it = dep_intvls.rbegin(), end = dep_intvls.rend(); it != end; ++it)
     {
         auto i = *it;
-        if (!i)
+        if (i == std::numeric_limits<size_type>::max())
             break;
 
         vec.push_back(i);
@@ -59,8 +59,8 @@ void Agent::initialize_intervals()
 
     auto n = col->get_link_num();
 
-    arr_intvls.resize(n);
-    dep_intvls.resize(n);
+    arr_intvls.resize(n, std::numeric_limits<size_type>::max());
+    dep_intvls.resize(n, std::numeric_limits<size_type>::max());
     curr_link_no = n - 1;
 }
 
@@ -122,6 +122,21 @@ size_type NetworkHandle::get_end_simulation_interval(unsigned short k) const
 double NetworkHandle::get_real_time(size_type i) const
 {
     return this->cast_interval_to_minute_double(i) + this->dps.front()->get_start_time();
+}
+
+bool NetworkHandle::uses_point_queue_model() const
+{
+    return this->tfm == TrafficFlowModel::point_queue;
+}
+
+bool NetworkHandle::uses_spatial_queue_model() const
+{
+    return this->tfm == TrafficFlowModel::spatial_queue;
+}
+
+bool NetworkHandle::uses_kinematic_wave_model() const
+{
+    return this->tfm == TrafficFlowModel::kinematic_wave;
 }
 
 bool NetworkHandle::has_dep_agents(size_type i) const
@@ -269,6 +284,19 @@ void NetworkHandle::run_simulation()
                     {
                         auto next_link_no = agent.get_next_link_no();
                         auto& next_link_que = this->get_link_queue(next_link_no);
+
+                        // it will be checked over and over again, which is not efficient!
+                        if (this->uses_spatial_queue_model())
+                        {
+                            // if t = 0, the whole while loop will be skipped as exit queue is empty.
+                            auto num = next_link_que.get_waiting_vehicle_num(t - 1);
+                            if (num > next_link_que.get_spatial_capacity())
+                                break;
+                        }
+                        else if (this->uses_kinematic_wave_model())
+                        {
+                            /* code */
+                        }
 
                         next_link_que.append_entr_queue(a_no);
                         // departure interval for the current link, i.e.,link_que, is t

@@ -25,6 +25,7 @@ using ColumnVecKey = std::tuple<size_type, size_type, unsigned short, unsigned s
 constexpr unsigned short CHUNK = 256;
 constexpr unsigned short COORD_X = 91;
 constexpr unsigned short COORD_Y = 181;
+constexpr unsigned short JAM_DENSITY = 200;
 constexpr unsigned short MINUTES_IN_HOUR = 60;
 constexpr unsigned short SECONDS_IN_MINUTE = 60;
 constexpr unsigned short SECONDS_IN_HOUR = 3600;
