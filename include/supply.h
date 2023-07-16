@@ -1317,6 +1317,7 @@ public:
         : link {link_}, res {r}, cum_arr (n, 0), cum_dep (n, 0),
           waiting_time (k, 0), outflow_cap(n, get_flow_cap())
     {
+        backwave_tt = to_interval(link->get_length() / BACKWAVE_SPEED * MINUTES_IN_HOUR);
         spatial_cap = std::floor(link->get_length() * link->get_lane_num() * JAM_DENSITY);
     }
 
@@ -1431,9 +1432,15 @@ public:
         return spatial_cap;
     }
 
-    size_type get_waiting_vehicle_num(size_type i) const
+    size_type get_waiting_vehicle_num_sq(size_type i) const
     {
         return cum_arr[i] - cum_dep[i];
+    }
+
+    size_type get_waiting_vehicle_num_kw(size_type i) const
+    {
+        auto delta = std::max(static_cast<size_type>(0), i - backwave_tt);
+        return cum_arr[i] - cum_dep[delta];
     }
 
 private:
@@ -1441,12 +1448,7 @@ private:
     {
         double c1 = link->get_cap() / SECONDS_IN_HOUR * res;
         size_type c2 = std::floor(c1);
-
-        double residual = c1 - c2;
-        if (uniform(0.0, 1.0) >= residual)
-            residual = 1;
-        else
-            residual = 0;
+        size_type residual = uniform(0.0, 1.0) >= c1 - c2 ? 1 : 0;
 
         return c2 + residual;
     }
@@ -1464,6 +1466,7 @@ private:
 private:
     const Link* link;
 
+    size_type backwave_tt;
     size_type spatial_cap;
     unsigned short res;
 

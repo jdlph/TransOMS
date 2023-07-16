@@ -289,13 +289,15 @@ void NetworkHandle::run_simulation()
                         if (this->uses_spatial_queue_model())
                         {
                             // if t = 0, the whole while loop will be skipped as exit queue is empty.
-                            auto num = next_link_que.get_waiting_vehicle_num(t - 1);
+                            auto num = next_link_que.get_waiting_vehicle_num_sq(t - 1);
                             if (num > next_link_que.get_spatial_capacity())
                                 break;
                         }
                         else if (this->uses_kinematic_wave_model())
                         {
-                            /* code */
+                            auto num = next_link_que.get_waiting_vehicle_num_kw(t - 1);
+                            if (num > next_link_que.get_spatial_capacity())
+                                break;
                         }
 
                         next_link_que.append_entr_queue(a_no);
