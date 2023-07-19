@@ -546,19 +546,9 @@ public:
         return links.size();
     }
 
-    std::vector<size_type>::size_type get_node_num() const
-    {
-        return nodes.size();
-    }
-
     const std::vector<size_type>& get_links() const
     {
         return links;
-    }
-
-    const std::vector<size_type>& get_nodes() const
-    {
-        return nodes;
     }
 
     size_type get_first_link_no() const
@@ -570,11 +560,6 @@ public:
     size_type get_link_no(size_type i) const
     {
         return links[i];
-    }
-
-    size_type get_node_no(size_type i) const
-    {
-        return nodes[i];
     }
 
     void increase_toll(double t)
@@ -606,11 +591,6 @@ public:
     void set_gradient_cost(double c)
     {
         gc = c;
-    }
-
-    void set_node_path(std::vector<size_type>&& nodes_)
-    {
-        nodes = nodes_;
     }
 
     void set_toll(double t)
@@ -650,7 +630,6 @@ private:
 
     std::string geo;
     std::vector<size_type> links;
-    std::vector<size_type> nodes;
 };
 
 struct ColumnHash {

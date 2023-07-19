@@ -167,9 +167,10 @@ private:
     bool uses_spatial_queue_model() const;
     bool uses_kinematic_wave_model() const;
 
-    void update_simulation_settings(const std::string& model, unsigned short res);
+    void update_simulation_settings(unsigned short res, const std::string& model);
 
     static std::string get_time_stamp(double t);
+    static void to_lower(std::string& str);
 
 private:
     ColumnPool cp;

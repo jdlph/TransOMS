@@ -25,14 +25,13 @@
 #include <yaml-cpp/yaml.h>
 
 using namespace transoms;
+using namespace std::string_literals;
 
 #ifdef __cpp_lib_filesystem
 using namespace std::filesystem;
 #else
 using namespace std::experimental::filesystem;
 #endif
-
-using namespace std::string_literals;
 
 /**
  * @brief a helper struct to store the positions of headers related to VDFPeriod in link.csv
@@ -537,21 +536,28 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
         auto res = simulation["resolution"].as<unsigned short>();
         auto model = simulation["traffic_flow_model"].as<std::string>();
 
-        this->update_simulation_settings(model, res);
+        this->to_lower(model);
+        this->update_simulation_settings(res, model);
     }
-    catch(const std::exception& e)
+    catch (const std::exception& e)
     {
-        // do nothing
+        // do nothing and set up simulation with default settings
     }
 }
 
-void NetworkHandle::update_simulation_settings(const std::string& model, unsigned short res)
+void NetworkHandle::to_lower(std::string& str)
+{
+    std::transform(str.cbegin(), str.cend(), str.begin(),
+                   [](unsigned char c) {return std::tolower(c);});
+}
+
+void NetworkHandle::update_simulation_settings(unsigned short res, const std::string& model)
 {
     this->simu_res = res;
 
-    if (model == "spatial_queue"s)
+    if (model == "spatial_queue"s || model == "spatial queue"s)
         this->tfm = TrafficFlowModel::spatial_queue;
-    else if (model == "kinematic_wave"s)
+    else if (model == "kinematic_wave"s || model == "kinematic wave"s)
         this->tfm = TrafficFlowModel::kinematic_wave;
 }
 

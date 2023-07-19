@@ -160,7 +160,6 @@ public:
     }
 
     const std::vector<size_type>& get_link_path() const;
-    const std::vector<size_type>& get_node_path() const;
 
     std::vector<size_type>::size_type get_link_num() const;
     size_type get_first_link_no() const;

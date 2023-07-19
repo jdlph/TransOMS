@@ -18,12 +18,6 @@ inline const std::vector<size_type>& Agent::get_link_path() const
     return col->get_links();
 }
 
-// useless
-inline const std::vector<size_type>& Agent::get_node_path() const
-{
-    return col->get_nodes();
-}
-
 inline std::vector<size_type>::size_type Agent::get_link_num() const
 {
     return col->get_link_num();
