@@ -1439,7 +1439,7 @@ public:
 
     size_type get_waiting_vehicle_num_kw(size_type i) const
     {
-        auto delta = std::max(static_cast<size_type>(0), i - backwave_tt);
+        auto delta = std::max(0, static_cast<int>(i - backwave_tt));
         return cum_arr[i] - cum_dep[delta];
     }
 

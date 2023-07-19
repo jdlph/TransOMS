@@ -37,16 +37,21 @@ int main()
     ts = high_resolution_clock::now();
 
     nh.find_ue(column_gen_num, column_opt_num);
-    nh.run_simulation();
 
     te = high_resolution_clock::now();
     std::cout << "TransOMS finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
     ts = high_resolution_clock::now();
 
+    nh.run_simulation();
+
+    te = high_resolution_clock::now();
+    std::cout << "TransOMS completes DTA in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
+    ts = high_resolution_clock::now();
+
     // nh.output_columns();
     // nh.output_link_performance();
 
-    nh.output_trajectories();
+    // nh.output_trajectories();
 
     te = high_resolution_clock::now();
     std::cout << "TransOMS outputs results in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";

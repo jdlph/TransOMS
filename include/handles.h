@@ -167,6 +167,8 @@ private:
     bool uses_spatial_queue_model() const;
     bool uses_kinematic_wave_model() const;
 
+    void update_simulation_settings(const std::string& model, unsigned short res);
+
     static std::string get_time_stamp(double t);
 
 private:

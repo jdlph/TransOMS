@@ -32,6 +32,8 @@ using namespace std::filesystem;
 using namespace std::experimental::filesystem;
 #endif
 
+using namespace std::string_literals;
+
 /**
  * @brief a helper struct to store the positions of headers related to VDFPeriod in link.csv
  *
@@ -528,9 +530,29 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     }
 
     // not in use as the simulation module is not implemented yet!
-    const YAML::Node& simulation = settings["simulation"];
-    auto period = simulation["period"].as<std::string>();
-    auto res = simulation["resolution"].as<unsigned short>();
+    try
+    {
+        const YAML::Node& simulation = settings["simulation"];
+        auto period = simulation["period"].as<std::string>();
+        auto res = simulation["resolution"].as<unsigned short>();
+        auto model = simulation["traffic_flow_model"].as<std::string>();
+
+        this->update_simulation_settings(model, res);
+    }
+    catch(const std::exception& e)
+    {
+        // do nothing
+    }
+}
+
+void NetworkHandle::update_simulation_settings(const std::string& model, unsigned short res)
+{
+    this->simu_res = res;
+
+    if (model == "spatial_queue"s)
+        this->tfm = TrafficFlowModel::spatial_queue;
+    else if (model == "kinematic_wave"s)
+        this->tfm = TrafficFlowModel::kinematic_wave;
 }
 
 void NetworkHandle::auto_setup()
