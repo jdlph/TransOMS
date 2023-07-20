@@ -183,8 +183,18 @@ void NetworkHandle::setup_link_queues()
     }
 }
 
+void NetworkHandle::setup_simulation_duration()
+{
+    auto st = this->dps.front()->get_start_time();
+    auto et = this->dps.back()->get_start_time() + this->dps.back()->get_duration();
+
+    this->simu_dur = et - st;
+}
+
 void NetworkHandle::run_simulation()
 {
+    this->setup_simulation_duration();
+
     this->setup_agents();
     if (this->td_agents.empty())
         return;

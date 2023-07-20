@@ -138,6 +138,7 @@ private:
 
     void setup_agents();
     void setup_link_queues();
+    void setup_simulation_duration();
 
     ColumnVec& get_column_vec(size_type i);
     std::string get_link_path_str(const Column& c);
@@ -167,6 +168,7 @@ private:
     bool uses_spatial_queue_model() const;
     bool uses_kinematic_wave_model() const;
 
+    void validate_demand_periods();
     void update_simulation_settings(unsigned short res, const std::string& model);
 
     static std::string get_time_stamp(double t);

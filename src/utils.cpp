@@ -522,6 +522,15 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
         }
     }
 
+    try
+    {
+        this->validate_demand_periods();
+    }
+    catch (const std::string_view sv)
+    {
+        std::cerr << sv << '\n';
+    }
+
     if (this->dps.empty())
     {
         const auto at = this->ats.front();
@@ -559,6 +568,36 @@ void NetworkHandle::update_simulation_settings(unsigned short res, const std::st
         this->tfm = TrafficFlowModel::spatial_queue;
     else if (model == "kinematic_wave"s || model == "kinematic wave"s)
         this->tfm = TrafficFlowModel::kinematic_wave;
+}
+
+void NetworkHandle::validate_demand_periods()
+{
+    if (this->dps.size() <= 1)
+        return;
+
+    // first, sort DemandPeriod instances according to the start time
+    std::sort(this->dps.begin(), this->dps.end(),
+              [](const DemandPeriod* left, const DemandPeriod* right){
+                  return left->get_start_time() < right->get_start_time();
+              });
+
+    // second, check if there is overlap between two consecutive DemandPeriod instances
+    auto curr_dp = this->dps.front();
+    for (auto i = 1; i != this->dps.size(); ++i)
+    {
+        auto next_dp = this->dps[i];
+        if (curr_dp->get_start_time() + curr_dp->get_duration() < next_dp->get_start_time())
+        {
+            std::string_view msg = {"Overlapping found between DemandPeriod "s
+                                    + curr_dp->get_time_period()
+                                    + " and DemandPeriod "s
+                                    + next_dp->get_time_period()};
+
+            throw msg;
+        }
+
+        curr_dp = next_dp;
+    }
 }
 
 void NetworkHandle::auto_setup()
