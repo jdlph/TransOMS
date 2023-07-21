@@ -36,7 +36,6 @@ demand_period:
           capacity_ratio: 0.1
 
 simulation:
-  period: AM
   # number of seconds per simulation interval
   resolution: 6
   traffic_flow_model: kinematic_wave

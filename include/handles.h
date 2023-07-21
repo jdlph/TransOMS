@@ -138,7 +138,6 @@ private:
 
     void setup_agents();
     void setup_link_queues();
-    void setup_simulation_duration();
 
     ColumnVec& get_column_vec(size_type i);
     std::string get_link_path_str(const Column& c);

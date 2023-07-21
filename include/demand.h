@@ -378,6 +378,11 @@ public:
         return start_time;
     }
 
+    unsigned short get_end_time() const
+    {
+        return start_time + dur;
+    }
+
     unsigned short get_duration() const
     {
         return dur;

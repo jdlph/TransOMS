@@ -108,7 +108,7 @@ size_type NetworkHandle::get_beg_simulation_interval(unsigned short k) const
 size_type NetworkHandle::get_end_simulation_interval(unsigned short k) const
 {
     auto st = this->dps[0]->get_start_time();
-    auto et = this->dps[k]->get_start_time() + this->dps[k]->get_duration();
+    auto et = this->dps[k]->get_end_time();
 
     return this->cast_minute_to_interval(et - st);
 }
@@ -183,18 +183,8 @@ void NetworkHandle::setup_link_queues()
     }
 }
 
-void NetworkHandle::setup_simulation_duration()
-{
-    auto st = this->dps.front()->get_start_time();
-    auto et = this->dps.back()->get_start_time() + this->dps.back()->get_duration();
-
-    this->simu_dur = et - st;
-}
-
 void NetworkHandle::run_simulation()
 {
-    this->setup_simulation_duration();
-
     this->setup_agents();
     if (this->td_agents.empty())
         return;

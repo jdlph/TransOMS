@@ -526,9 +526,9 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     {
         this->validate_demand_periods();
     }
-    catch (const std::string_view sv)
+    catch (const std::runtime_error& re)
     {
-        std::cerr << sv << '\n';
+        std::cerr << re.what() << '\n';
     }
 
     if (this->dps.empty())
@@ -541,7 +541,6 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
     try
     {
         const YAML::Node& simulation = settings["simulation"];
-        auto period = simulation["period"].as<std::string>();
         auto res = simulation["resolution"].as<unsigned short>();
         auto model = simulation["traffic_flow_model"].as<std::string>();
 
@@ -568,6 +567,12 @@ void NetworkHandle::update_simulation_settings(unsigned short res, const std::st
         this->tfm = TrafficFlowModel::spatial_queue;
     else if (model == "kinematic_wave"s || model == "kinematic wave"s)
         this->tfm = TrafficFlowModel::kinematic_wave;
+
+    // set up simulation duration
+    auto st = this->dps.front()->get_start_time();
+    auto et = this->dps.back()->get_end_time();
+
+    this->simu_dur = et - st;
 }
 
 void NetworkHandle::validate_demand_periods()
@@ -586,14 +591,14 @@ void NetworkHandle::validate_demand_periods()
     for (auto i = 1; i != this->dps.size(); ++i)
     {
         auto next_dp = this->dps[i];
-        if (curr_dp->get_start_time() + curr_dp->get_duration() < next_dp->get_start_time())
+        if (curr_dp->get_end_time() > next_dp->get_start_time())
         {
-            std::string_view msg = {"Overlapping found between DemandPeriod "s
-                                    + curr_dp->get_time_period()
-                                    + " and DemandPeriod "s
-                                    + next_dp->get_time_period()};
+            std::string msg = {"Overlapping found between DemandPeriod "s
+                               + curr_dp->get_time_period()
+                               + " and DemandPeriod "s
+                               + next_dp->get_time_period()};
 
-            throw msg;
+            throw std::runtime_error{msg};
         }
 
         curr_dp = next_dp;
