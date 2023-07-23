@@ -24,9 +24,6 @@ int main()
     // const std::string dir {"../data/Two_Corridor/"};
     // const std::string dir {"../data/Sioux_Falls/"};
 
-    unsigned short column_gen_num = 20;
-    unsigned short column_opt_num = 20;
-
     NetworkHandle nh;
     nh.read_settings(dir);
     nh.read_network(dir);
@@ -36,6 +33,8 @@ int main()
     std::cout << "TransOMS loads input in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
     ts = high_resolution_clock::now();
 
+    unsigned short column_gen_num = 20;
+    unsigned short column_opt_num = 20;
     nh.find_ue(column_gen_num, column_opt_num);
 
     te = high_resolution_clock::now();

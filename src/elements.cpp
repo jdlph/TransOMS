@@ -400,7 +400,7 @@ void NetworkHandle::setup_spnetworks()
                 {
                     unsigned short no = spns.size();
                     spn_map[{dp->get_no(), at_no, i}] = no;
-                    auto sp = new SPNetwork {no, this->net, this->cp, dp, at};
+                    auto sp = new SPNetwork{no, this->net, this->cp, dp, at};
                     sp->add_orig_nodes(z);
                     spns.push_back(sp);
                 }

@@ -138,10 +138,9 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
 void NetworkHandle::read_links(const std::string& dir, const std::string& filename)
 {
     auto reader = miocsv::DictReader(dir + '/' + filename);
-
     const auto& headers = reader.get_fieldnames();
-    std::vector<HeaderPos> vec;
 
+    std::vector<HeaderPos> vec;
     for (unsigned short i = 0; i != this->dps.size(); ++i)
     {
         auto dp_id = std::to_string(i + 1);
@@ -857,5 +856,183 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
         writer.append(this->get_node_path_str(col));
         writer.append(this->get_node_path_coordinates(col));
         writer.append(time_seq_str, '\n');
+    }
+}
+
+void NetworkHandle::load_columns(const std::string& dir, const std::string& filename)
+{
+    auto reader = miocsv::DictReader(dir + '/' + filename);
+    size_type i = 0;
+    for (const auto& line : reader)
+    {
+        std::string oz_id;
+        try
+        {
+            oz_id = line["o_zone_id"];
+        }
+        catch(const std::exception& e)
+        {
+            break;
+        }
+
+        std::string dz_id;
+        try
+        {
+            dz_id = line["d_zone_id"];
+        }
+        catch(const std::exception& e)
+        {
+            break;;
+        }
+
+        size_type oz_no;
+        size_type dz_no;
+        try
+        {
+            oz_no = this->net.get_zone_no(oz_id);
+            dz_no = this->net.get_zone_no(dz_id);
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        std::string link_seq;
+        try
+        {
+            link_seq = line["link_sequence"];
+        }
+        catch(const std::exception& e)
+        {
+            break;
+        }
+
+        if (link_seq.empty())
+            continue;
+
+        std::string at_str;
+        try
+        {
+            at_str = line["agent_type"];
+        }
+        catch(const std::exception& e)
+        {
+            break;
+        }
+
+        if (at_str.empty())
+            continue;
+
+        const AgentType* at = nullptr;
+        try
+        {
+            at = this->get_agent_type(at_str);
+        }
+        catch(const std::exception& e)
+        {
+            if (at_str.front() == 'p')
+                at = this->get_agent_type("auto");
+            else
+            {
+                std::cout << "agent_type " << at_str
+                          << "is not existing in settings.yml."
+                          << "this record is discarded!\n";
+
+                continue;
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "default agent type auto is not existing\n";
+        }
+
+        std::string dp_str;
+        try
+        {
+            dp_str = line["demand_period"];
+        }
+        catch(const std::exception& e)
+        {
+            break;
+        }
+
+        if (dp_str.empty())
+            continue;
+
+        const DemandPeriod* dp = nullptr;
+        try
+        {
+            dp = this->get_demand_period(dp_str);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "demand period " << dp_str
+                      << "is not existing in settings.yml."
+                      << "this record is discarded!\n";
+
+            continue;
+        }
+
+        double vol;
+        try
+        {
+            vol = std::stod(line["volume"]);
+        }
+        catch(const std::exception& e)
+        {
+            // do we need to distinguish invalid record and no "volume" header?
+            continue;
+        }
+
+        double toll = 0;
+        try
+        {
+            toll = std::stod(line["toll"]);
+        }
+        catch(const std::exception& e)
+        {
+            // do nothing
+        }
+
+        double tt;
+        try
+        {
+            tt = std::stod(line["travel_time"]);
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        double dist;
+        try
+        {
+            dist = std::stod(line["distance"]);
+        }
+        catch(const std::exception& e)
+        {
+            continue;
+        }
+
+        std::string geo;
+        try
+        {
+            geo = line["geometry"];
+        }
+        catch(const std::exception& e)
+        {
+            continue;;
+        }
+
+        ColumnVecKey cvk {oz_no, dz_no, dp->get_no(), at->get_no()};
+        this->cp.update(cvk, vol);
+
+        std::vector<size_type> link_path;
+        // set up link_path, which needs a general parsing function
+
+        auto& cv = this->cp.get_column_vec(cvk);
+        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, 0);
+
+        // missing update_links_using_columns()
     }
 }

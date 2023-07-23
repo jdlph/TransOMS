@@ -47,7 +47,7 @@ public:
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
 
-    void output_columns(const std::string& dir = ".", const std::string& filename = "agents.csv");
+    void output_columns(const std::string& dir = ".", const std::string& filename = "columns.csv");
     void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
     void output_trajectories(const std::string& = ".", const std::string& filename = "trajectories.csv");
 
@@ -108,6 +108,17 @@ private:
         throw std::exception{};
     }
 
+    const auto get_demand_period(const std::string& dp_str) const
+    {
+        for (const auto dp : dps)
+        {
+            if (dp->get_period() == dp_str)
+                return dp;
+        }
+
+        throw std::exception{};
+    }
+
     bool contains_agent_name(const std::string& at_name) const
     {
         for (const auto at : ats)
@@ -126,6 +137,8 @@ private:
 
     void read_links(const std::string& dir, const std::string& filename = "link.csv");
     void read_nodes(const std::string& dir, const std::string& filename = "node.csv");
+
+    void load_columns(const std::string& dir, const std::string& filename = "columns.csv");
 
     void update_column_attributes();
     void update_column_gradient_and_flow(unsigned short iter_no);

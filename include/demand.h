@@ -193,7 +193,7 @@ private:
 
 class AgentType {
 public:
-    AgentType() : no {0}, name {"auto"},flow_type {0}, pce {1},
+    AgentType() : no {0}, name {"auto"}, flow_type {0}, pce {1},
                   vot {10}, ffs {60}, is_link_ffs {true}
     {
     }
