@@ -444,6 +444,11 @@ public:
     {
     }
 
+    Column(size_type no_, double vol_, double dist_, std::vector<size_type>& links_, std::string& geo_)
+        : no {no_}, vol {vol_}, dist {dist_}, links {std::move(links_)}, geo {std::move(geo_)}
+    {
+    }
+
     Column(const Column&) = default;
     Column& operator=(const Column&) = delete;
 
@@ -583,6 +588,7 @@ public:
         gc_ad = gc_rd = 0;
     }
 
+    // useless
     void set_geometry(std::string&& s)
     {
         geo = s;

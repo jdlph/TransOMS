@@ -930,20 +930,23 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            if (at_str.front() == 'p')
-                at = this->get_agent_type("auto");
-            else
+            try
             {
-                std::cout << "agent_type " << at_str
-                          << "is not existing in settings.yml."
-                          << "this record is discarded!\n";
+                if (at_str.front() == 'p')
+                    at = this->get_agent_type("auto");
+                else
+                {
+                    std::cout << "agent_type " << at_str
+                            << "is not existing in settings.yml."
+                            << "this record is discarded!\n";
 
-                continue;
+                    continue;
+                }
             }
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << "default agent type auto is not existing\n";
+            catch(const std::exception& e)
+            {
+                std::cerr << "default agent type auto is not existing\n";
+            }
         }
 
         std::string dp_str;
@@ -1027,12 +1030,23 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         ColumnVecKey cvk {oz_no, dz_no, dp->get_no(), at->get_no()};
         this->cp.update(cvk, vol);
 
+        // set up link_path
         std::vector<size_type> link_path;
-        // set up link_path, which needs a general parsing function
+        auto link_ids = miocsv::split(link_seq, ';');
+        link_path.resize(link_ids.size());
 
+        for (const auto& link_id : link_ids)
+            link_path.push_back(this->get_link(link_id)->get_no());
+
+        std::reverse(link_path.begin(), link_path.end());
+
+        // create column and update column vector
         auto& cv = this->cp.get_column_vec(cvk);
-        cv.update(Column{cv.get_column_num(), cv.get_volume(), dist, link_path}, 0);
+        Column col {cv.get_column_num(), vol, dist, link_path, geo};
+        cv.add_new_column(col);
 
-        // missing update_links_using_columns()
+        // update link properties
+        this->update_link_and_column_volume(1, false);
+        this->update_link_travel_time();
     }
 }

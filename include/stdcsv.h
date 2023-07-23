@@ -889,6 +889,44 @@ Row Reader::split3()
 }
 #endif
 
+/**
+ * @brief a utility function to split string according to the given delimiter
+ *
+ * @param c string container, which could be std::string or std::string_view
+ * @param delim a single character delimiter, such as ',', ';', and so on
+ */
+template<typename C>
+Row split(const C& c, const char delim = ',')
+{
+    static constexpr char quote = '"';
+
+    Row r;
+    auto quoted = false;
+    StringRange<typename C::const_iterator> sr{c.begin()};
+
+    for (auto i = c.begin(), e = c.end();;)
+    {
+        if (*i == quote)
+        {
+            sr.extend(++i);
+            quoted ^= true;
+        }
+        else if (*i == delim && !quoted)
+        {
+            r.append(sr.to_string());
+            sr.reset(++i);
+        }
+        else if (i == e)
+        {
+            // last one
+            r.append(sr.to_string());
+            return r;
+        }
+        else
+            sr.extend(++i);
+    }
+}
+
 } // namespace miocsv
 
 std::ostream& operator<<(std::ostream& os, const miocsv::FieldNames& fns)

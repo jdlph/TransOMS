@@ -190,8 +190,10 @@ private:
     ColumnPool cp;
 
     PhyNetwork net;
+    // make it const pointer and update setup_spnetworks()
     std::vector<SPNetwork*> spns;
 
+    // make the following const T* const?
     std::vector<const AgentType*> ats;
     std::vector<const DemandPeriod*> dps;
 
