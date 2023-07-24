@@ -110,6 +110,23 @@ void ColumnVec::update(Column&& c, unsigned short iter_no)
     }
 }
 
+/**
+ * @brief update column vector with a newly loaded column c
+ *
+ * @param c column
+ * @note 1. use it with void NetworkHandle::load_columns() only;
+ *       2. if there is an exiting column which shares the same link path as c,
+ *       then their volumes will be consolidated together.
+ */
+void ColumnVec::update(Column&& c)
+{
+    auto it = cols.find(c);
+    if (it != cols.end())
+        const_cast<Column&>(*it).increase_volume(c.get_volume());
+    else
+        add_new_column(c);
+}
+
 void SPNetwork::generate_columns(unsigned short iter_no)
 {
     if (!iter_no)

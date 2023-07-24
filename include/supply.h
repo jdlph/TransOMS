@@ -719,6 +719,8 @@ public:
 
     // move Column c
     void update(Column&& c, unsigned short iter_no);
+    // use with load_columns()
+    void update(Column&& c);
 
 private:
     double vol;
