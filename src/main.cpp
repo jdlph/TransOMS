@@ -28,12 +28,13 @@ int main()
     nh.read_settings(dir);
     nh.read_network(dir);
     nh.read_demands(dir);
+    nh.load_columns();
 
     auto te = high_resolution_clock::now();
     std::cout << "TransOMS loads input in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
     ts = high_resolution_clock::now();
 
-    unsigned short column_gen_num = 20;
+    unsigned short column_gen_num = 0;
     unsigned short column_opt_num = 20;
     nh.find_ue(column_gen_num, column_opt_num);
 
@@ -41,7 +42,7 @@ int main()
     std::cout << "TransOMS finds UE in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
     ts = high_resolution_clock::now();
 
-    nh.run_simulation();
+    // nh.run_simulation();
 
     te = high_resolution_clock::now();
     std::cout << "TransOMS completes DTA in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";

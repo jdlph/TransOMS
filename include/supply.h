@@ -599,6 +599,11 @@ public:
         gc = c;
     }
 
+    void set_od_vol(double v)
+    {
+        od_vol = v;
+    }
+
     void set_toll(double t)
     {
         toll = t;

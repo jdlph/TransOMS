@@ -43,6 +43,7 @@ public:
     void find_ue(unsigned short column_gen_num, unsigned short column_opt_num);
     void run_simulation();
 
+    void load_columns(const std::string& dir = ".", const std::string& filename = "columns.csv");
     void read_demands(const std::string& dir);
     void read_network(const std::string& dir);
     void read_settings(const std::string& dir);
@@ -138,12 +139,11 @@ private:
     void read_links(const std::string& dir, const std::string& filename = "link.csv");
     void read_nodes(const std::string& dir, const std::string& filename = "node.csv");
 
-    void load_columns(const std::string& dir, const std::string& filename = "columns.csv");
-
     void update_column_attributes();
     void update_column_gradient_and_flow(unsigned short iter_no);
     void update_link_and_column_volume(unsigned short iter_no, bool reduce_path_vol = true);
     void update_link_travel_time();
+    void update_od_vol();
 
     void build_connectors();
     void setup_spnetworks();
