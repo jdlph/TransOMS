@@ -93,12 +93,12 @@ struct NoRecord : public std::runtime_error {
     NoRecord() = delete;
 
     explicit NoRecord(const std::string& s)
-        : std::runtime_error{"Row::operator[] at " + s}
+        : std::runtime_error{"Row::operator[]: " + s + " is nonexistent"}
     {
     }
 
     explicit NoRecord(size_type s)
-        : std::runtime_error{"Row::operator[] at " + std::to_string(s)}
+        : std::runtime_error{"Row::operator[]: " + std::to_string(s) + " is out of range"}
     {
     }
 };
@@ -341,7 +341,7 @@ protected:
 
         InvalidRow(size_type row_num, const std::string& str)
             : std::runtime_error{"CAUTION: Invalid Row at line "
-                                 + std::to_string(row_num + 1)
+                                 + std::to_string(++row_num)
                                  + "! Value is not allowed after quoted field: "
                                  + str}
         {
@@ -461,7 +461,7 @@ public:
     {
         if (!ist)
         {
-            std::cerr << "invalid input!\n";
+            std::cerr << "invalid input! no " << ist_ << '\n';
             std::terminate();
         }
 #ifdef O3N_TIME_BOUND
@@ -474,7 +474,7 @@ public:
     {
         if (!ist)
         {
-            std::cerr << "invalid input!\n";
+            std::cerr << "invalid input! no " << ist_ << '\n';
             std::terminate();
         }
 #ifdef O3N_TIME_BOUND
@@ -586,7 +586,7 @@ public:
     {
         if (!ost)
         {
-            std::cerr << "invalid input!\n";
+            std::cerr << "invalid input! no " << ost_ << '\n';
             std::terminate();
         }
     }
@@ -596,7 +596,7 @@ public:
     {
         if (!ost)
         {
-            std::cerr << "invalid input!\n";
+            std::cerr << "invalid input! no " << ost_ << '\n';
             std::terminate();
         }
     }

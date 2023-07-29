@@ -83,6 +83,11 @@ private:
         return net.get_nodes()[node_no];
     }
 
+    Zone* get_zone(const std::string& zone_id)
+    {
+        return net.get_zone(zone_id);
+    }
+
     const std::string& get_head_node_id(const Link* link) const
     {
         return get_node(link->get_head_node_no())->get_id();
@@ -96,6 +101,11 @@ private:
     const std::string& get_zone_id(size_type zone_no) const
     {
         return net.get_zone_id(zone_no);
+    }
+
+    size_type get_zone_num() const
+    {
+        return net.get_zones().size();
     }
 
     const auto get_agent_type(const std::string& at_name) const
@@ -130,6 +140,11 @@ private:
         }
 
         return false;
+    }
+
+    bool has_zone_id(const std::string& zone_id) const
+    {
+        return net.has_zone_id(zone_id);
     }
 
 private:

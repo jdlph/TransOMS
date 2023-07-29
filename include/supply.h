@@ -988,7 +988,7 @@ public:
             delete p;
     }
 
-    bool contains_zone(const std::string& zone_id) const
+    bool has_zone_id(const std::string& zone_id) const
     {
         return zones.find(zone_id) != zones.end();
     }
@@ -1072,6 +1072,11 @@ public:
     const std::vector<const Node*>& get_centroids() const override
     {
         return centroids;
+    }
+
+    Zone* get_zone(const std::string& zone_id)
+    {
+        return zones[zone_id];
     }
 
     const std::string& get_zone_id(size_type zone_no) const

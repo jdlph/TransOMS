@@ -37,16 +37,19 @@ using namespace std::experimental::filesystem;
  * @brief a helper struct to store the positions of headers related to VDFPeriod in link.csv
  *
  * @details it is to facilitate the operation on VDFPeriod in read_links()
+ *
+ * @note short is sufficient enough as we would not have a csv file with more than
+ * 32,767 fields for this application
  */
 struct HeaderPos {
     HeaderPos() : alpha_pos {-1}, beta_pos {-1}, cap_pos {-1}, fftt_pos {-1}
     {
     }
 
-    int alpha_pos;
-    int beta_pos;
-    int cap_pos;
-    int fftt_pos;
+    short alpha_pos;
+    short beta_pos;
+    short cap_pos;
+    short fftt_pos;
 };
 
 void NetworkHandle::read_nodes(const std::string& dir, const std::string& filename)
@@ -63,7 +66,9 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "node_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         std::string zone_id;
@@ -73,7 +78,9 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "zone_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         double cx = COORD_X;
@@ -91,8 +98,7 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
         bool activity_node = false;
         try
         {
-            auto b = std::stoi(line["is_boundary"]);
-            if (b)
+            if (std::stoi(line["is_boundary"]))
                 activity_node = true;
         }
         catch(const std::exception& e)
@@ -100,8 +106,7 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
             // do nothing
         }
 
-        auto node = new Node {node_no, node_id, cx, cy, activity_node};
-        this->net.add_node(node);
+        this->net.add_node(new Node{node_no, node_id, cx, cy, activity_node});
 
         unsigned short bin_index = 0;
         try
@@ -116,22 +121,22 @@ void NetworkHandle::read_nodes(const std::string& dir, const std::string& filena
         // skip zone with empty id
         if (!zone_id.empty())
         {
-            if (this->net.get_zones().find(zone_id) == this->net.get_zones().end())
+            if (!this->has_zone_id(zone_id))
             {
-                size_type no = this->net.get_zones().size();
+                size_type no = this->get_zone_num();
                 this->net.add_zone(new Zone{no, zone_id, bin_index});
             }
 
-            this->net.get_zones()[zone_id]->add_node(node_no);
+            this->get_zone(zone_id)->add_node(node_no);
             if (activity_node)
-                this->net.get_zones()[zone_id]->add_activity_node(node_no);
+                this->get_zone(zone_id)->add_activity_node(node_no);
         }
 
         ++node_no;
     }
 
     std::cout << "the number of nodes is " << node_no << '\n'
-              << "the number of zones is " << this->net.get_zones().size() << '\n';
+              << "the number of zones is " << this->get_zone_num() << '\n';
 
 }
 
@@ -872,10 +877,10 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         {
             oz_id = line["o_zone_id"];
         }
-        catch(const miocsv::NoRecord& nr)
+        catch(const std::exception& e)
         {
             // headers have no "o_zone_id"
-            std::cerr << nr.what() << '\n';
+            std::cerr << e.what() << '\n';
             std::terminate();
         }
 
@@ -884,10 +889,10 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         {
             dz_id = line["d_zone_id"];
         }
-        catch(const miocsv::NoRecord& nr)
+        catch(const std::exception& e)
         {
             // headers have no "d_zone_id"
-            std::cerr << nr.what() << '\n';
+            std::cerr << e.what() << '\n';
             std::terminate();
         }
 
@@ -908,10 +913,10 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         {
             link_seq = line["link_sequence"];
         }
-        catch(const miocsv::NoRecord& nr)
+        catch(std::exception& e)
         {
             // headers have no "link_sequence"
-            std::cerr << nr.what() << '\n';
+            std::cerr << e.what() << '\n';
             std::terminate();
         }
 
@@ -923,10 +928,10 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         {
             at_str = line["agent_type"];
         }
-        catch(const miocsv::NoRecord& nr)
+        catch(const std::exception& e)
         {
             // headers have no "agent_type"
-            std::cerr << nr.what() << '\n';
+            std::cerr << e.what() << '\n';
             std::terminate();
         }
 
@@ -942,7 +947,8 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         {
             try
             {
-                if (at_str.front() == 'p')
+                // add compatiblity for Path4GMNS and DTALite
+                if (at_str.front() == 'a' || at_str.front() == 'p')
                     at = this->get_agent_type("auto");
                 else
                 {
@@ -965,10 +971,10 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         {
             dp_str = line["demand_period"];
         }
-        catch(const miocsv::NoRecord& nr)
+        catch(const std::exception& e)
         {
             // headers have no "demand_period"
-            std::cerr << nr.what() << '\n';
+            std::cerr << e.what() << '\n';
             std::terminate();
         }
 
