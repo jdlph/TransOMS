@@ -106,6 +106,7 @@ private:
                 return at;
         }
 
+        // return nullptr?
         throw std::exception{};
     }
 

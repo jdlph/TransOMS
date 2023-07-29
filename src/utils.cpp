@@ -875,7 +875,8 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            break;
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         std::string dz_id;
@@ -885,7 +886,8 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            break;;
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         size_type oz_no;
@@ -907,7 +909,8 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            break;
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         if (link_seq.empty())
@@ -920,7 +923,8 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            break;
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         if (at_str.empty())
@@ -939,9 +943,9 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
                     at = this->get_agent_type("auto");
                 else
                 {
-                    std::cout << "agent_type " << at_str
-                            << "is not existing in settings.yml."
-                            << "this record is discarded!\n";
+                    std::cerr << "agent_type " << at_str
+                              << "is not existing in settings.yml."
+                              << "this record is discarded!\n";
 
                     continue;
                 }
@@ -949,6 +953,7 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
             catch(const std::exception& e)
             {
                 std::cerr << "default agent type auto is not existing\n";
+                std::terminate();
             }
         }
 
@@ -959,7 +964,8 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            break;
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         if (dp_str.empty())
@@ -972,7 +978,7 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            std::cout << "demand period " << dp_str
+            std::cerr << "demand period " << dp_str
                       << "is not existing in settings.yml."
                       << "this record is discarded!\n";
 
@@ -987,6 +993,17 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         catch(const std::exception& e)
         {
             // do we need to distinguish invalid record and no "volume" header?
+            std::cerr << e.what() << '\n';
+            std::terminate();
+        }
+        catch(const std::invalid_argument& ex)
+        {
+            std::cerr << ex.what() << '\n';
+            continue;
+        }
+        catch(const std::out_of_range& oor)
+        {
+            std::cerr << oor.what() << '\n';
             continue;
         }
 
@@ -997,17 +1014,7 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            // do nothing
-        }
-
-        double tt;
-        try
-        {
-            tt = std::stod(line["travel_time"]);
-        }
-        catch(const std::exception& e)
-        {
-            continue;
+            // do nothing as toll is not critical
         }
 
         double dist;
@@ -1017,6 +1024,7 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
+            // we require a valid distance
             continue;
         }
 
@@ -1027,7 +1035,7 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         }
         catch(const std::exception& e)
         {
-            continue;;
+            // do nothing as geo info is not critical
         }
 
         ColumnVecKey cvk {oz_no, dz_no, dp->get_no(), at->get_no()};
@@ -1049,7 +1057,7 @@ void NetworkHandle::load_columns(const std::string& dir, const std::string& file
         Column col {cv.get_column_num(), vol, dist, link_path, geo};
         cv.update(std::move(col));
 
-        if (count % 1000 == 0)
+        if (count % 5000 == 0)
             std::cout << "loading columns: " << count << '\n';
 
         ++count;

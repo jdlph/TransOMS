@@ -605,6 +605,15 @@ public:
 
     ~Writer() = default;
 
+    /**
+     * @brief append context into the file
+     *
+     * @note need to make sure that the context has NO delimiter
+     *
+     * @param t a const reference of typename T
+     * @param sep separator, which could be any valid char. its default is ',' as
+     * for csv files.
+     */
     template<typename T>
     void append(const T& t, const char sep = ',')
     {
@@ -617,23 +626,32 @@ public:
         ost << t << sep;
     }
 
+    /**
+     * @brief append context into the file
+     *
+     * @note need to make sure that the context has NO delimiter
+     *
+     * @param t a const reference of typename T
+     * @param str any valid string.
+     */
     template<typename T>
-    void append(const T& t, const std::string& sep)
+    void append(const T& t, const std::string& str)
     {
-        ost << t << sep;
+        ost << t << str;
     }
 
     template<typename T>
-    void append(T&& t, const std::string& sep)
+    void append(T&& t, const std::string& str)
     {
-        ost << t << sep;
+        ost << t << str;
     }
 
     /**
      * @brief write a row of records into the file
      *
-     * if no records contain the delimiter, then a simple implemention via the
-     * overloaded operator<< for Row would work fine, i.e., os << r << '\n'.
+     * @note if no records contain the delimiter, then a simple implementation via the
+     * overloaded operator<< for Row would work fine, i.e., os << r << '\n'. It
+     * has been implemented as write_row_raw()
      *
      * @param r a const reference of miocsv::Row
      */
@@ -657,6 +675,15 @@ public:
         ost << '\n';
     }
 
+    /**
+     * @brief write a row of records into the file
+     *
+     * @note if no records contain the delimiter, then a simple implementation via the
+     * overloaded operator<< for Row would work fine, i.e., os << r << '\n'. It
+     * has been implemented as write_row_raw()
+     *
+     * @param r a rvalue reference of miocsv::Row
+     */
     void write_row(Row&& r)
     {
         for (auto it = r.begin(), it_end = r.end() - 1; it != it_end; ++it)
@@ -677,12 +704,31 @@ public:
         ost << '\n';
     }
 
+    /**
+     * @brief write a row of records having no delimiters into the file
+     *
+     * @note users need to make sure that each record has NO delimiter. it does
+     * not have handling on delimiter inside a cell as write_row(). It simply
+     * writes as is.
+     *
+     * @param t a const reference of typename T
+     */
     template<typename T>
     void write_row_raw(const T& t)
     {
         ost << t << '\n';
     }
 
+    /**
+     * @brief write a row of records having no delimiters into the file
+     *
+     * @note users need to make sure that each record has NO delimiter. it does
+     * not have handling on delimiter inside a cell as write_row(). It simply
+     * writes as is.
+     *
+     * @param t a const reference of typename T
+     * @param args const reference of variadic template T
+     */
     template<typename T, typename... Args>
     void write_row_raw(const T& t, const Args&... args)
     {
@@ -692,12 +738,23 @@ public:
     }
 
 private:
+    /**
+     * @brief helper function to facilitate write_row_raw()
+     *
+     * @param t a const reference of typename T
+     */
     template<typename T>
     void append_cell(const T& t)
     {
         ost << delim << t;
     }
 
+    /**
+     * @brief helper function to facilitate write_row_raw()
+     *
+     * @param t a const reference of typename T
+     * @param args const reference of variadic template T
+     */
     template<typename T, typename... Args>
     void append_cell(const T& t, const Args&... args)
     {
@@ -717,8 +774,8 @@ void attach_fieldnames(Row& r, const FieldNames* fns, size_type row_num)
     if (r.fns->size() != r.size())
     {
         std::cout << "CAUTION: Data Inconsistency at line " << row_num
-                    << ": " << r.fns->size() << " fieldnames vs. "
-                    << r.size() << " fields\n";
+                  << ": " << r.fns->size() << " fieldnames vs. "
+                  << r.size() << " fields\n";
     }
 }
 
