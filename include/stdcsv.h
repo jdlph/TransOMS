@@ -85,6 +85,24 @@ private:
     InputIter tail;
 };
 
+/**
+ * @brief a custom exception which arises when a nonexistent field is retrieved
+ * via Row::[] (i.e., no such a field in the header)
+ */
+struct NoRecord : public std::runtime_error {
+    NoRecord() = delete;
+
+    explicit NoRecord(const std::string& s)
+        : std::runtime_error{"Row::operator[] at " + s}
+    {
+    }
+
+    explicit NoRecord(size_type s)
+        : std::runtime_error{"Row::operator[] at " + std::to_string(s)}
+    {
+    }
+};
+
 class Row {
     friend void attach_fieldnames(Row&, const FieldNames*, size_type);
     friend std::ostream& operator<<(std::ostream&, const Row&);
@@ -253,20 +271,6 @@ private:
     Records records;
     // reserved for DictReader
     const FieldNames* fns = nullptr;
-
-    struct NoRecord : public std::runtime_error {
-        NoRecord() = delete;
-
-        explicit NoRecord(const std::string& s)
-            : std::runtime_error{"Row::operator[] at " + s}
-        {
-        }
-
-        explicit NoRecord(size_type s)
-            : std::runtime_error{"Row::operator[] at " + std::to_string(s)}
-        {
-        }
-    };
 
     template<typename T>
     void convert_to_string(const T& t)
