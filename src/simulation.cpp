@@ -13,6 +13,7 @@
 
 using namespace transoms;
 
+// useless
 inline const std::vector<size_type>& Agent::get_link_path() const
 {
     return col->get_links();
@@ -228,6 +229,7 @@ void NetworkHandle::run_simulation()
             for (auto a_no : this->get_agents_at_interval(t))
             {
                 const auto& agent = this->get_agent(a_no);
+                // is this check necessary?
                 if (!agent.get_link_num())
                     continue;
 
@@ -253,7 +255,7 @@ void NetworkHandle::run_simulation()
             }
         }
 
-        for (auto node : this->net.get_nodes())
+        for (const auto node : this->net.get_nodes())
         {
             for (size_type i = 0, m = node->get_incoming_links().size(); i != m; ++i)
             {

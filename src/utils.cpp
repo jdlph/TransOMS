@@ -440,6 +440,12 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         {
             vol = std::stod(line["volume"]);
         }
+        catch(const miocsv::NoRecord& nr)
+        {
+            // headers have no "volume"
+            std::cerr << nr.what() << '\n';
+            std::terminate();
+        }
         catch(const std::exception& e)
         {
             continue;
@@ -455,7 +461,9 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "o_zone_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         std::string dz_id;
@@ -465,7 +473,9 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "d_zone_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         size_type oz_no;
@@ -481,7 +491,6 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         }
 
         this->cp.update(ColumnVecKey{oz_no, dz_no, dp_no, at_no}, vol);
-
         total_vol += vol;
     }
 
@@ -490,7 +499,7 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
 
 void NetworkHandle::read_demands(const std::string& dir)
 {
-    for (auto& dp : this->dps)
+    for (const auto& dp : this->dps)
     {
         auto dp_no = dp->get_no();
         for (auto& d : dp->get_demands())
@@ -615,9 +624,9 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
     const auto& headers = reader.get_fieldnames();
 
     std::vector<HeaderPos> vec;
-    for (unsigned short i = 0; i != this->dps.size(); ++i)
+    for (unsigned short i = 0; i != this->dps.size();)
     {
-        auto dp_id = std::to_string(i + 1);
+        auto dp_id = std::to_string(++i);
 
         auto header_vdf_alpha {"VDF_alpha" + dp_id};
         auto header_vdf_beta {"VDF_beta" + dp_id};
@@ -675,7 +684,9 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "link_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         std::string head_node_id;
@@ -685,7 +696,9 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "from_node_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         std::string tail_node_id;
@@ -695,7 +708,9 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         }
         catch(const std::exception& e)
         {
-            continue;
+            // headers have no "to_node_id"
+            std::cerr << e.what() << '\n';
+            std::terminate();
         }
 
         size_type head_node_no, tail_node_no;
@@ -713,6 +728,12 @@ void NetworkHandle::read_links(const std::string& dir, const std::string& filena
         try
         {
             len = std::stod(line["length"]);
+        }
+        catch(const miocsv::NoRecord& nr)
+        {
+            // headers have no "length"
+            std::cerr << nr.what() << '\n';
+            std::terminate();
         }
         catch(const std::exception& e)
         {
@@ -857,7 +878,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
             auto name = a["name"].as<std::string>();
             if (this->contains_agent_name(name))
             {
-                std::cout << "duplicate agent type found: " << name << '\n';
+                std::cerr << "duplicate agent type found: " << name << '\n';
                 continue;
             }
 
@@ -929,7 +950,7 @@ void NetworkHandle::read_settings_yml(const std::string& file_path)
             }
             catch(const std::exception& e)
             {
-                std::cout << at_name << " is not existing in settings.yml\n";
+                std::cerr << at_name << " is not existing in settings.yml\n";
                 continue;
             }
         }
@@ -1059,10 +1080,6 @@ void NetworkHandle::output_trajectories(const std::string& dir, const std::strin
     auto od = this->get_agent(0).get_od();
     for (const auto& agent : this->agents)
     {
-        // it will lead to mysterious linkage error on macOS with Clang++ (sometime but not always)!!
-        // if (!agent.get_link_num())
-        //     continue;
-
         if (agent.get_orig_dep_time() == dt && agent.get_od() == od)
             continue;
 
