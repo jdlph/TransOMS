@@ -1069,6 +1069,60 @@ void NetworkHandle::output_link_performance(const std::string& dir, const std::s
     std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
 }
 
+void NetworkHandle::output_link_performance_dta(const std::string& dir, const std::string& filename)
+{
+    auto writer = miocsv::Writer(dir + '/' + filename);
+
+    writer.write_row_raw("link_id", "from_node_id", "to_node_id", "time_period", "volume",
+                         "travel_time", "speed", "CA", "CD", "density", "queue", "waiting_time");
+
+    // number of simulation intervals in one minute
+    const unsigned short num = this->cast_minute_to_interval(1);
+    unsigned short dp_no = 0;
+    size_type ub = this->get_end_simulation_interval(dp_no);
+
+    for (const auto& link_que : this->link_queues)
+    {
+        const auto link = link_que.get_link();
+
+        if (!link->get_length())
+            continue;
+
+        for (size_type t = 0, e = this->get_simulation_intervals(); t != e; ++t)
+        {
+            if (t % num != 0)
+                continue;
+
+            if (t >= ub)
+            {
+                // restrict dp_no as we allow user to add buffer time to simulation
+                // in addition to the given demand periods
+                if (dp_no < this->dps.size() - 1)
+                    ub = this->get_end_simulation_interval(++dp_no);
+                else
+                    ub = this->get_simulation_intervals();
+            }
+
+            auto minute = this->cast_interval_to_minute(t);
+
+            writer.append(link->get_id());
+            writer.append(this->get_head_node_id(link));
+            writer.append(this->get_tail_node_id(link));
+            writer.append(this->dps[dp_no]->get_period());
+            writer.append(link_que.get_volume(t));
+            writer.append(link_que.get_cumulative_arrival(t));
+            writer.append(link_que.get_cumulative_departure(t));
+            writer.append(link_que.get_density(t));
+            // queue
+            writer.append(link_que.get_travel_time(t));
+            writer.append(link_que.get_avg_waiting_time(t));
+            // speed
+        }
+    }
+
+    std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
+}
+
 void NetworkHandle::output_trajectories(const std::string& dir, const std::string& filename)
 {
     auto writer = miocsv::Writer(dir + '/' + filename);

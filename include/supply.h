@@ -1440,6 +1440,67 @@ public:
         return cum_arr[i] - cum_dep[delta];
     }
 
+    size_type get_volume(size_type i) const
+    {
+        if (i <= to_interval(1))
+            return 0;
+
+        size_type delta = i - to_interval(1);
+        return cum_dep[i] - cum_dep[delta];
+    }
+
+    size_type get_virtual_arrival(size_type i) const
+    {
+
+    }
+
+    double get_density(size_type i) const
+    {
+        static_cast<double>(get_waiting_vehicle_num_sq(i)) / (link->get_length() * link->get_lane_num());
+    }
+
+    /**
+     * @brief get waiting time in simulation interval
+     * 
+     * @param i simulation interval
+     */
+    size_type get_waiting_time(size_type i) const
+    {
+        return waiting_time[to_minute(i)];
+    }
+
+    /**
+     * @brief get average waiting time in seconds
+     * 
+     * @param i simulation interval
+     */
+    size_type get_avg_waiting_time(size_type i) const
+    {
+        auto delta = to_interval(1);
+        auto arr_rate = cum_arr[i + delta] - cum_arr[i];
+        return get_waiting_time(i) / std::max(static_cast<size_type>(1), arr_rate) * res;
+    }
+
+    const Link* get_link() const
+    {
+        return link;
+    }
+
+    size_type get_cumulative_arrival(size_type i) const
+    {
+        return cum_arr[i];
+    }
+
+    size_type get_cumulative_departure(size_type i) const
+    {
+        return cum_dep[i];
+    }
+
+    size_type get_travel_time(size_type i) const
+    {
+        
+    }
+
 private:
     size_type get_flow_cap() const
     {

@@ -50,6 +50,7 @@ public:
 
     void output_columns(const std::string& dir = ".", const std::string& filename = "columns.csv");
     void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
+    void output_link_performance_dta(const std::string& = ".", const std::string& filename = "link_performance.csv");
     void output_trajectories(const std::string& = ".", const std::string& filename = "trajectories.csv");
 
 private:

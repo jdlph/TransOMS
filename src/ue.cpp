@@ -42,15 +42,17 @@ void NetworkHandle::find_ue(unsigned short column_gen_num, unsigned short column
 
     for (auto i = 0; i != column_opt_num;)
     {
-        update_column_gradient_and_flow(i);
-        update_link_and_column_volume(++i, false);
+        update_link_and_column_volume(i, false);
         update_link_travel_time();
+        update_column_gradient_and_flow(i++);
     }
 
     /**
      * @brief update link flow and link travel time per path flow from the last iteration.
      * @note path flow will remain unchanged after the last iteration.
      */
+    update_link_and_column_volume(1, false);
+    update_link_travel_time();
     update_column_attributes();
 }
 
