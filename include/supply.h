@@ -1449,9 +1449,19 @@ public:
         return cum_dep[i] - cum_dep[delta];
     }
 
-    size_type get_virtual_arrival(size_type i) const
+    size_type get_virtual_arrival(size_type i, unsigned short k) const
     {
+        auto tt = get_period_fftt_intvl(k);
+        if (i < tt)
+            return 0;
 
+        return cum_arr[i - tt];
+    }
+
+    size_type get_queue(size_type i, unsigned short k) const
+    {
+        // do we need negativity check?
+        return get_virtual_arrival(i, k) - cum_dep[i];
     }
 
     double get_density(size_type i) const
@@ -1461,7 +1471,7 @@ public:
 
     /**
      * @brief get waiting time in simulation interval
-     * 
+     *
      * @param i simulation interval
      */
     size_type get_waiting_time(size_type i) const
@@ -1471,7 +1481,7 @@ public:
 
     /**
      * @brief get average waiting time in seconds
-     * 
+     *
      * @param i simulation interval
      */
     size_type get_avg_waiting_time(size_type i) const
@@ -1496,9 +1506,27 @@ public:
         return cum_dep[i];
     }
 
-    size_type get_travel_time(size_type i) const
+    /**
+     * @brief get travel time in minutes
+     *
+     * @param i simulation interval
+     * @param k index of demand period (i.e., demand period no)
+     */
+    size_type get_travel_time(size_type i, unsigned short k) const
     {
-        
+        auto tt_intvl = get_period_fftt_intvl(i);
+        return to_minute(tt_intvl) + get_avg_waiting_time(i) / SECONDS_IN_MINUTE;
+    }
+
+    /**
+     * @brief get speed in mph (mile per hour)
+     *
+     * @param i simulation interval
+     * @param k index of demand period (i.e., demand period no)
+     */
+    double get_speed(size_type i, unsigned short k) const
+    {
+        return link->get_length() / get_travel_time(i, k) * MINUTES_IN_HOUR;
     }
 
 private:

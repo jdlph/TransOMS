@@ -1074,7 +1074,7 @@ void NetworkHandle::output_link_performance_dta(const std::string& dir, const st
     auto writer = miocsv::Writer(dir + '/' + filename);
 
     writer.write_row_raw("link_id", "from_node_id", "to_node_id", "time_period", "volume",
-                         "travel_time", "speed", "CA", "CD", "density", "queue", "waiting_time");
+                         "travel_time",  "waiting_time", "speed", "CA", "CD", "density", "queue");
 
     // number of simulation intervals in one minute
     const unsigned short num = this->cast_minute_to_interval(1);
@@ -1110,13 +1110,13 @@ void NetworkHandle::output_link_performance_dta(const std::string& dir, const st
             writer.append(this->get_tail_node_id(link));
             writer.append(this->dps[dp_no]->get_period());
             writer.append(link_que.get_volume(t));
+            writer.append(link_que.get_travel_time(t, dp_no));
+            writer.append(link_que.get_avg_waiting_time(t));
+            writer.append(link_que.get_speed(t, dp_no));
             writer.append(link_que.get_cumulative_arrival(t));
             writer.append(link_que.get_cumulative_departure(t));
             writer.append(link_que.get_density(t));
-            // queue
-            writer.append(link_que.get_travel_time(t));
-            writer.append(link_que.get_avg_waiting_time(t));
-            // speed
+            writer.append(link_que.get_queue(t, dp_no));
         }
     }
 
