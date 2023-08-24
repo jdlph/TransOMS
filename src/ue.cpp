@@ -88,7 +88,7 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
 
             const_cast<Column&>(col).set_gradient_cost(path_gradient_cost);
 
-            if (path_gradient_cost < least_gradient_cost)
+            if (path_gradient_cost < least_gradient_cost && col.get_volume() >= EPSILON)
             {
                 least_gradient_cost = path_gradient_cost;
                 p = &col;
@@ -101,6 +101,9 @@ void NetworkHandle::update_column_gradient_and_flow(unsigned short iter_no)
             for (auto& col : cv.get_columns())
             {
                 if (&col == p)
+                    continue;
+
+                if (!col.get_volume())
                     continue;
 
                 const_cast<Column&>(col).update_gradient_cost_diffs(least_gradient_cost);
@@ -174,7 +177,8 @@ void NetworkHandle::update_column_attributes()
     }
 
     auto rel_gap = total_sys_travel_time > 0 ? total_gap / total_sys_travel_time : std::numeric_limits<double>::max();
-    std::cout << "Final UE Convergency | total gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
+    std::cout << "column updating: postprocessing\n"
+              << "total gap: " << total_gap << "; relative gap: " << rel_gap * 100 << "%\n";
 }
 
 void NetworkHandle::update_link_and_column_volume(unsigned short iter_no, bool reduce_path_vol)

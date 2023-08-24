@@ -515,10 +515,9 @@ public:
      * @return double, volume to be shift from this column
      *
      * @note This is an enhanced version over the original implementation in DTALite
-     * by imposing a tighter upper bound over delta, which could be the same as vol
-     * in the original implementation. It implies all the volume will be shifted
-     * out, which does not make sense! The original implementation is equivalent
-     * to the following.
+     * by enabling volume shifting from the shortest path to a non-shortest path.
+     *
+     * The original implementation is equivalent to the following.
      *
      * if (delta > vol)
      *      delta == vol;
@@ -532,12 +531,14 @@ public:
         auto scaling = 1 / (iter_no % 20 + 2.0);
         auto delta = scaling * gc_rd * od_vol;
 
-        if (delta >= vol)
-            delta = vol;
+        auto cur_vol = vol;
+        auto new_vol = cur_vol - delta;
+        if (new_vol < MIN_COL_VOL)
+            new_vol = 0;
 
-        vol -= delta;
+        vol = new_vol;
 
-        return delta;
+        return cur_vol - new_vol;
     }
 
     std::size_t get_hash() const

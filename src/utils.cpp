@@ -432,6 +432,8 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
 {
     auto reader = miocsv::DictReader(dir);
 
+    size_type void_od_num = 0;
+    double void_vol = 0;
     double total_vol = 0;
     for (const auto& line : reader)
     {
@@ -452,7 +454,10 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         }
 
         if (vol <= 0)
+        {
+            ++void_od_num;
             continue;
+        }
 
         std::string oz_id;
         try
@@ -478,6 +483,13 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
             std::terminate();
         }
 
+        if (oz_id == dz_id)
+        {
+            ++void_od_num;
+            void_vol += vol;
+            continue;
+        }
+
         size_type oz_no;
         size_type dz_no;
         try
@@ -494,7 +506,9 @@ void NetworkHandle::read_demand(const std::string& dir, unsigned short dp_no, un
         total_vol += vol;
     }
 
-    std::cout << "the total demand is " << total_vol << '\n';
+    std::cout << "the total demand is " << total_vol << '\n'
+              << void_od_num << " invalid OD pairs are discarded with a total volume of "
+              << void_vol << '\n';
 }
 
 void NetworkHandle::read_demands(const std::string& dir)

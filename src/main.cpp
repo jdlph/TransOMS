@@ -35,7 +35,7 @@ int main()
     ts = high_resolution_clock::now();
 
     unsigned short column_gen_num = 20;
-    unsigned short column_opt_num = 100;
+    unsigned short column_opt_num = 20;
     nh.find_ue(column_gen_num, column_opt_num);
 
     te = high_resolution_clock::now();
@@ -48,7 +48,7 @@ int main()
     std::cout << "TransOMS completes DTA in " << duration_cast<milliseconds>(te - ts).count() << " milliseconds\n";
     ts = high_resolution_clock::now();
 
-    // nh.output_columns();
+    nh.output_columns();
     // nh.output_link_performance();
     // nh.output_trajectories();
 

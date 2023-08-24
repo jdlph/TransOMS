@@ -31,6 +31,9 @@ constexpr unsigned short MINUTES_IN_HOUR = 60;
 constexpr unsigned short SECONDS_IN_MINUTE = 60;
 constexpr unsigned short SECONDS_IN_HOUR = 3600;
 
+constexpr double EPSILON = 0.00001;
+constexpr double MIN_COL_VOL = 0.1;
+
 const std::string ALL_MODES {"all"};
 const std::string AT_DEFAULT_NAME {"passenger"};
 const std::string AT_LEGACY_NAME {"auto"};
