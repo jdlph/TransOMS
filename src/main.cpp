@@ -35,7 +35,7 @@ int main()
     ts = high_resolution_clock::now();
 
     unsigned short column_gen_num = 20;
-    unsigned short column_opt_num = 20;
+    unsigned short column_opt_num = 100;
     nh.find_ue(column_gen_num, column_opt_num);
 
     te = high_resolution_clock::now();

@@ -329,11 +329,12 @@ class Node {
 public:
     Node() = default;
 
-    Node(size_type no_, std::string& id_, double x_, double y_, size_type z_no_, bool act_node_ = false)
-        : no {no_}, id {std::move(id_)}, x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
+    Node(size_type no_, std::string& id_, double x_, double y_, bool act_node_ = false)
+        : no {no_}, id {std::move(id_)}, x {x_}, y {y_}, act_node {act_node_}
     {
     }
 
+    // constructor for centroids to be used in NetworkHandle::build_connectors()
     Node(size_type no_, std::string&& id_, double x_, double y_, size_type z_no_, bool act_node_ = false)
         : no {no_}, id {id_}, x {x_}, y {y_}, zone_no {z_no_}, act_node {act_node_}
     {
@@ -527,14 +528,12 @@ public:
      */
     double shift_volume(unsigned short iter_no)
     {
-        auto scaling = std::max(1 / (iter_no + 2.0), 0.1);
+        // auto scaling = std::max(1 / (iter_no + 2.0), 0.1);
+        auto scaling = 1 / (iter_no % 20 + 2.0);
         auto delta = scaling * gc_rd * od_vol;
 
         if (delta >= vol)
-        {
-            auto p = std::min(0.618, 1 - vol / delta);
-            delta = p * vol;
-        }
+            delta = vol;
 
         vol -= delta;
 
@@ -1466,7 +1465,7 @@ public:
 
     double get_density(size_type i) const
     {
-        static_cast<double>(get_waiting_vehicle_num_sq(i)) / (link->get_length() * link->get_lane_num());
+        return static_cast<double>(get_waiting_vehicle_num_sq(i)) / (link->get_length() * link->get_lane_num());
     }
 
     /**
@@ -1489,11 +1488,6 @@ public:
         auto delta = to_interval(1);
         auto arr_rate = cum_arr[i + delta] - cum_arr[i];
         return get_waiting_time(i) / std::max(static_cast<size_type>(1), arr_rate) * res;
-    }
-
-    const Link* get_link() const
-    {
-        return link;
     }
 
     size_type get_cumulative_arrival(size_type i) const

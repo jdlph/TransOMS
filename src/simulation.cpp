@@ -69,7 +69,7 @@ size_type NetworkHandle::cast_minute_to_interval(unsigned short m) const
     return std::floor(m * SECONDS_IN_MINUTE / this->simu_res);
 }
 
-inline size_type NetworkHandle::get_simulation_intervals() const
+size_type NetworkHandle::get_simulation_intervals() const
 {
     return this->cast_minute_to_interval(this->simu_dur);
 }

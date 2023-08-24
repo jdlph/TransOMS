@@ -1018,6 +1018,9 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
 
         for (const auto& col : cv.get_columns())
         {
+            if (!col.get_volume())
+                continue;
+
             writer.append(i++);
             writer.append(this->get_zone_id(oz_no));
             writer.append(this->get_zone_id(dz_no));
