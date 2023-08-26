@@ -1059,33 +1059,6 @@ void NetworkHandle::output_columns(const std::string& dir, const std::string& fi
     std::cout << "check " << filename << " in " << dir <<  " for UE results\n";
 }
 
-void NetworkHandle::output_link_performance(const std::string& dir, const std::string& filename)
-{
-    auto writer = miocsv::Writer(dir + '/' + filename);
-
-    writer.write_row_raw("link_id", "from_node_id", "to_node_id", "time_period", "volume",
-                         "travel_time", "speed", "VOC", "queue", "density", "geometry");
-
-    for (const auto link : this->net.get_links())
-    {
-        if (!link->get_length())
-            continue;
-
-        for (const auto& dp : this->dps)
-        {
-            auto dp_no = dp->get_no();
-            auto tt = link->get_period_travel_time(dp_no);
-            auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : std::numeric_limits<unsigned>::max();
-
-            writer.write_row_raw(link->get_id(), this->get_head_node_id(link), this->get_tail_node_id(link),
-                                 dp->get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),
-                                 ' ', ' ', link->get_geometry());
-        }
-    }
-
-    std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
-}
-
 void NetworkHandle::output_link_performance_dta(const std::string& dir, const std::string& filename)
 {
     auto writer = miocsv::Writer(dir + '/' + filename);
@@ -1137,7 +1110,34 @@ void NetworkHandle::output_link_performance_dta(const std::string& dir, const st
         }
     }
 
-    std::cout << "check " << filename << " in " << dir <<  " for link performance\n";
+    std::cout << "check " << filename << " in " << dir <<  " for link performance under DTA\n";
+}
+
+void NetworkHandle::output_link_performance_ue(const std::string& dir, const std::string& filename)
+{
+    auto writer = miocsv::Writer(dir + '/' + filename);
+
+    writer.write_row_raw("link_id", "from_node_id", "to_node_id", "time_period", "volume",
+                         "travel_time", "speed", "VOC", "queue", "density", "geometry");
+
+    for (const auto link : this->net.get_links())
+    {
+        if (!link->get_length())
+            continue;
+
+        for (const auto& dp : this->dps)
+        {
+            auto dp_no = dp->get_no();
+            auto tt = link->get_period_travel_time(dp_no);
+            auto spd = tt > 0 ? link->get_length() / tt * MINUTES_IN_HOUR : std::numeric_limits<unsigned>::max();
+
+            writer.write_row_raw(link->get_id(), this->get_head_node_id(link), this->get_tail_node_id(link),
+                                 dp->get_period(), link->get_period_vol(dp_no), tt, spd, link->get_period_voc(dp_no),
+                                 ' ', ' ', link->get_geometry());
+        }
+    }
+
+    std::cout << "check " << filename << " in " << dir <<  " for link performance under UE\n";
 }
 
 void NetworkHandle::output_trajectories(const std::string& dir, const std::string& filename)

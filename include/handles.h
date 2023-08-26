@@ -49,9 +49,10 @@ public:
     void read_settings(const std::string& dir);
 
     void output_columns(const std::string& dir = ".", const std::string& filename = "columns.csv");
-    void output_link_performance(const std::string& = ".", const std::string& filename = "link_performance.csv");
-    void output_link_performance_dta(const std::string& = ".", const std::string& filename = "link_performance.csv");
     void output_trajectories(const std::string& = ".", const std::string& filename = "trajectories.csv");
+
+    void output_link_performance_dta(const std::string& = ".", const std::string& filename = "link_performance_dta.csv");
+    void output_link_performance_ue(const std::string& = ".", const std::string& filename = "link_performance_ue.csv");
 
 private:
     const Link* get_link(size_type link_no) const

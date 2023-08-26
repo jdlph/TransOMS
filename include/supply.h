@@ -908,6 +908,11 @@ public:
         bin_id = bi;
     }
 
+    void set_centroid(const Node* p)
+    {
+        centroid = p;
+    }
+
     void set_geometry(double x_, double y_, const Boundary& bd_)
     {
         x = x_;
@@ -918,11 +923,6 @@ public:
     void set_production(double p)
     {
         prod = p;
-    }
-
-    void set_centroid(const Node* p)
-    {
-        centroid = p;
     }
 
 private:
@@ -1309,7 +1309,8 @@ class LinkQueue {
 public:
     LinkQueue() = delete;
 
-    // cap : link cap, n: total number of simulation interval, k: simulation duration, r : simulation resolution
+    // cap : link cap, n: total number of simulation interval,
+    // k: simulation duration, r : simulation resolution
     LinkQueue(const Link* link_, size_type n, unsigned short k, unsigned short r)
         : link {link_}, res {r}, cum_arr (n, 0), cum_dep (n, 0),
           waiting_time (k, 0), outflow_cap(n, get_flow_cap())
@@ -1326,35 +1327,6 @@ public:
 
     ~LinkQueue() = default;
 
-    const Link* get_link() const
-    {
-        return link;
-    }
-
-    size_type get_outflow_cap(unsigned short i) const
-    {
-        return outflow_cap[i];
-    }
-
-    size_type get_entr_queue_front() const
-    {
-        return entr_queue.front();
-    }
-
-    size_type get_exit_queue_front() const
-    {
-        return exit_queue.front();
-    }
-
-    void pop_entr_queue_front()
-    {
-        entr_queue.pop_front();
-    }
-
-    void pop_exit_queue_front()
-    {
-        exit_queue.pop_front();
-    }
 
     void append_entr_queue(size_type a)
     {
@@ -1379,6 +1351,16 @@ public:
     void increment_cum_dep(size_type i)
     {
         ++cum_dep[i];
+    }
+
+    void pop_entr_queue_front()
+    {
+        entr_queue.pop_front();
+    }
+
+    void pop_exit_queue_front()
+    {
+        exit_queue.pop_front();
     }
 
     void update_waiting_time(size_type i, size_type arr, unsigned short k)
@@ -1414,83 +1396,6 @@ public:
         return exit_queue.empty();
     }
 
-    double get_period_travel_time(unsigned short k) const
-    {
-        return link->get_period_travel_time(k);
-    }
-
-    size_type get_period_fftt_intvl(unsigned short k) const
-    {
-        return to_interval(link->get_period_fftt(k));
-    }
-
-    size_type get_spatial_capacity() const
-    {
-        return spatial_cap;
-    }
-
-    size_type get_waiting_vehicle_num_sq(size_type i) const
-    {
-        return cum_arr[i] - cum_dep[i];
-    }
-
-    size_type get_waiting_vehicle_num_kw(size_type i) const
-    {
-        auto delta = std::max(0, static_cast<int>(i - backwave_tt));
-        return cum_arr[i] - cum_dep[delta];
-    }
-
-    size_type get_volume(size_type i) const
-    {
-        if (i <= to_interval(1))
-            return 0;
-
-        size_type delta = i - to_interval(1);
-        return cum_dep[i] - cum_dep[delta];
-    }
-
-    size_type get_virtual_arrival(size_type i, unsigned short k) const
-    {
-        auto tt = get_period_fftt_intvl(k);
-        if (i < tt)
-            return 0;
-
-        return cum_arr[i - tt];
-    }
-
-    size_type get_queue(size_type i, unsigned short k) const
-    {
-        // do we need negativity check?
-        return get_virtual_arrival(i, k) - cum_dep[i];
-    }
-
-    double get_density(size_type i) const
-    {
-        return static_cast<double>(get_waiting_vehicle_num_sq(i)) / (link->get_length() * link->get_lane_num());
-    }
-
-    /**
-     * @brief get waiting time in simulation interval
-     *
-     * @param i simulation interval
-     */
-    size_type get_waiting_time(size_type i) const
-    {
-        return waiting_time[to_minute(i)];
-    }
-
-    /**
-     * @brief get average waiting time in seconds
-     *
-     * @param i simulation interval
-     */
-    size_type get_avg_waiting_time(size_type i) const
-    {
-        auto delta = to_interval(1);
-        auto arr_rate = cum_arr[i + delta] - cum_arr[i];
-        return get_waiting_time(i) / std::max(static_cast<size_type>(1), arr_rate) * res;
-    }
-
     size_type get_cumulative_arrival(size_type i) const
     {
         return cum_arr[i];
@@ -1499,6 +1404,63 @@ public:
     size_type get_cumulative_departure(size_type i) const
     {
         return cum_dep[i];
+    }
+
+    double get_density(size_type i) const
+    {
+        return static_cast<double>(get_waiting_vehicle_num_sq(i)) / (link->get_length() * link->get_lane_num());
+    }
+
+    size_type get_entr_queue_front() const
+    {
+        return entr_queue.front();
+    }
+
+    size_type get_exit_queue_front() const
+    {
+        return exit_queue.front();
+    }
+
+    const Link* get_link() const
+    {
+        return link;
+    }
+
+    size_type get_queue(size_type i, unsigned short k) const
+    {
+        // do we need negativity check?
+        return get_virtual_arrival(i, k) - cum_dep[i];
+    }
+
+    size_type get_period_fftt_intvl(unsigned short k) const
+    {
+        return to_interval(link->get_period_fftt(k));
+    }
+
+    double get_period_travel_time(unsigned short k) const
+    {
+        return link->get_period_travel_time(k);
+    }
+
+    size_type get_outflow_cap(unsigned short i) const
+    {
+        return outflow_cap[i];
+    }
+
+    size_type get_spatial_capacity() const
+    {
+        return spatial_cap;
+    }
+
+    /**
+     * @brief get speed in mph (mile per hour)
+     *
+     * @param i simulation interval
+     * @param k index of demand period (i.e., demand period no)
+     */
+    double get_speed(size_type i, unsigned short k) const
+    {
+        return link->get_length() / get_travel_time(i, k) * MINUTES_IN_HOUR;
     }
 
     /**
@@ -1513,15 +1475,55 @@ public:
         return to_minute(tt_intvl) + get_avg_waiting_time(i) / SECONDS_IN_MINUTE;
     }
 
+    size_type get_virtual_arrival(size_type i, unsigned short k) const
+    {
+        auto tt = get_period_fftt_intvl(k);
+        if (i < tt)
+            return 0;
+
+        return cum_arr[i - tt];
+    }
+
+    size_type get_volume(size_type i) const
+    {
+        if (i <= to_interval(1))
+            return 0;
+
+        size_type delta = i - to_interval(1);
+        return cum_dep[i] - cum_dep[delta];
+    }
+
     /**
-     * @brief get speed in mph (mile per hour)
+     * @brief get average waiting time in seconds
      *
      * @param i simulation interval
-     * @param k index of demand period (i.e., demand period no)
      */
-    double get_speed(size_type i, unsigned short k) const
+    size_type get_avg_waiting_time(size_type i) const
     {
-        return link->get_length() / get_travel_time(i, k) * MINUTES_IN_HOUR;
+        auto delta = to_interval(1);
+        auto arr_rate = cum_arr[i + delta] - cum_arr[i];
+        return get_waiting_time(i) / std::max(static_cast<size_type>(1), arr_rate) * res;
+    }
+
+    /**
+     * @brief get waiting time in simulation interval
+     *
+     * @param i simulation interval
+     */
+    size_type get_waiting_time(size_type i) const
+    {
+        return waiting_time[to_minute(i)];
+    }
+
+    size_type get_waiting_vehicle_num_sq(size_type i) const
+    {
+        return cum_arr[i] - cum_dep[i];
+    }
+
+    size_type get_waiting_vehicle_num_kw(size_type i) const
+    {
+        auto delta = std::max(0, static_cast<int>(i - backwave_tt));
+        return cum_arr[i] - cum_dep[delta];
     }
 
 private:

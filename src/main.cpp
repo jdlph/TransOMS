@@ -49,7 +49,7 @@ int main()
     ts = high_resolution_clock::now();
 
     nh.output_columns();
-    // nh.output_link_performance();
+    // nh.output_link_performance_ue();
     // nh.output_trajectories();
 
     te = high_resolution_clock::now();
