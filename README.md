@@ -34,14 +34,66 @@ Extensive efforts have been or will be in place to ensure its appearance and per
 2. Eliminate unnecessary buffer flushing (i.e., use '\n' rather than std::endl).
 3. Use multithreading to boost the I/O-bounded processes.
 
-#### Others
-The **ongoing development** can be tracked through [Projects](https://github.com/users/jdlph/projects/2). Other potential enhancements are documented in [Refactoring](https://github.com/jdlph/DTALite#refactoring).
+> [!NOTE]
+> Other potential enhancements are documented in [Refactoring](https://github.com/jdlph/DTALite#refactoring).
+
+## Implementation Status
+
+The major functionalities and their implementation statuses are updated on an irregular basis. For the **ongoing development** and other backlogged / completed enhancement tasks, please see [Projects](https://github.com/users/jdlph/projects/2) for details.
+
+1. Cross-Platform Support
+   - [x] Windows (x86_64)
+   - [x] Linux (x86_64)
+   - [x] macOS (x86_64)
+   - [x] macOS (Apple Silicon)
+2. Path Engine
+   - [x] The deque implementation of the MLC algorithm
+   - [x] Heap-Dijkstra's algorithm
+   - [ ] A special min-heap that guarantees logarithmic time pop() to be used with heap-Dijkstra's algorithm
+3. User Equilibrium (UE)
+   - [x] Path-based UE using gradient projection
+   - [x] Elimination of ultra-low-volume columns
+   - [ ] An enhanced flow shifting scheme to further improve the convergency
+4. DTA
+   - [x] Simulation-based DTA
+     - [x] Point queue model
+     - [x] Spatial queue model
+     - [x] Kinematic wave model
+   - [ ] Analytical DTA
+5. ODME
+   - [ ] Load flow measurements from input
+   - [ ] ODME core scheme
+6. Parallelization
+   - [x] UE
+   - [ ] DTA
+7. Result Output
+   - UE flow assignment
+     - [x] columns.csv
+     - [ ] columns.json
+   - Link performance under UE
+     - [x] link_performance_ue.csv
+     - [ ] link_performance_ue.json
+   - Link performance under DTA
+     - [x] link_performance_dta.csv
+     - [ ] link_performance_dta.json
+   - Agent trajectory under DTA
+     - [x] trajectories.csv
+     - [ ] trajectories.json
+8. Others
+   - [x] Support of settings.yml
+   - [ ] Support of loading JSON input files
+
+## Benchmark
+
+coming soon!
 
 ## Build
 
-TransOMS is built on [C++17](https://en.cppreference.com/w/cpp/17) with [yaml-cpp](https://github.com/jbeder/yaml-cpp) parsing configuration file[^1] and [OpenMP](https://www.openmp.org/about/openmp-faq/#WhatIs) managing parallelization.
+TransOMS is built on [C++17](https://en.cppreference.com/w/cpp/17) with [yaml-cpp](https://github.com/jbeder/yaml-cpp) parsing configuration file and [OpenMP](https://www.openmp.org/about/openmp-faq/#WhatIs) managing parallelization.
 
-yaml-cpp is precompiled as a static library and embedded in [lib](lib/). OpenMP requires an additional runtime library. Its detailed installation instruction is summarized [here](https://path4gmns.readthedocs.io/en/latest/usecases.html#target-to-paragraph).
+> [!IMPORTANT]
+> yaml-cpp is precompiled as a static library and embedded in [lib](lib/). Make sure you use **Clang** as the complier for **macOS**. Using g++ will lead to **compatibility issue** with yaml-cpp, which is built using Clang.
+> OpenMP requires an additional runtime library. Its detailed installation instruction is summarized [here](https://path4gmns.readthedocs.io/en/latest/usecases.html#target-to-paragraph).
 
 The build process is defined in [CMakeLists.txt](CMakeLists.txt) along with the above dependency specifications. You will need [CMake](https://cmake.org/download/) (3.1.0 or higher) to build the executable by running the following commands.
 
@@ -64,10 +116,9 @@ $ cmake --build .
 ```
 
 Many modern IDEs or text editors (e.g., [VS Code](https://code.visualstudio.com/)) support CMake as an alterative build system, which offers an integrated experience of building, debugging, and testing a CMake project. If you want to take this advantage, a step-by-step tutorial on VS Code is listed [here](https://code.visualstudio.com/docs/cpp/cmake-linux#_create-a-cmake-hello-world-project). The comprehensive documentation can be retrieved on [GitHub](https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md).
-## Benchmark
-
-coming soon!
 
 ## Reference
 
-[^1]: TransOMS now supports Windows (x86_64), Linux (x86_64), macOS (x86_64), and Apple Silicon. Make sure you use **Clang** as the complier for **macOS**. Using g++ will lead to **compatibility issue** with yaml-cpp, which is built using Clang.
+1. Li, P. and Zhou, X. (2023, August 15). [Path4GMNS](https://github.com/jdlph/Path4GMNS). Retrieved from https://github.com/jdlph/Path4GMNS.
+2. Lu, C. C., Mahmassani, H. S., Zhou, X. (2009). Equivalent gap function-based reformulation and solution algorithm for the dynamic user equilibrium problem. Transportation Research Part B: Methodological, 43, 345-364.
+3. Jayakrishnan, R., Tsai, W. K., Prashker, J. N., Rajadyaksha, S. (1994). A Faster Path-Based Algorithm for Traffic Assignment (Working Paper UCTC No. 191). The University of California Transportation Center.

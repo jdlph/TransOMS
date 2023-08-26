@@ -1080,7 +1080,7 @@ void NetworkHandle::output_link_performance_dta(const std::string& dir, const st
 
         for (size_type t = 0, e = this->get_simulation_intervals(); t != e; ++t)
         {
-            if (t % num != 0)
+            if (t % num)
                 continue;
 
             if (t >= ub)
