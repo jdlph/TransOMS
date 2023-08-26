@@ -2,7 +2,7 @@
 
 TransOMS is a suite of **state-of-the-art** open-source applications for **Trans**portation **O**ptimization, **M**odeling, and **S**imulation, which brings the **cutting-edge** researches and the **enterprise-grade** implementations all together into one place.
 
-One of its major components is a *modern*, *cross-platform*, and *lightning-fast* **dynamic traffic assignment (DTA)** system. It features a complete redesign of [DTALite](https://github.com/asu-trans-ai-lab/DTALite) according to the deeply optimized [Path4GMNS](https://github.com/jdlph/Path4GMNS) using Modern C++ and enhancement to its core algorithms. Additional features are underway, including origin-destination demand estimation (ODME), fluid-queue-based analytical DTA, and more.
+One of its major components is a *modern*, *cross-platform*, and *lightning-fast* **dynamic traffic assignment (DTA)** system. It features a complete redesign of [DTALite](https://github.com/asu-trans-ai-lab/DTALite) using Modern C++ and enhancement to its core algorithms according to the deeply optimized [Path4GMNS](https://github.com/jdlph/Path4GMNS). Additional features are underway, including origin-destination demand estimation (ODME), fluid-queue-based analytical DTA, and more.
 
 ## Design
 
@@ -39,60 +39,61 @@ Extensive efforts have been or will be in place to ensure its appearance and per
 
 ## Implementation Status
 
-The major functionalities and their implementation statuses are updated on an irregular basis. For the **ongoing development** and other backlogged / completed enhancement tasks, please see [Projects](https://github.com/users/jdlph/projects/2) for details.
+The major functionalities and their implementation statuses are updated on an irregular basis. For the ongoing development and other backlogged / completed enhancement tasks, please see [Projects](https://github.com/users/jdlph/projects/2) for details.
 
 1. Cross-Platform Support
    - [x] Windows (x86_64)
    - [x] Linux (x86_64)
    - [x] macOS (x86_64)
    - [x] macOS (Apple Silicon)
-2. Path Engine
+2. Modern Configuration and Data Interchange Support
+   - [x] Support of YAML files (as configuration)
+   - [ ] Support of JSON files (as input and output files)
+3. Path Engine
    - [x] The deque implementation of the MLC algorithm
    - [x] Heap-Dijkstra's algorithm
    - [ ] A special min-heap that guarantees logarithmic time pop() to be used with heap-Dijkstra's algorithm
-3. User Equilibrium (UE)
+4. User Equilibrium (UE)
    - [x] Path-based UE using gradient projection
    - [x] Elimination of ultra-low-volume columns
    - [ ] An enhanced flow shifting scheme to further improve the convergency
-4. DTA
+5. DTA
    - [x] Simulation-based DTA
      - [x] Point queue model
      - [x] Spatial queue model
      - [x] Kinematic wave model
    - [ ] Analytical DTA
-5. ODME
+6. ODME
    - [ ] Load flow measurements from input
    - [ ] ODME core scheme
-6. Parallelization
-   - [x] UE
-   - [ ] DTA
 7. Result Output
-   - UE flow assignment
+   - [ ] UE flow assignment
      - [x] columns.csv
      - [ ] columns.json
-   - Link performance under UE
+   - [ ] Link performance under UE
      - [x] link_performance_ue.csv
      - [ ] link_performance_ue.json
-   - Link performance under DTA
+   - [ ] Link performance under DTA
      - [x] link_performance_dta.csv
      - [ ] link_performance_dta.json
-   - Agent trajectory under DTA
+   - [ ] Agent trajectory under DTA
      - [x] trajectories.csv
      - [ ] trajectories.json
-8. Others
-   - [x] Support of settings.yml
-   - [ ] Support of loading JSON input files
+7. Parallelization
+   - [x] UE
+   - [ ] DTA
 
 ## Benchmark
 
-coming soon!
+Coming soon!
 
 ## Build
 
 TransOMS is built on [C++17](https://en.cppreference.com/w/cpp/17) with [yaml-cpp](https://github.com/jbeder/yaml-cpp) parsing configuration file and [OpenMP](https://www.openmp.org/about/openmp-faq/#WhatIs) managing parallelization.
-
 > [!IMPORTANT]
 > yaml-cpp is precompiled as a static library and embedded in [lib](lib/). Make sure you use **Clang** as the complier for **macOS**. Using g++ will lead to **compatibility issue** with yaml-cpp, which is built using Clang.
+
+> [!IMPORTANT]
 > OpenMP requires an additional runtime library. Its detailed installation instruction is summarized [here](https://path4gmns.readthedocs.io/en/latest/usecases.html#target-to-paragraph).
 
 The build process is defined in [CMakeLists.txt](CMakeLists.txt) along with the above dependency specifications. You will need [CMake](https://cmake.org/download/) (3.1.0 or higher) to build the executable by running the following commands.
@@ -121,4 +122,3 @@ Many modern IDEs or text editors (e.g., [VS Code](https://code.visualstudio.com/
 
 1. Li, P. and Zhou, X. (2023, August 15). [Path4GMNS](https://github.com/jdlph/Path4GMNS). Retrieved from https://github.com/jdlph/Path4GMNS.
 2. Lu, C. C., Mahmassani, H. S., Zhou, X. (2009). Equivalent gap function-based reformulation and solution algorithm for the dynamic user equilibrium problem. Transportation Research Part B: Methodological, 43, 345-364.
-3. Jayakrishnan, R., Tsai, W. K., Prashker, J. N., Rajadyaksha, S. (1994). A Faster Path-Based Algorithm for Traffic Assignment (Working Paper UCTC No. 191). The University of California Transportation Center.
